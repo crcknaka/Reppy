@@ -289,23 +289,28 @@ export default function WorkoutDetail() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
+                {/* Table Header */}
+                <div className="grid grid-cols-[60px_1fr_1fr_40px] gap-2 px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">
+                  <div className="text-center">Подход</div>
+                  <div className="text-center">Повторений</div>
+                  <div className="text-center">Вес</div>
+                  <div></div>
+                </div>
+
+                {/* Table Rows */}
                 {sets.sort((a, b) => a.set_number - b.set_number).map((set) => (
                   <div
                     key={set.id}
-                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                    className="grid grid-cols-[60px_1fr_1fr_40px] gap-2 items-center p-3 bg-muted/50 rounded-lg"
                   >
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm font-medium text-muted-foreground w-24">
-                        Подход {set.set_number}
-                      </span>
-                      <span className="font-semibold text-foreground">
-                        {set.reps} повторений
-                      </span>
-                      {set.weight && (
-                        <span className="text-primary font-medium">
-                          {set.weight} кг
-                        </span>
-                      )}
+                    <div className="text-center font-bold text-foreground">
+                      {set.set_number}
+                    </div>
+                    <div className="text-center font-semibold text-foreground">
+                      {set.reps}
+                    </div>
+                    <div className="text-center font-medium text-primary">
+                      {set.weight ? `${set.weight} кг` : '—'}
                     </div>
                     <Button
                       variant="ghost"

@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -58,7 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
+    // Используем local scope чтобы избежать 403 ошибок при истекшей сессии
+    const { error } = await supabase.auth.signOut({ scope: 'local' });
     // Игнорируем ошибку "Auth session missing" - пользователь уже вышел
     if (error && error.message !== 'Auth session missing!') {
       throw error;

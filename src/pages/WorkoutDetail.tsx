@@ -82,6 +82,12 @@ export default function WorkoutDetail() {
       return;
     }
 
+    // Для упражнений с весом обязательно указывать вес
+    if (selectedExercise.type === "weighted" && !weight) {
+      toast.error("Для упражнений с отягощением необходимо указать вес");
+      return;
+    }
+
     const existingSets = setsByExercise[selectedExercise.id]?.sets.length || 0;
 
     try {
@@ -289,7 +295,7 @@ export default function WorkoutDetail() {
                     className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
                   >
                     <div className="flex items-center gap-4">
-                      <span className="text-sm font-medium text-muted-foreground w-16">
+                      <span className="text-sm font-medium text-muted-foreground w-24">
                         Подход {set.set_number}
                       </span>
                       <span className="font-semibold text-foreground">

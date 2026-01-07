@@ -6,27 +6,26 @@ type WorkoutSet = Tables<"workout_sets"> & {
 
 /**
  * Calculate volume for a workout set
- * For bodyweight exercises without weight, uses user's body weight
- * For weighted exercises, uses the recorded weight
+ * For weighted exercises only - bodyweight exercises don't count towards volume
  */
 export function calculateSetVolume(
   set: WorkoutSet,
   userBodyWeight?: number | null
 ): number {
   const exercise = set.exercise;
-  
-  // If weight is recorded, use it
+
+  // Bodyweight exercises don't contribute to volume calculation
+  if (exercise?.type === 'bodyweight') {
+    return 0;
+  }
+
+  // For weighted exercises, use the recorded weight
   if (set.weight) {
     return set.reps * set.weight;
   }
-  
-  // If it's a bodyweight exercise and user has body weight recorded
-  if (exercise?.type === 'bodyweight' && userBodyWeight) {
-    return set.reps * userBodyWeight;
-  }
-  
-  // Otherwise, volume is just reps (for bodyweight exercises without user weight)
-  return exercise?.type === 'bodyweight' ? set.reps : 0;
+
+  // No volume if no weight recorded for weighted exercise
+  return 0;
 }
 
 /**

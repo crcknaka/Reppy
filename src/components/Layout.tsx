@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Calendar, TrendingUp, ListPlus, LogOut, Activity, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,7 @@ const navItems = [
 export default function Layout({ children }: LayoutProps) {
   const { signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -55,11 +56,11 @@ export default function Layout({ children }: LayoutProps) {
       {/* Desktop Sidebar */}
       <aside className="fixed left-0 top-0 bottom-0 w-64 bg-card border-r border-border hidden md:flex flex-col">
         <div className="p-6 border-b border-border">
-          <div className="flex items-center justify-center">
-            <img 
-              src="/logo.jpg" 
-              alt="FitTrack Logo" 
-              className="max-h-16 rounded-lg object-contain"
+          <div className="flex items-center justify-center cursor-pointer" onClick={() => navigate("/")}>
+            <img
+              src="/logo.jpg"
+              alt="FitTrack Logo"
+              className="max-h-16 rounded-lg object-contain hover:opacity-80 transition-opacity"
             />
           </div>
         </div>

@@ -1,21 +1,24 @@
 import { useState, useMemo, useEffect } from "react";
 import { format, subDays, startOfMonth } from "date-fns";
 import { ru } from "date-fns/locale";
-import { Zap, BarChart3, Repeat, Plus, User } from "lucide-react";
+import { Zap, BarChart3, Repeat, Plus, User, Trophy, Medal } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useWorkouts } from "@/hooks/useWorkouts";
 import { useExercises } from "@/hooks/useExercises";
+import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { calculateTotalVolume } from "@/lib/volumeUtils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { pluralize } from "@/lib/pluralize";
+import { cn } from "@/lib/utils";
 
 export default function Progress() {
   const { data: workouts } = useWorkouts();
@@ -30,6 +33,14 @@ export default function Progress() {
   const [bodyWeightHistory, setBodyWeightHistory] = useState<Array<{ date: string; weight: number }>>([]);
   const [currentWeight, setCurrentWeight] = useState<number | null>(null);
   const [timeFilter, setTimeFilter] = useState<"7days" | "30days" | "month" | "all">("30days");
+  const [leaderboardExercise, setLeaderboardExercise] = useState<string>("Штанга лёжа");
+  const [leaderboardPeriod, setLeaderboardPeriod] = useState<"all" | "month">("all");
+
+  // Load leaderboard data
+  const { data: leaderboardData } = useLeaderboard(leaderboardExercise, leaderboardPeriod);
+
+  // Base exercises for leaderboard
+  const baseExercises = ["Штанга лёжа", "Приседания", "Подтягивания", "Отжимания"];
 
   // Load body weight history
   useEffect(() => {
@@ -563,6 +574,105 @@ export default function Progress() {
           </CardContent>
         </Card>
       )}
+
+      {/* Leaderboard */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-primary" />
+            ТОП-10 Пользователей
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Exercise selector */}
+          <div className="flex gap-3">
+            <Select value={leaderboardExercise} onValueChange={setLeaderboardExercise}>
+              <SelectTrigger className="flex-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {baseExercises.map((exercise) => (
+                  <SelectItem key={exercise} value={exercise}>
+                    {exercise}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={leaderboardPeriod} onValueChange={(v) => setLeaderboardPeriod(v as "all" | "month")}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">За всё время</SelectItem>
+                <SelectItem value="month">За этот месяц</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Leaderboard table */}
+          {leaderboardData && leaderboardData.length > 0 ? (
+            <div className="space-y-2">
+              {leaderboardData.map((entry, index) => (
+                <div
+                  key={entry.user_id}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-lg",
+                    index === 0 && "bg-yellow-500/10 border border-yellow-500/20",
+                    index === 1 && "bg-gray-400/10 border border-gray-400/20",
+                    index === 2 && "bg-orange-600/10 border border-orange-600/20",
+                    index > 2 && "bg-muted/30"
+                  )}
+                >
+                  {/* Rank */}
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted font-bold text-sm">
+                    {index === 0 && <Medal className="h-5 w-5 text-yellow-500" />}
+                    {index === 1 && <Medal className="h-5 w-5 text-gray-400" />}
+                    {index === 2 && <Medal className="h-5 w-5 text-orange-600" />}
+                    {index > 2 && <span>{index + 1}</span>}
+                  </div>
+
+                  {/* Avatar */}
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-2xl">
+                    {entry.avatar || "👤"}
+                  </div>
+
+                  {/* User info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-foreground truncate">
+                      {entry.display_name || "Аноним"}
+                    </div>
+                    <div className="text-xs text-muted-foreground flex gap-2">
+                      {entry.current_weight && <span>Вес: {entry.current_weight} кг</span>}
+                      {entry.height && <span>Рост: {entry.height} см</span>}
+                    </div>
+                  </div>
+
+                  {/* Stats */}
+                  <div className="text-right">
+                    <div className="font-bold text-lg text-foreground">
+                      {entry.max_weight > 0 ? `${entry.max_weight} кг` : `${entry.max_reps} повт.`}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Всего: {entry.total_reps} {pluralize(entry.total_reps, "повторение", "повторения", "повторений")}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="p-4 bg-muted rounded-full mb-4">
+                <Trophy className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-1">Нет данных</h3>
+              <p className="text-muted-foreground text-sm">
+                Пока никто не выполнял это упражнение
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

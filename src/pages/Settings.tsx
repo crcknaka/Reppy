@@ -74,12 +74,25 @@ export default function Settings() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent flex items-center gap-2">
-          <SettingsIcon className="h-8 w-8" />
-          Настройки
-        </h1>
-        <p className="text-muted-foreground text-base">Управление профилем</p>
+      <div className="flex items-center gap-4">
+        {/* Logo - Mobile only */}
+        <div className="md:hidden">
+          <img
+            src="/logo.jpg"
+            alt="FitTrack Logo"
+            className="rounded-lg object-contain"
+            style={{ height: '4rem', width: '11rem' }}
+          />
+        </div>
+
+        {/* Title and subtitle - aligned right on mobile */}
+        <div className="flex-1 space-y-1 md:text-left text-right">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent md:flex md:items-center md:gap-2">
+            <SettingsIcon className="h-8 w-8 hidden md:inline" />
+            Настройки
+          </h1>
+          <p className="text-muted-foreground text-base">Управление профилем</p>
+        </div>
       </div>
 
       <Card>

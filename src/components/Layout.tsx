@@ -59,7 +59,7 @@ export default function Layout({ children }: LayoutProps) {
             <img 
               src="/logo.jpg" 
               alt="FitTrack Logo" 
-              className="h-10 w-10 rounded-lg object-cover"
+              className="h-15 w-15 rounded-lg object-cover"
             />
             <span className="text-xl font-bold text-foreground">FitTrack</span>
           </div>

@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { calculateTotalVolume } from "@/lib/volumeUtils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { pluralize } from "@/lib/pluralize";
 
 export default function Progress() {
   const { data: workouts } = useWorkouts();
@@ -298,7 +299,7 @@ export default function Progress() {
             <CardContent className="pt-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <Repeat className="h-4 w-4" />
-                <span className="text-xs">Всего повторений</span>
+                <span className="text-xs">Всего {pluralize(stats.totalReps, "повторение", "повторения", "повторений")}</span>
               </div>
               <p className="text-2xl font-bold text-foreground">{stats.totalReps}</p>
               {stats.repsTrend !== 0 && (
@@ -325,7 +326,7 @@ export default function Progress() {
             <CardContent className="pt-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <Zap className="h-4 w-4" />
-                <span className="text-xs">Тренировок</span>
+                <span className="text-xs">{pluralize(stats.workoutCount, "Тренировка", "Тренировки", "Тренировок")}</span>
               </div>
               <p className="text-2xl font-bold text-foreground">{stats.workoutCount}</p>
             </CardContent>

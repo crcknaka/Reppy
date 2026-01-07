@@ -10,6 +10,7 @@ import { useWorkouts, useCreateWorkout, useDeleteWorkout } from "@/hooks/useWork
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { pluralizeWithCount } from "@/lib/pluralize";
 
 export default function Workouts() {
   const navigate = useNavigate();
@@ -134,7 +135,7 @@ export default function Workouts() {
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {getUniqueExercises(workout)} упражнений · {getTotalSets(workout)} подходов
+                    {pluralizeWithCount(getUniqueExercises(workout), "упражнение", "упражнения", "упражнений")} · {pluralizeWithCount(getTotalSets(workout), "подход", "подхода", "подходов")}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useWorkouts } from "@/hooks/useWorkouts";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { pluralizeWithCount } from "@/lib/pluralize";
 
 export default function CalendarPage() {
   const navigate = useNavigate();
@@ -190,7 +191,7 @@ export default function CalendarPage() {
                       <span className="font-medium">{exercise.name}</span>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {exercise.sets} подходов · {exercise.totalReps} повт.
+                      {pluralizeWithCount(exercise.sets, "подход", "подхода", "подходов")} · {pluralizeWithCount(exercise.totalReps, "повторение", "повторения", "повторений")}
                       {exercise.maxWeight > 0 && ` · ${exercise.maxWeight} кг`}
                     </div>
                   </div>

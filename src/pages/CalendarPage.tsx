@@ -42,9 +42,9 @@ export default function CalendarPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Календарь</h1>
-        <p className="text-muted-foreground">Обзор твоих тренировок</p>
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Календарь</h1>
+        <p className="text-muted-foreground text-base">Обзор твоих тренировок</p>
       </div>
 
       <Card>

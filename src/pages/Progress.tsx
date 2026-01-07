@@ -168,11 +168,16 @@ export default function Progress() {
     // Save to history
     const { error: historyError } = await supabase
       .from("body_weight_history")
-      .upsert({
-        user_id: user.id,
-        weight,
-        date: weightDate,
-      });
+      .upsert(
+        {
+          user_id: user.id,
+          weight,
+          date: weightDate,
+        },
+        {
+          onConflict: "user_id,date",
+        }
+      );
 
     if (historyError) {
       toast({
@@ -215,9 +220,9 @@ export default function Progress() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Прогресс</h1>
-          <p className="text-muted-foreground">Отслеживай свои достижения</p>
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Прогресс</h1>
+          <p className="text-muted-foreground text-base">Отслеживай свои достижения</p>
         </div>
         <Dialog open={isWeightDialogOpen} onOpenChange={setIsWeightDialogOpen}>
           <DialogTrigger asChild>

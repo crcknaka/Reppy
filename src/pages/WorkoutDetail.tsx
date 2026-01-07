@@ -138,11 +138,11 @@ export default function WorkoutDetail() {
         <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold text-foreground">
+        <div className="flex-1 space-y-1">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
             {format(new Date(workout.date), "d MMMM yyyy", { locale: ru })}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-base">
             {format(new Date(workout.date), "EEEE", { locale: ru })}
           </p>
         </div>

@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export interface WorkoutSet {
   id: string;
+  workout_id: string;
   exercise_id: string;
   set_number: number;
   reps: number;

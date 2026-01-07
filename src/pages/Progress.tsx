@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { format, subDays } from "date-fns";
+import { format, subDays, startOfMonth } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Zap, BarChart3, Repeat, Plus, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +29,7 @@ export default function Progress() {
   const [weightDate, setWeightDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [bodyWeightHistory, setBodyWeightHistory] = useState<Array<{ date: string; weight: number }>>([]);
   const [currentWeight, setCurrentWeight] = useState<number | null>(null);
+  const [timeFilter, setTimeFilter] = useState<"7days" | "30days" | "month" | "all">("30days");
 
   // Load body weight history
   useEffect(() => {
@@ -84,10 +85,28 @@ export default function Progress() {
   const chartData = useMemo(() => {
     if (!workouts) return [];
 
-    const last30Days = subDays(new Date(), 30);
+    let startDate: Date;
+    const today = new Date();
+
+    switch (timeFilter) {
+      case "7days":
+        startDate = subDays(today, 7);
+        break;
+      case "30days":
+        startDate = subDays(today, 30);
+        break;
+      case "month":
+        startDate = startOfMonth(today);
+        break;
+      case "all":
+        startDate = new Date(0); // Beginning of time
+        break;
+      default:
+        startDate = subDays(today, 30);
+    }
 
     const filteredWorkouts = workouts
-      .filter((w) => new Date(w.date) >= last30Days)
+      .filter((w) => new Date(w.date) >= startDate)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     return filteredWorkouts.map((workout) => {
@@ -110,7 +129,7 @@ export default function Progress() {
         sets: relevantSets.length,
       };
     });
-  }, [workouts, selectedExercise, exercises, currentWeight]);
+  }, [workouts, selectedExercise, exercises, currentWeight, timeFilter]);
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -142,16 +161,51 @@ export default function Progress() {
 
   const selectedExerciseData = exercises?.find((e) => e.id === selectedExercise);
 
+  // Get filter period text
+  const getFilterText = () => {
+    switch (timeFilter) {
+      case "7days":
+        return "за 7 дней";
+      case "30days":
+        return "за 30 дней";
+      case "month":
+        return "за месяц";
+      case "all":
+        return "за всё время";
+      default:
+        return "за 30 дней";
+    }
+  };
+
   // Prepare body weight chart data
   const bodyWeightChartData = useMemo(() => {
-    const last30Days = subDays(new Date(), 30);
+    let startDate: Date;
+    const today = new Date();
+
+    switch (timeFilter) {
+      case "7days":
+        startDate = subDays(today, 7);
+        break;
+      case "30days":
+        startDate = subDays(today, 30);
+        break;
+      case "month":
+        startDate = startOfMonth(today);
+        break;
+      case "all":
+        startDate = new Date(0);
+        break;
+      default:
+        startDate = subDays(today, 30);
+    }
+
     return bodyWeightHistory
-      .filter((w) => new Date(w.date) >= last30Days)
+      .filter((w) => new Date(w.date) >= startDate)
       .map((w) => ({
         date: format(new Date(w.date), "d MMM", { locale: ru }),
         weight: w.weight,
       }));
-  }, [bodyWeightHistory]);
+  }, [bodyWeightHistory, timeFilter]);
 
   const handleSaveWeight = async () => {
     if (!user || !newWeight) return;
@@ -228,30 +282,68 @@ export default function Progress() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3">
-        <Select value={selectedExercise} onValueChange={setSelectedExercise}>
-          <SelectTrigger className="flex-1">
-            <SelectValue placeholder="Все упражнения" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Все упражнения</SelectItem>
-            {usedExercises.map((exercise) => (
-              <SelectItem key={exercise.id} value={exercise.id}>
-                {exercise.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="space-y-3">
+        <div className="flex gap-3">
+          <Select value={selectedExercise} onValueChange={setSelectedExercise}>
+            <SelectTrigger className="flex-1">
+              <SelectValue placeholder="Все упражнения" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все упражнения</SelectItem>
+              {usedExercises.map((exercise) => (
+                <SelectItem key={exercise.id} value={exercise.id}>
+                  {exercise.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <Select value={metric} onValueChange={(v) => setMetric(v as "reps" | "weight")}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="reps">Повторения</SelectItem>
-            <SelectItem value="weight">Вес</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select value={metric} onValueChange={(v) => setMetric(v as "reps" | "weight")}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="reps">Повторения</SelectItem>
+              <SelectItem value="weight">Вес</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Time filter buttons */}
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            variant={timeFilter === "7days" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setTimeFilter("7days")}
+            className="text-xs"
+          >
+            За 7 дней
+          </Button>
+          <Button
+            variant={timeFilter === "30days" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setTimeFilter("30days")}
+            className="text-xs"
+          >
+            За 30 дней
+          </Button>
+          <Button
+            variant={timeFilter === "month" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setTimeFilter("month")}
+            className="text-xs"
+          >
+            Этот месяц
+          </Button>
+          <Button
+            variant={timeFilter === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setTimeFilter("all")}
+            className="text-xs"
+          >
+            За всё время
+          </Button>
+        </div>
       </div>
 
       {/* Stats cards */}
@@ -313,7 +405,7 @@ export default function Progress() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">
-            {metric === "reps" ? "Повторения" : "Максимальный вес"} за 30 дней
+            {metric === "reps" ? "Повторения" : "Максимальный вес"} {getFilterText()}
             {selectedExercise !== "all" && selectedExerciseData && (
               <span className="text-muted-foreground font-normal ml-2">
                 · {selectedExerciseData.name}
@@ -378,7 +470,7 @@ export default function Progress() {
             </div>
           ) : (
             <div className="h-64 flex items-center justify-center text-muted-foreground">
-              Нет данных за последние 30 дней
+              Нет данных {getFilterText()}
             </div>
           )}
         </CardContent>
@@ -465,7 +557,7 @@ export default function Progress() {
               </div>
             ) : (
               <div className="h-64 flex items-center justify-center text-muted-foreground">
-                Нет данных за последние 30 дней. Добавьте свой первый замер веса!
+                Нет данных {getFilterText()}. Добавьте свой первый замер веса!
               </div>
             )}
           </CardContent>

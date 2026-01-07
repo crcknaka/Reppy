@@ -8,6 +8,7 @@ export interface WorkoutSet {
   set_number: number;
   reps: number;
   weight: number | null;
+  created_at: string;
   exercise?: {
     id: string;
     name: string;
@@ -21,6 +22,7 @@ export interface Workout {
   date: string;
   notes: string | null;
   created_at: string;
+  updated_at: string;
   workout_sets?: WorkoutSet[];
 }
 

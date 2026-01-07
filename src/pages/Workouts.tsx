@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { format, isWithinInterval, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { ru } from "date-fns/locale";
-import { Plus, Calendar as CalendarIcon, Trash2, ChevronRight, MessageSquare, Filter, X } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, Trash2, ChevronRight, MessageSquare, Filter, X, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -328,6 +328,10 @@ export default function Workouts() {
                     </span>
                     <span className="text-xs px-2 py-0.5 bg-primary/10 text-primary rounded-full font-medium">
                       {format(new Date(workout.date), "EEEE", { locale: ru })}
+                    </span>
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" />
+                      {format(new Date(workout.updated_at), "HH:mm")}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">

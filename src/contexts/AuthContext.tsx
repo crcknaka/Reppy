@@ -59,7 +59,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    // Игнорируем ошибку "Auth session missing" - пользователь уже вышел
+    if (error && error.message !== 'Auth session missing!') {
+      throw error;
+    }
+    // Принудительно очищаем состояние на клиенте
+    setSession(null);
+    setUser(null);
   };
 
   return (

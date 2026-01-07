@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths } from "date-fns";
 import { ru } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, User } from "lucide-react";
+import { ChevronLeft, ChevronRight, User, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useWorkouts } from "@/hooks/useWorkouts";
@@ -196,6 +196,14 @@ export default function CalendarPage() {
                     </div>
                   </div>
                 ))}
+
+                {/* Workout notes */}
+                {selectedWorkout.notes && (
+                  <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg mt-3">
+                    <MessageSquare className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-muted-foreground line-clamp-2">{selectedWorkout.notes}</p>
+                  </div>
+                )}
               </div>
             ) : (
               <p className="text-muted-foreground text-sm text-center py-4">

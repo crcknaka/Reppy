@@ -2,14 +2,15 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { ArrowLeft, Plus, Trash2, User, Dumbbell, Weight } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, User, Dumbbell, Weight, MessageSquare, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useWorkouts, useAddSet, useDeleteSet } from "@/hooks/useWorkouts";
+import { Textarea } from "@/components/ui/textarea";
+import { useWorkouts, useAddSet, useDeleteSet, useUpdateWorkout } from "@/hooks/useWorkouts";
 import { useExercises, Exercise } from "@/hooks/useExercises";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +27,7 @@ export default function WorkoutDetail() {
   const { data: exercises } = useExercises();
   const addSet = useAddSet();
   const deleteSet = useDeleteSet();
+  const updateWorkout = useUpdateWorkout();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
@@ -33,8 +35,19 @@ export default function WorkoutDetail() {
   const [weight, setWeight] = useState("");
   const [currentWeight, setCurrentWeight] = useState<number | null>(null);
   const [exerciseTypeFilter, setExerciseTypeFilter] = useState<"all" | "bodyweight" | "weighted">("all");
+  const [notes, setNotes] = useState("");
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
 
   const workout = workouts?.find((w) => w.id === id);
+
+  // Load workout notes when workout changes
+  useEffect(() => {
+    if (workout?.notes) {
+      setNotes(workout.notes);
+    } else {
+      setNotes("");
+    }
+  }, [workout]);
 
   // Load user's current body weight
   useEffect(() => {
@@ -144,6 +157,21 @@ export default function WorkoutDetail() {
     }
   };
 
+  const handleSaveNotes = async () => {
+    if (!workout) return;
+
+    try {
+      await updateWorkout.mutateAsync({
+        workoutId: workout.id,
+        notes: notes.trim(),
+      });
+      setIsEditingNotes(false);
+      toast.success("Комментарий сохранен");
+    } catch (error) {
+      toast.error("Ошибка сохранения комментария");
+    }
+  };
+
   // Calculate total volume
   const totalVolume = workout.workout_sets 
     ? calculateTotalVolume(workout.workout_sets, currentWeight)
@@ -175,6 +203,64 @@ export default function WorkoutDetail() {
           </div>
         )}
       </div>
+
+      {/* Notes Card */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-primary" />
+              Комментарий к тренировке
+            </CardTitle>
+            {!isEditingNotes && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsEditingNotes(true)}
+              >
+                {notes ? "Редактировать" : "Добавить"}
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isEditingNotes ? (
+            <div className="space-y-3">
+              <Textarea
+                placeholder="Как прошла тренировка? Какие ощущения?"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={4}
+                className="resize-none"
+              />
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleSaveNotes}
+                  disabled={updateWorkout.isPending}
+                  className="flex-1"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Сохранить
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setNotes(workout?.notes || "");
+                    setIsEditingNotes(false);
+                  }}
+                  disabled={updateWorkout.isPending}
+                >
+                  Отмена
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-muted-foreground whitespace-pre-wrap">
+              {notes || "Комментариев пока нет"}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
         <DialogTrigger asChild>

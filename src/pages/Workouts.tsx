@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { Plus, Calendar as CalendarIcon, Trash2, ChevronRight } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, Trash2, ChevronRight, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -115,8 +115,8 @@ export default function Workouts() {
       ) : (
         <div className="space-y-3">
           {workouts?.map((workout, index) => (
-            <Card 
-              key={workout.id} 
+            <Card
+              key={workout.id}
               className={cn(
                 "cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/30",
                 "animate-fade-in"
@@ -125,7 +125,7 @@ export default function Workouts() {
               onClick={() => navigate(`/workout/${workout.id}`)}
             >
               <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-1">
                     <span className="font-semibold text-foreground">
                       {format(new Date(workout.date), "d MMMM yyyy", { locale: ru })}
@@ -137,8 +137,14 @@ export default function Workouts() {
                   <p className="text-sm text-muted-foreground">
                     {pluralizeWithCount(getUniqueExercises(workout), "упражнение", "упражнения", "упражнений")} · {pluralizeWithCount(getTotalSets(workout), "подход", "подхода", "подходов")}
                   </p>
+                  {workout.notes && (
+                    <div className="flex items-start gap-2 mt-2 text-sm text-muted-foreground">
+                      <MessageSquare className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                      <p className="line-clamp-2">{workout.notes}</p>
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 ml-4">
                   <Button
                     variant="ghost"
                     size="icon"

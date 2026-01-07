@@ -225,44 +225,6 @@ export default function Progress() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Прогресс</h1>
           <p className="text-muted-foreground text-base">Отслеживай свои достижения</p>
         </div>
-        <Dialog open={isWeightDialogOpen} onOpenChange={setIsWeightDialogOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-             Вес Тела
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Записать вес</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label htmlFor="weight">Вес тела (кг)</Label>
-                <Input
-                  id="weight"
-                  type="number"
-                  step="0.1"
-                  value={newWeight}
-                  onChange={(e) => setNewWeight(e.target.value)}
-                  placeholder="Введите вес"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="date">Дата</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={weightDate}
-                  onChange={(e) => setWeightDate(e.target.value)}
-                />
-              </div>
-              <Button onClick={handleSaveWeight} className="w-full">
-                Сохранить
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
 
       {/* Filters */}
@@ -421,6 +383,46 @@ export default function Progress() {
           )}
         </CardContent>
       </Card>
+
+      {/* Body Weight Button */}
+      <Dialog open={isWeightDialogOpen} onOpenChange={setIsWeightDialogOpen}>
+        <DialogTrigger asChild>
+          <Button className="w-full gap-2">
+            <Plus className="h-4 w-4" />
+            Вес Тела
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Записать вес</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="weight">Вес тела (кг)</Label>
+              <Input
+                id="weight"
+                type="number"
+                step="0.1"
+                value={newWeight}
+                onChange={(e) => setNewWeight(e.target.value)}
+                placeholder="Введите вес"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="date">Дата</Label>
+              <Input
+                id="date"
+                type="date"
+                value={weightDate}
+                onChange={(e) => setWeightDate(e.target.value)}
+              />
+            </div>
+            <Button onClick={handleSaveWeight} className="w-full">
+              Сохранить
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Body Weight Chart */}
       {currentWeight !== null && (

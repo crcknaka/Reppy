@@ -170,3 +170,24 @@ export function useDeleteSet() {
     },
   });
 }
+
+export function useUpdateWorkout() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ workoutId, notes }: { workoutId: string; notes: string }) => {
+      const { data, error } = await supabase
+        .from("workouts")
+        .update({ notes })
+        .eq("id", workoutId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workouts"] });
+    },
+  });
+}

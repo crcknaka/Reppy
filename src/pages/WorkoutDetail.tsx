@@ -273,20 +273,39 @@ export default function WorkoutDetail() {
       ) : (
         <div className="space-y-4">
           {Object.entries(setsByExercise).map(([exerciseId, { exercise, sets }], index) => (
-            <Card 
-              key={exerciseId} 
+            <Card
+              key={exerciseId}
               className="animate-fade-in"
               style={{ animationDelay: `${index * 50}ms` }}
             >
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  {exercise?.type === "weighted" ? (
-                    <Dumbbell className="h-5 w-5 text-primary" />
+                <div className="flex items-center justify-between gap-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    {exercise?.type === "weighted" ? (
+                      <Dumbbell className="h-5 w-5 text-primary" />
+                    ) : (
+                      <User className="h-5 w-5 text-primary" />
+                    )}
+                    {exercise?.name}
+                  </CardTitle>
+                  {exercise?.image_url ? (
+                    <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                      <img
+                        src={exercise.image_url}
+                        alt={exercise.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                   ) : (
-                    <User className="h-5 w-5 text-primary" />
+                    <div className="w-24 h-24 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                      {exercise?.type === "weighted" ? (
+                        <Dumbbell className="h-12 w-12 text-muted-foreground" />
+                      ) : (
+                        <User className="h-12 w-12 text-muted-foreground" />
+                      )}
+                    </div>
                   )}
-                  {exercise?.name}
-                </CardTitle>
+                </div>
               </CardHeader>
               <CardContent className="space-y-2">
                 {/* Table Header */}

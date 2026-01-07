@@ -12,6 +12,7 @@ export interface WorkoutSet {
     id: string;
     name: string;
     type: "bodyweight" | "weighted";
+    image_url?: string | null;
   };
 }
 
@@ -35,7 +36,7 @@ export function useWorkouts() {
           *,
           workout_sets (
             *,
-            exercise:exercises (id, name, type)
+            exercise:exercises (id, name, type, image_url)
           )
         `)
         .order("date", { ascending: false });
@@ -61,7 +62,7 @@ export function useWorkoutsByMonth(year: number, month: number) {
           *,
           workout_sets (
             *,
-            exercise:exercises (id, name, type)
+            exercise:exercises (id, name, type, image_url)
           )
         `)
         .gte("date", startDate)

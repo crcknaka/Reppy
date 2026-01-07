@@ -19,6 +19,7 @@ export default function Exercises() {
   const [name, setName] = useState("");
   const [type, setType] = useState<"bodyweight" | "weighted">("weighted");
   const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<"all" | "bodyweight" | "weighted">("all");
 
   const handleCreate = async () => {
     if (!name.trim()) {
@@ -46,9 +47,11 @@ export default function Exercises() {
     }
   };
 
-  const filteredExercises = exercises?.filter((e) =>
-    e.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredExercises = exercises?.filter((e) => {
+    const matchesSearch = e.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = typeFilter === "all" || e.type === typeFilter;
+    return matchesSearch && matchesType;
+  });
 
   const presetExercises = filteredExercises?.filter((e) => e.is_preset);
   const customExercises = filteredExercises?.filter((e) => !e.is_preset);
@@ -130,15 +133,37 @@ export default function Exercises() {
         </Dialog>
       </div>
 
-      {/* Modern Search */}
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-        <Input
-          placeholder="Поиск упражнений..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-12 h-12 text-base transition-all duration-300 focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm"
-        />
+      {/* Search and Filter */}
+      <div className="flex gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            placeholder="Поиск упражнений..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-12 h-12 text-base transition-all duration-300 focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm"
+          />
+        </div>
+        <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as "all" | "bodyweight" | "weighted")}>
+          <SelectTrigger className="w-[180px] h-12">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Все типы</SelectItem>
+            <SelectItem value="bodyweight">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Собственный вес
+              </div>
+            </SelectItem>
+            <SelectItem value="weighted">
+              <div className="flex items-center gap-2">
+                <Dumbbell className="h-4 w-4" />
+                С отягощением
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {isLoading ? (

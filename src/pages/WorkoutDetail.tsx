@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useWorkouts, useAddSet, useDeleteSet } from "@/hooks/useWorkouts";
 import { useExercises, Exercise } from "@/hooks/useExercises";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,6 +31,7 @@ export default function WorkoutDetail() {
   const [reps, setReps] = useState("");
   const [weight, setWeight] = useState("");
   const [currentWeight, setCurrentWeight] = useState<number | null>(null);
+  const [exerciseTypeFilter, setExerciseTypeFilter] = useState<"all" | "bodyweight" | "weighted">("all");
 
   const workout = workouts?.find((w) => w.id === id);
 
@@ -174,8 +176,33 @@ export default function WorkoutDetail() {
           </DialogHeader>
           
           {!selectedExercise ? (
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              {exercises?.map((exercise) => (
+            <>
+              {/* Filter */}
+              <div className="mt-4">
+                <Select value={exerciseTypeFilter} onValueChange={(v) => setExerciseTypeFilter(v as "all" | "bodyweight" | "weighted")}>
+                  <SelectTrigger className="w-full h-12">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Все типы</SelectItem>
+                    <SelectItem value="bodyweight">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        Собственный вес
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="weighted">
+                      <div className="flex items-center gap-2">
+                        <Dumbbell className="h-4 w-4" />
+                        С отягощением
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mt-4">
+              {exercises?.filter((e) => exerciseTypeFilter === "all" || e.type === exerciseTypeFilter).map((exercise) => (
                 <button
                   key={exercise.id}
                   onClick={() => setSelectedExercise(exercise)}
@@ -209,6 +236,7 @@ export default function WorkoutDetail() {
                 </button>
               ))}
             </div>
+            </>
           ) : (
             <div className="space-y-4 mt-4">
               <Button

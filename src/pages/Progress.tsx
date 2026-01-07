@@ -140,7 +140,7 @@ export default function Progress() {
         sets: relevantSets.length,
       };
     });
-  }, [workouts, selectedExercise, exercises, currentWeight, timeFilter]);
+  }, [workouts, selectedExercise, currentWeight, timeFilter]);
 
   // Calculate stats
   const stats = useMemo(() => {

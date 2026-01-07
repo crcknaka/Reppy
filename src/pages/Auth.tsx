@@ -38,8 +38,9 @@ export default function Auth() {
     try {
       await signIn(loginEmail, loginPassword);
       toast.success("Добро пожаловать!");
-    } catch (error: any) {
-      toast.error(error.message || "Ошибка входа");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Ошибка входа";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -51,8 +52,9 @@ export default function Auth() {
     try {
       await signUp(signupEmail, signupPassword, signupName);
       toast.success("Аккаунт создан! Проверьте вашу электронную почту для подтверждения.");
-    } catch (error: any) {
-      toast.error(error.message || "Ошибка регистрации");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Ошибка регистрации";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

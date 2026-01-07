@@ -83,15 +83,6 @@ export default function Exercises() {
   const presetExercises = filteredExercises?.filter((e) => e.is_preset);
   const customExercises = filteredExercises?.filter((e) => !e.is_preset);
 
-  // Debug: вывести упражнения с их image_url
-  if (presetExercises && presetExercises.length > 0) {
-    console.log('Preset exercises:', presetExercises.map(e => ({
-      name: e.name,
-      image_url: e.image_url,
-      has_image: !!e.image_url
-    })));
-  }
-
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Modern Header */}

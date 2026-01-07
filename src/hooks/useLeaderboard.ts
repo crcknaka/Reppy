@@ -14,6 +14,18 @@ export interface LeaderboardEntry {
   total_reps: number;
 }
 
+interface WorkoutSet {
+  weight: number | null;
+  reps: number | null;
+  workout: {
+    user_id: string;
+    date: string;
+  };
+  exercise: {
+    name: string;
+  };
+}
+
 export function useLeaderboard(
   exerciseName: string,
   timeFilter: "all" | "month" = "all"
@@ -49,10 +61,10 @@ export function useLeaderboard(
       if (error) throw error;
 
       // Filter by date if needed
-      let filteredSets = workoutSets || [];
+      let filteredSets: WorkoutSet[] = (workoutSets as WorkoutSet[]) || [];
       if (timeFilter === "month") {
         const monthStart = startOfMonth(new Date());
-        filteredSets = filteredSets.filter((set: any) => {
+        filteredSets = filteredSets.filter((set) => {
           const workoutDate = new Date(set.workout.date);
           return workoutDate >= monthStart;
         });
@@ -61,7 +73,7 @@ export function useLeaderboard(
       // Group by user and calculate max weight and total reps
       const userStats = new Map<string, { maxWeight: number; totalReps: number; maxReps: number }>();
 
-      filteredSets.forEach((set: any) => {
+      filteredSets.forEach((set) => {
         const userId = set.workout.user_id;
         const weight = set.weight || 0;
         const reps = set.reps || 0;

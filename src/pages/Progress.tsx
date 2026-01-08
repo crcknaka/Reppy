@@ -333,28 +333,6 @@ export default function Progress() {
               ))}
             </SelectContent>
           </Select>
-
-          {selectedExerciseData?.type === "cardio" ? (
-            <Select value={cardioMetric} onValueChange={(v) => setCardioMetric(v as "distance" | "duration")}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="distance">Дистанция</SelectItem>
-                <SelectItem value="duration">Время</SelectItem>
-              </SelectContent>
-            </Select>
-          ) : selectedExerciseData?.type !== "cardio" && (
-            <Select value={metric} onValueChange={(v) => setMetric(v as "reps" | "weight")}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="reps">Повторения</SelectItem>
-                <SelectItem value="weight">Вес</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
         </div>
 
         {/* Time filter buttons */}
@@ -483,75 +461,100 @@ export default function Progress() {
       )}
 
       {/* Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">
-            {selectedExerciseData?.type === "cardio"
-              ? cardioMetric === "distance"
-                ? "Дистанция (км)"
-                : "Время (мин)"
-              : metric === "reps"
-                ? "Повторения"
-                : "Максимальный вес"} {getFilterText()}
-            {selectedExercise !== "all" && selectedExerciseData && (
-              <span className="text-muted-foreground font-normal ml-2">
-                · {selectedExerciseData.name}
-              </span>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {chartData.length > 0 ? (
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                {selectedExerciseData?.type === "cardio" ? (
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fontSize: 12 }}
-                      className="text-muted-foreground"
-                    />
-                    <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "hsl(var(--card))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "8px",
-                      }}
-                    />
-                    <Bar
-                      dataKey={cardioMetric === "distance" ? "distance" : "duration"}
-                      fill="hsl(var(--primary))"
-                      radius={[4, 4, 0, 0]}
-                      name={cardioMetric === "distance" ? "Дистанция (км)" : "Время (мин)"}
-                    />
-                  </BarChart>
-                ) : metric === "reps" ? (
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fontSize: 12 }}
-                      className="text-muted-foreground"
-                    />
-                    <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "hsl(var(--card))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "8px",
-                      }}
-                    />
-                    <Bar
-                      dataKey="reps"
-                      fill="hsl(var(--primary))"
-                      radius={[4, 4, 0, 0]}
-                      name="Повторения"
-                    />
-                  </BarChart>
-                ) : (
-                  <LineChart data={chartData}>
+      {selectedExercise !== "all" && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-3">
+              <CardTitle className="text-lg">
+                {selectedExerciseData?.type === "cardio"
+                  ? cardioMetric === "distance"
+                    ? "Дистанция (км)"
+                    : "Время (мин)"
+                  : metric === "reps"
+                    ? "Повторения"
+                    : "Максимальный вес"} {getFilterText()}
+                {selectedExercise !== "all" && selectedExerciseData && (
+                  <span className="text-muted-foreground font-normal ml-2">
+                    · {selectedExerciseData.name}
+                  </span>
+                )}
+              </CardTitle>
+
+              {selectedExerciseData?.type === "cardio" ? (
+                <Select value={cardioMetric} onValueChange={(v) => setCardioMetric(v as "distance" | "duration")}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="distance">Дистанция</SelectItem>
+                    <SelectItem value="duration">Время</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : selectedExercise !== "all" && (
+                <Select value={metric} onValueChange={(v) => setMetric(v as "reps" | "weight")}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="reps">Повторения</SelectItem>
+                    <SelectItem value="weight">Вес</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {chartData.length > 0 ? (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  {selectedExerciseData?.type === "cardio" ? (
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 12 }}
+                        className="text-muted-foreground"
+                      />
+                      <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "8px",
+                        }}
+                      />
+                      <Bar
+                        dataKey={cardioMetric === "distance" ? "distance" : "duration"}
+                        fill="hsl(var(--primary))"
+                        radius={[4, 4, 0, 0]}
+                        name={cardioMetric === "distance" ? "Дистанция (км)" : "Время (мин)"}
+                      />
+                    </BarChart>
+                  ) : metric === "reps" ? (
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 12 }}
+                        className="text-muted-foreground"
+                      />
+                      <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "8px",
+                        }}
+                      />
+                      <Bar
+                        dataKey="reps"
+                        fill="hsl(var(--primary))"
+                        radius={[4, 4, 0, 0]}
+                        name="Повторения"
+                      />
+                    </BarChart>
+                  ) : (
+                    <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                     <XAxis
                       dataKey="date"
@@ -585,6 +588,7 @@ export default function Progress() {
           )}
         </CardContent>
       </Card>
+      )}
 
       {/* Leaderboard */}
       <Card>

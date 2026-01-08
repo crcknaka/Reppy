@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths } from "date-fns";
 import { ru } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, User, MessageSquare } from "lucide-react";
+import { ChevronLeft, ChevronRight, User, MessageSquare, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useWorkouts } from "@/hooks/useWorkouts";
@@ -172,27 +172,52 @@ export default function CalendarPage() {
                     if (!acc[exerciseId]) {
                       acc[exerciseId] = {
                         name: set.exercise?.name || "Упражнение",
+                        type: set.exercise?.type || "weighted",
                         sets: 0,
                         totalReps: 0,
                         maxWeight: 0,
+                        totalDistance: 0,
+                        totalDuration: 0,
                       };
                     }
                     acc[exerciseId].sets++;
-                    acc[exerciseId].totalReps += set.reps;
+                    acc[exerciseId].totalReps += set.reps || 0;
                     if (set.weight && set.weight > acc[exerciseId].maxWeight) {
                       acc[exerciseId].maxWeight = set.weight;
                     }
+                    acc[exerciseId].totalDistance += set.distance_km || 0;
+                    acc[exerciseId].totalDuration += set.duration_minutes || 0;
                     return acc;
-                  }, {} as Record<string, { name: string; sets: number; totalReps: number; maxWeight: number }>)
+                  }, {} as Record<string, {
+                    name: string;
+                    type: string;
+                    sets: number;
+                    totalReps: number;
+                    maxWeight: number;
+                    totalDistance: number;
+                    totalDuration: number;
+                  }>)
                 ).map((exercise, i) => (
                   <div key={i} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <User className="h-4 w-4 text-primary" />
+                      {exercise.type === "cardio" ? (
+                        <Activity className="h-4 w-4 text-primary" />
+                      ) : (
+                        <User className="h-4 w-4 text-primary" />
+                      )}
                       <span className="font-medium">{exercise.name}</span>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {pluralizeWithCount(exercise.sets, "подход", "подхода", "подходов")} · {pluralizeWithCount(exercise.totalReps, "повторение", "повторения", "повторений")}
-                      {exercise.maxWeight > 0 && ` · ${exercise.maxWeight} кг`}
+                      {exercise.type === "cardio" ? (
+                        <>
+                          {pluralizeWithCount(exercise.sets, "подход", "подхода", "подходов")} · {exercise.totalDistance.toFixed(1)} км · {exercise.totalDuration} мин
+                        </>
+                      ) : (
+                        <>
+                          {pluralizeWithCount(exercise.sets, "подход", "подхода", "подходов")} · {pluralizeWithCount(exercise.totalReps, "повторение", "повторения", "повторений")}
+                          {exercise.maxWeight > 0 && ` · ${exercise.maxWeight} кг`}
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}

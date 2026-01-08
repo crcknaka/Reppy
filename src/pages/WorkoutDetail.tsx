@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { ArrowLeft, Plus, Trash2, User, Dumbbell, MessageSquare, Save, Pencil, X, Activity, Timer, Camera, Loader2, ImageIcon } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, User, Dumbbell, MessageSquare, Save, Pencil, X, Activity, Timer, Camera, Loader2, ImageIcon, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -353,7 +353,12 @@ export default function WorkoutDetail() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Все типы</SelectItem>
+                    <SelectItem value="all">
+                      <div className="flex items-center gap-2">
+                        <LayoutGrid className="h-4 w-4" />
+                        Все типы
+                      </div>
+                    </SelectItem>
                     <SelectItem value="bodyweight">
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4" />
@@ -374,7 +379,7 @@ export default function WorkoutDetail() {
                     </SelectItem>
                     <SelectItem value="timed">
                       <div className="flex items-center gap-2">
-                        <Activity className="h-4 w-4" />
+                        <Timer className="h-4 w-4" />
                         На время
                       </div>
                     </SelectItem>

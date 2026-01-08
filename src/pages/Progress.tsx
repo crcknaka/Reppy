@@ -490,7 +490,7 @@ export default function Progress() {
                     <SelectItem value="duration">Время</SelectItem>
                   </SelectContent>
                 </Select>
-              ) : selectedExercise !== "all" && (
+              ) : selectedExerciseData?.type === "weighted" && (
                 <Select value={metric} onValueChange={(v) => setMetric(v as "reps" | "weight")}>
                   <SelectTrigger className="w-[140px]">
                     <SelectValue />

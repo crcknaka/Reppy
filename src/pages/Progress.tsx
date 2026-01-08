@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { format, subDays, startOfMonth } from "date-fns";
 import { ru } from "date-fns/locale";
-import { Zap, BarChart3, Repeat, Plus, User, Trophy, Medal } from "lucide-react";
+import { Zap, BarChart3, Repeat, Plus, User, Trophy, Medal, Activity } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,7 @@ export default function Progress() {
   const { data: leaderboardData } = useLeaderboard(leaderboardExercise, leaderboardPeriod);
 
   // Base exercises for leaderboard
-  const baseExercises = ["Штанга лёжа", "Приседания", "Подтягивания", "Отжимания"];
+  const baseExercises = ["Штанга лёжа", "Приседания", "Подтягивания", "Отжимания", "Бег"];
 
   // Load body weight history
   useEffect(() => {
@@ -127,7 +127,7 @@ export default function Progress() {
         relevantSets = relevantSets.filter((s) => s.exercise_id === selectedExercise);
       }
 
-      const totalReps = relevantSets.reduce((sum, s) => sum + s.reps, 0);
+      const totalReps = relevantSets.reduce((sum, s) => sum + (s.reps || 0), 0);
       const maxWeight = relevantSets.reduce((max, s) => Math.max(max, s.weight || 0), 0);
       const totalVolume = calculateTotalVolume(relevantSets, currentWeight);
 
@@ -160,6 +160,21 @@ export default function Progress() {
     const prev7Reps = prev7.reduce((sum, d) => sum + d.reps, 0);
     const repsTrend = prev7Reps > 0 ? ((last7Reps - prev7Reps) / prev7Reps) * 100 : 0;
 
+    // Кардио статистика
+    const totalDistance = workouts
+      ?.flatMap(w => w.workout_sets || [])
+      .filter(s => selectedExercise === "all" || s.exercise_id === selectedExercise)
+      .filter(s => s.distance_km !== null)
+      .reduce((sum, s) => sum + (s.distance_km || 0), 0) || 0;
+
+    const totalDurationMinutes = workouts
+      ?.flatMap(w => w.workout_sets || [])
+      .filter(s => selectedExercise === "all" || s.exercise_id === selectedExercise)
+      .filter(s => s.duration_minutes !== null)
+      .reduce((sum, s) => sum + (s.duration_minutes || 0), 0) || 0;
+
+    const totalDurationHours = totalDurationMinutes / 60;
+
     return {
       totalReps,
       totalSets,
@@ -167,8 +182,10 @@ export default function Progress() {
       totalVolume,
       workoutCount,
       repsTrend,
+      totalDistance,
+      totalDurationHours,
     };
-  }, [chartData]);
+  }, [chartData, workouts, selectedExercise]);
 
   const selectedExerciseData = exercises?.find((e) => e.id === selectedExercise);
 
@@ -409,6 +426,34 @@ export default function Progress() {
               <p className="text-xs text-muted-foreground">кг × повт.</p>
             </CardContent>
           </Card>
+
+          {stats.totalDistance > 0 && (
+            <Card>
+              <CardContent className="pt-4">
+                <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                  <Activity className="h-4 w-4" />
+                  <span className="text-xs">Всего пробежал</span>
+                </div>
+                <p className="text-2xl font-bold text-foreground">
+                  {stats.totalDistance.toFixed(1)} км
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {stats.totalDurationHours > 0 && (
+            <Card>
+              <CardContent className="pt-4">
+                <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                  <Activity className="h-4 w-4" />
+                  <span className="text-xs">Времени бегал</span>
+                </div>
+                <p className="text-2xl font-bold text-foreground">
+                  {stats.totalDurationHours.toFixed(2)} ч
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
 
@@ -654,10 +699,13 @@ export default function Progress() {
                   {/* Stats */}
                   <div className="text-right">
                     <div className="font-bold text-lg text-foreground">
-                      {entry.max_weight > 0 ? `${entry.max_weight} кг` : `${entry.max_reps} повт.`}
+                      {entry.max_distance > 0 ? `${entry.max_distance} км` :
+                       entry.max_weight > 0 ? `${entry.max_weight} кг` :
+                       `${entry.max_reps} повт.`}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Всего: {entry.total_reps} {pluralize(entry.total_reps, "повторение", "повторения", "повторений")}
+                      {entry.max_distance > 0 ? `Всего: ${entry.total_distance.toFixed(1)} км` :
+                       `Всего: ${entry.total_reps} ${pluralize(entry.total_reps, "повторение", "повторения", "повторений")}`}
                     </div>
                   </div>
                 </div>

@@ -7,13 +7,15 @@ export interface WorkoutSet {
   workout_id: string;
   exercise_id: string;
   set_number: number;
-  reps: number;
+  reps: number | null;
   weight: number | null;
+  distance_km: number | null;
+  duration_minutes: number | null;
   created_at: string;
   exercise?: {
     id: string;
     name: string;
-    type: "bodyweight" | "weighted";
+    type: "bodyweight" | "weighted" | "cardio";
     image_url?: string | null;
   };
 }
@@ -38,7 +40,15 @@ export function useWorkouts() {
         .select(`
           *,
           workout_sets (
-            *,
+            id,
+            workout_id,
+            exercise_id,
+            set_number,
+            reps,
+            weight,
+            distance_km,
+            duration_minutes,
+            created_at,
             exercise:exercises (id, name, type, image_url)
           )
         `)
@@ -65,7 +75,15 @@ export function useWorkoutsByMonth(year: number, month: number) {
         .select(`
           *,
           workout_sets (
-            *,
+            id,
+            workout_id,
+            exercise_id,
+            set_number,
+            reps,
+            weight,
+            distance_km,
+            duration_minutes,
+            created_at,
             exercise:exercises (id, name, type, image_url)
           )
         `)
@@ -130,12 +148,16 @@ export function useAddSet() {
       setNumber,
       reps,
       weight,
+      distance_km,
+      duration_minutes,
     }: {
       workoutId: string;
       exerciseId: string;
       setNumber: number;
-      reps: number;
+      reps?: number;
       weight?: number;
+      distance_km?: number;
+      duration_minutes?: number;
     }) => {
       const { data, error } = await supabase
         .from("workout_sets")
@@ -143,8 +165,10 @@ export function useAddSet() {
           workout_id: workoutId,
           exercise_id: exerciseId,
           set_number: setNumber,
-          reps,
+          reps: reps ?? null,
           weight: weight ?? null,
+          distance_km: distance_km ?? null,
+          duration_minutes: duration_minutes ?? null,
         })
         .select()
         .single();
@@ -184,16 +208,22 @@ export function useUpdateSet() {
       setId,
       reps,
       weight,
+      distance_km,
+      duration_minutes,
     }: {
       setId: string;
-      reps: number;
+      reps?: number | null;
       weight?: number | null;
+      distance_km?: number | null;
+      duration_minutes?: number | null;
     }) => {
       const { data, error } = await supabase
         .from("workout_sets")
         .update({
-          reps,
+          reps: reps ?? null,
           weight: weight ?? null,
+          distance_km: distance_km ?? null,
+          duration_minutes: duration_minutes ?? null,
         })
         .eq("id", setId)
         .select()

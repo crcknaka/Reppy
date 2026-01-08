@@ -6,7 +6,7 @@ type WorkoutSet = Tables<"workout_sets"> & {
 
 /**
  * Calculate volume for a workout set
- * For weighted exercises only - bodyweight exercises don't count towards volume
+ * For weighted exercises only - bodyweight and cardio exercises don't count towards volume
  */
 export function calculateSetVolume(
   set: WorkoutSet,
@@ -14,13 +14,13 @@ export function calculateSetVolume(
 ): number {
   const exercise = set.exercise;
 
-  // Bodyweight exercises don't contribute to volume calculation
-  if (exercise?.type === 'bodyweight') {
+  // Bodyweight and cardio exercises don't contribute to volume calculation
+  if (exercise?.type === 'bodyweight' || exercise?.type === 'cardio') {
     return 0;
   }
 
   // For weighted exercises, use the recorded weight
-  if (set.weight) {
+  if (set.weight && set.reps) {
     return set.reps * set.weight;
   }
 

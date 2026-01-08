@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
-import { ArrowLeft, Plus, Trash2, User, Dumbbell, Weight, MessageSquare, Save, Pencil, X } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, User, Dumbbell, Weight, MessageSquare, Save, Pencil, X, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -44,14 +44,18 @@ export default function WorkoutDetail() {
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [reps, setReps] = useState("");
   const [weight, setWeight] = useState("");
+  const [distance, setDistance] = useState("");
+  const [duration, setDuration] = useState("");
   const [currentWeight, setCurrentWeight] = useState<number | null>(null);
-  const [exerciseTypeFilter, setExerciseTypeFilter] = useState<"all" | "bodyweight" | "weighted">("all");
+  const [exerciseTypeFilter, setExerciseTypeFilter] = useState<"all" | "bodyweight" | "weighted" | "cardio">("all");
   const [notes, setNotes] = useState("");
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [setToDelete, setSetToDelete] = useState<string | null>(null);
   const [editingSetId, setEditingSetId] = useState<string | null>(null);
   const [editReps, setEditReps] = useState("");
   const [editWeight, setEditWeight] = useState("");
+  const [editDistance, setEditDistance] = useState("");
+  const [editDuration, setEditDuration] = useState("");
 
   const workout = workouts?.find((w) => w.id === id);
 
@@ -122,15 +126,39 @@ export default function WorkoutDetail() {
   }, {} as Record<string, { exercise: typeof workout.workout_sets[0]["exercise"]; sets: typeof workout.workout_sets }>) || {};
 
   const handleAddSet = async () => {
-    if (!selectedExercise || !reps) {
-      toast.error("Введи количество повторений");
+    if (!selectedExercise) {
+      toast.error("Выбери упражнение");
       return;
     }
 
-    // Для упражнений с весом обязательно указывать вес
-    if (selectedExercise.type === "weighted" && !weight) {
-      toast.error("Для упражнений с отягощением необходимо указать вес");
-      return;
+    // Валидация для кардио
+    if (selectedExercise.type === "cardio") {
+      if (!distance || !duration) {
+        toast.error("Для кардио упражнений необходимо указать дистанцию и время");
+        return;
+      }
+      const distanceNum = parseFloat(distance);
+      const durationNum = parseInt(duration);
+      if (isNaN(distanceNum) || distanceNum <= 0 || distanceNum > 500) {
+        toast.error("Дистанция должна быть от 0 до 500 км");
+        return;
+      }
+      if (isNaN(durationNum) || durationNum <= 0 || durationNum > 1440) {
+        toast.error("Время должно быть от 0 до 1440 минут");
+        return;
+      }
+    } else if (selectedExercise.type === "weighted") {
+      // Валидация для упражнений с весом
+      if (!reps || !weight) {
+        toast.error("Для упражнений с отягощением необходимо указать повторения и вес");
+        return;
+      }
+    } else if (selectedExercise.type === "bodyweight") {
+      // Валидация для собственного веса
+      if (!reps) {
+        toast.error("Введи количество повторений");
+        return;
+      }
     }
 
     const existingSets = setsByExercise[selectedExercise.id]?.sets.length || 0;
@@ -140,12 +168,16 @@ export default function WorkoutDetail() {
         workoutId: workout.id,
         exerciseId: selectedExercise.id,
         setNumber: existingSets + 1,
-        reps: parseInt(reps),
+        reps: reps ? parseInt(reps) : undefined,
         weight: weight ? parseFloat(weight) : undefined,
+        distance_km: distance ? parseFloat(distance) : undefined,
+        duration_minutes: duration ? parseInt(duration) : undefined,
       });
       toast.success("Подход добавлен!");
       setReps("");
       setWeight("");
+      setDistance("");
+      setDuration("");
       setSelectedExercise(null);
       setDialogOpen(false);
     } catch (error) {
@@ -160,6 +192,8 @@ export default function WorkoutDetail() {
       setSelectedExercise(null);
       setReps("");
       setWeight("");
+      setDistance("");
+      setDuration("");
     }
   };
 
@@ -180,23 +214,29 @@ export default function WorkoutDetail() {
 
   const handleEditSet = (set: any) => {
     setEditingSetId(set.id);
-    setEditReps(set.reps.toString());
+    setEditReps(set.reps?.toString() || "");
     setEditWeight(set.weight ? set.weight.toString() : "");
+    setEditDistance(set.distance_km ? set.distance_km.toString() : "");
+    setEditDuration(set.duration_minutes ? set.duration_minutes.toString() : "");
   };
 
   const handleSaveEdit = async () => {
-    if (!editingSetId || !editReps) return;
+    if (!editingSetId) return;
 
     try {
       await updateSet.mutateAsync({
         setId: editingSetId,
-        reps: parseInt(editReps),
+        reps: editReps ? parseInt(editReps) : null,
         weight: editWeight ? parseFloat(editWeight) : null,
+        distance_km: editDistance ? parseFloat(editDistance) : null,
+        duration_minutes: editDuration ? parseInt(editDuration) : null,
       });
       toast.success("Подход обновлен");
       setEditingSetId(null);
       setEditReps("");
       setEditWeight("");
+      setEditDistance("");
+      setEditDuration("");
     } catch (error) {
       toast.error("Ошибка обновления");
     }
@@ -276,7 +316,7 @@ export default function WorkoutDetail() {
             <>
               {/* Filter */}
               <div className="mt-4">
-                <Select value={exerciseTypeFilter} onValueChange={(v) => setExerciseTypeFilter(v as "all" | "bodyweight" | "weighted")}>
+                <Select value={exerciseTypeFilter} onValueChange={(v) => setExerciseTypeFilter(v as "all" | "bodyweight" | "weighted" | "cardio")}>
                   <SelectTrigger className="w-full h-12">
                     <SelectValue />
                   </SelectTrigger>
@@ -292,6 +332,12 @@ export default function WorkoutDetail() {
                       <div className="flex items-center gap-2">
                         <Dumbbell className="h-4 w-4" />
                         С отягощением
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="cardio">
+                      <div className="flex items-center gap-2">
+                        <Activity className="h-4 w-4" />
+                        Кардио
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -318,6 +364,8 @@ export default function WorkoutDetail() {
                       <div className="w-full aspect-[4/3] bg-muted flex items-center justify-center">
                         {exercise.type === "weighted" ? (
                           <Dumbbell className="h-12 w-12 text-muted-foreground" />
+                        ) : exercise.type === "cardio" ? (
+                          <Activity className="h-12 w-12 text-muted-foreground" />
                         ) : (
                           <User className="h-12 w-12 text-muted-foreground" />
                         )}
@@ -326,7 +374,9 @@ export default function WorkoutDetail() {
                     <div className="p-3 bg-card">
                       <p className="font-medium text-foreground text-center">{exercise.name}</p>
                       <p className="text-xs text-muted-foreground text-center">
-                        {exercise.type === "weighted" ? "С отягощением" : "Собственный вес"}
+                        {exercise.type === "weighted" ? "С отягощением" :
+                         exercise.type === "cardio" ? "Кардио" :
+                         "Собственный вес"}
                       </p>
                     </div>
                   </div>
@@ -346,30 +396,55 @@ export default function WorkoutDetail() {
                 Назад к упражнениям
               </Button>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Повторения</Label>
-                  <Input
-                    type="number"
-                    placeholder="8"
-                    value={reps}
-                    onChange={(e) => setReps(e.target.value)}
-                    autoFocus
-                  />
-                </div>
-                {selectedExercise.type === "weighted" && (
+              {selectedExercise.type === "cardio" ? (
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Вес (кг)</Label>
+                    <Label>Дистанция (км)</Label>
                     <Input
                       type="number"
-                      step="0.5"
-                      placeholder="18"
-                      value={weight}
-                      onChange={(e) => setWeight(e.target.value)}
+                      step="0.1"
+                      placeholder="5.5"
+                      value={distance}
+                      onChange={(e) => setDistance(e.target.value)}
+                      autoFocus
                     />
                   </div>
-                )}
-              </div>
+                  <div className="space-y-2">
+                    <Label>Время (мин)</Label>
+                    <Input
+                      type="number"
+                      placeholder="30"
+                      value={duration}
+                      onChange={(e) => setDuration(e.target.value)}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Повторения</Label>
+                    <Input
+                      type="number"
+                      placeholder="8"
+                      value={reps}
+                      onChange={(e) => setReps(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+                  {selectedExercise.type === "weighted" && (
+                    <div className="space-y-2">
+                      <Label>Вес (кг)</Label>
+                      <Input
+                        type="number"
+                        step="0.5"
+                        placeholder="18"
+                        value={weight}
+                        onChange={(e) => setWeight(e.target.value)}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
 
               <Button
                 className="w-full"
@@ -408,6 +483,8 @@ export default function WorkoutDetail() {
                   <CardTitle className="flex items-center gap-2 text-lg">
                     {exercise?.type === "weighted" ? (
                       <Dumbbell className="h-5 w-5 text-primary" />
+                    ) : exercise?.type === "cardio" ? (
+                      <Activity className="h-5 w-5 text-primary" />
                     ) : (
                       <User className="h-5 w-5 text-primary" />
                     )}
@@ -425,6 +502,8 @@ export default function WorkoutDetail() {
                     <div className="w-24 h-24 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
                       {exercise?.type === "weighted" ? (
                         <Dumbbell className="h-12 w-12 text-muted-foreground" />
+                      ) : exercise?.type === "cardio" ? (
+                        <Activity className="h-12 w-12 text-muted-foreground" />
                       ) : (
                         <User className="h-12 w-12 text-muted-foreground" />
                       )}
@@ -436,8 +515,12 @@ export default function WorkoutDetail() {
                 {/* Table Header */}
                 <div className="grid grid-cols-[60px_1fr_1fr_80px] gap-2 px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">
                   <div className="text-center">Подход</div>
-                  <div className="text-center">Повторений</div>
-                  <div className="text-center">Вес</div>
+                  <div className="text-center">
+                    {exercise?.type === "cardio" ? "Дистанция" : "Повторений"}
+                  </div>
+                  <div className="text-center">
+                    {exercise?.type === "cardio" ? "Время" : "Вес"}
+                  </div>
                   <div></div>
                 </div>
 
@@ -453,21 +536,44 @@ export default function WorkoutDetail() {
 
                     {editingSetId === set.id ? (
                       <>
-                        <Input
-                          type="number"
-                          value={editReps}
-                          onChange={(e) => setEditReps(e.target.value)}
-                          className="h-8 text-center"
-                          autoFocus
-                        />
-                        <Input
-                          type="number"
-                          step="0.5"
-                          value={editWeight}
-                          onChange={(e) => setEditWeight(e.target.value)}
-                          className="h-8 text-center"
-                          placeholder="—"
-                        />
+                        {exercise?.type === "cardio" ? (
+                          <>
+                            <Input
+                              type="number"
+                              step="0.1"
+                              value={editDistance}
+                              onChange={(e) => setEditDistance(e.target.value)}
+                              className="h-8 text-center"
+                              placeholder="км"
+                              autoFocus
+                            />
+                            <Input
+                              type="number"
+                              value={editDuration}
+                              onChange={(e) => setEditDuration(e.target.value)}
+                              className="h-8 text-center"
+                              placeholder="мин"
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <Input
+                              type="number"
+                              value={editReps}
+                              onChange={(e) => setEditReps(e.target.value)}
+                              className="h-8 text-center"
+                              autoFocus
+                            />
+                            <Input
+                              type="number"
+                              step="0.5"
+                              value={editWeight}
+                              onChange={(e) => setEditWeight(e.target.value)}
+                              className="h-8 text-center"
+                              placeholder="—"
+                            />
+                          </>
+                        )}
                         <div className="flex gap-1">
                           <Button
                             variant="ghost"
@@ -489,12 +595,25 @@ export default function WorkoutDetail() {
                       </>
                     ) : (
                       <>
-                        <div className="text-center font-semibold text-foreground">
-                          {set.reps}
-                        </div>
-                        <div className="text-center font-medium text-primary">
-                          {set.weight ? `${set.weight} кг` : '—'}
-                        </div>
+                        {exercise?.type === "cardio" ? (
+                          <>
+                            <div className="text-center font-semibold text-foreground">
+                              {set.distance_km ? `${set.distance_km} км` : '—'}
+                            </div>
+                            <div className="text-center font-medium text-primary">
+                              {set.duration_minutes ? `${set.duration_minutes} мин` : '—'}
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="text-center font-semibold text-foreground">
+                              {set.reps || '—'}
+                            </div>
+                            <div className="text-center font-medium text-primary">
+                              {set.weight ? `${set.weight} кг` : '—'}
+                            </div>
+                          </>
+                        )}
                         <div className="flex gap-1 justify-end">
                           <Button
                             variant="ghost"

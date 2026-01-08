@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, User, Dumbbell, Trash2, Search } from "lucide-react";
+import { Plus, User, Dumbbell, Trash2, Search, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,9 +33,9 @@ export default function Exercises() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [name, setName] = useState("");
-  const [type, setType] = useState<"bodyweight" | "weighted">("weighted");
+  const [type, setType] = useState<"bodyweight" | "weighted" | "cardio">("weighted");
   const [searchQuery, setSearchQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState<"all" | "bodyweight" | "weighted">("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "bodyweight" | "weighted" | "cardio">("all");
   const [exerciseToDelete, setExerciseToDelete] = useState<string | null>(null);
 
   const handleCreate = async () => {
@@ -138,7 +138,7 @@ export default function Exercises() {
                 <Label className="text-sm font-semibold">Тип</Label>
                 <Select
                   value={type}
-                  onValueChange={(v) => setType(v as "bodyweight" | "weighted")}
+                  onValueChange={(v) => setType(v as "bodyweight" | "weighted" | "cardio")}
                 >
                   <SelectTrigger className="h-11">
                     <SelectValue />
@@ -154,6 +154,12 @@ export default function Exercises() {
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4" />
                         Собственный вес (только повторения)
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="cardio">
+                      <div className="flex items-center gap-2">
+                        <Activity className="h-4 w-4" />
+                        Кардио (дистанция + время)
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -182,7 +188,7 @@ export default function Exercises() {
             className="pl-12 h-12 text-base transition-all duration-300 focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm"
           />
         </div>
-        <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as "all" | "bodyweight" | "weighted")}>
+        <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as "all" | "bodyweight" | "weighted" | "cardio")}>
           <SelectTrigger className="w-[180px] h-12">
             <SelectValue />
           </SelectTrigger>
@@ -198,6 +204,12 @@ export default function Exercises() {
               <div className="flex items-center gap-2">
                 <Dumbbell className="h-4 w-4" />
                 С отягощением
+              </div>
+            </SelectItem>
+            <SelectItem value="cardio">
+              <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4" />
+                Кардио
               </div>
             </SelectItem>
           </SelectContent>
@@ -245,6 +257,8 @@ export default function Exercises() {
                         <div className="w-full aspect-[4/3] rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
                           {exercise.type === "weighted" ? (
                             <Dumbbell className="h-14 w-14 text-primary" />
+                          ) : exercise.type === "cardio" ? (
+                            <Activity className="h-14 w-14 text-primary" />
                           ) : (
                             <User className="h-14 w-14 text-primary" />
                           )}
@@ -253,7 +267,7 @@ export default function Exercises() {
                       <div className="text-center">
                         <p className="font-bold text-foreground mb-1">{exercise.name}</p>
                         <p className="text-xs text-muted-foreground font-semibold">
-                          {exercise.type === "weighted" ? "С отягощением" : "Собственный вес"}
+                          {exercise.type === "weighted" ? "С отягощением" : exercise.type === "cardio" ? "Кардио" : "Собственный вес"}
                         </p>
                       </div>
                       <Button
@@ -306,6 +320,8 @@ export default function Exercises() {
                         <div className="w-full aspect-[4/3] rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
                           {exercise.type === "weighted" ? (
                             <Dumbbell className="h-14 w-14 text-muted-foreground" />
+                          ) : exercise.type === "cardio" ? (
+                            <Activity className="h-14 w-14 text-muted-foreground" />
                           ) : (
                             <User className="h-14 w-14 text-muted-foreground" />
                           )}
@@ -314,7 +330,7 @@ export default function Exercises() {
                       <div className="text-center">
                         <p className="font-bold text-foreground mb-1">{exercise.name}</p>
                         <p className="text-xs text-muted-foreground font-semibold">
-                          {exercise.type === "weighted" ? "С отягощением" : "Собственный вес"}
+                          {exercise.type === "weighted" ? "С отягощением" : exercise.type === "cardio" ? "Кардио" : "Собственный вес"}
                         </p>
                       </div>
                     </CardContent>

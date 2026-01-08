@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export interface Exercise {
   id: string;
   name: string;
-  type: "bodyweight" | "weighted";
+  type: "bodyweight" | "weighted" | "cardio";
   is_preset: boolean;
   image_url: string | null;
   user_id: string | null;
@@ -40,7 +40,7 @@ export function useCreateExercise() {
       type,
     }: {
       name: string;
-      type: "bodyweight" | "weighted";
+      type: "bodyweight" | "weighted" | "cardio";
     }) => {
       const { data, error } = await supabase
         .from("exercises")

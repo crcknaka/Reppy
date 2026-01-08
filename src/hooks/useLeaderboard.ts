@@ -12,11 +12,15 @@ export interface LeaderboardEntry {
   max_weight: number;
   max_reps: number;
   total_reps: number;
+  max_distance: number;
+  total_distance: number;
 }
 
 interface WorkoutSet {
   weight: number | null;
   reps: number | null;
+  distance_km: number | null;
+  duration_minutes: number | null;
   workout: {
     user_id: string;
     date: string;
@@ -40,13 +44,15 @@ export function useLeaderboard(
         dateFilter = `date >= '${monthStart}'`;
       }
 
-      // Query to get top 10 users by max weight/reps for a specific exercise
+      // Query to get top 10 users by max weight/reps/distance for a specific exercise
       const { data: workoutSets, error } = await supabase
         .from("workout_sets")
         .select(
           `
           weight,
           reps,
+          distance_km,
+          duration_minutes,
           workout:workouts!inner(
             user_id,
             date
@@ -70,21 +76,36 @@ export function useLeaderboard(
         });
       }
 
-      // Group by user and calculate max weight and total reps
-      const userStats = new Map<string, { maxWeight: number; totalReps: number; maxReps: number }>();
+      // Group by user and calculate max weight, total reps, max distance, total distance
+      const userStats = new Map<string, {
+        maxWeight: number;
+        totalReps: number;
+        maxReps: number;
+        maxDistance: number;
+        totalDistance: number;
+      }>();
 
       filteredSets.forEach((set) => {
         const userId = set.workout.user_id;
         const weight = set.weight || 0;
         const reps = set.reps || 0;
+        const distance = set.distance_km || 0;
 
         if (!userStats.has(userId)) {
-          userStats.set(userId, { maxWeight: weight, totalReps: reps, maxReps: reps });
+          userStats.set(userId, {
+            maxWeight: weight,
+            totalReps: reps,
+            maxReps: reps,
+            maxDistance: distance,
+            totalDistance: distance
+          });
         } else {
           const stats = userStats.get(userId)!;
           stats.maxWeight = Math.max(stats.maxWeight, weight);
           stats.maxReps = Math.max(stats.maxReps, reps);
           stats.totalReps += reps;
+          stats.maxDistance = Math.max(stats.maxDistance, distance);
+          stats.totalDistance += distance;
           userStats.set(userId, stats);
         }
       });
@@ -118,10 +139,16 @@ export function useLeaderboard(
             max_weight: stats?.maxWeight || 0,
             max_reps: stats?.maxReps || 0,
             total_reps: stats?.totalReps || 0,
+            max_distance: stats?.maxDistance || 0,
+            total_distance: stats?.totalDistance || 0,
           };
         })
-        // Sort by max weight if available, otherwise by max reps
+        // Sort by max distance (for cardio), max weight (for weighted), or max reps (for bodyweight)
         .sort((a, b) => {
+          // If there's distance data, prioritize and sort by distance
+          if (a.max_distance > 0 || b.max_distance > 0) {
+            return b.max_distance - a.max_distance;
+          }
           // If both have weight, sort by weight
           if (a.max_weight > 0 && b.max_weight > 0) {
             return b.max_weight - a.max_weight;

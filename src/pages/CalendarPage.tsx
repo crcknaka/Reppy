@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths } from "date-fns";
 import { ru } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, User, MessageSquare, Activity, Dumbbell, Timer } from "lucide-react";
+import { ChevronLeft, ChevronRight, User, MessageSquare, Activity, Dumbbell, Timer, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useWorkouts } from "@/hooks/useWorkouts";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { pluralizeWithCount } from "@/lib/pluralize";
 
 export default function CalendarPage() {
   const navigate = useNavigate();
@@ -41,6 +40,7 @@ export default function CalendarPage() {
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [openTooltipId, setOpenTooltipId] = useState<string | null>(null);
+  const [isPhotoFullscreen, setIsPhotoFullscreen] = useState(false);
   const selectedWorkout = selectedDate ? getWorkoutForDate(selectedDate) : null;
 
   return (
@@ -214,37 +214,32 @@ export default function CalendarPage() {
                   >
                     <TooltipTrigger asChild>
                       <div
-                        className="flex items-center justify-between p-3 bg-muted/50 rounded-lg cursor-pointer select-none"
+                        className="p-2.5 bg-muted/50 rounded-lg cursor-pointer select-none"
                         onClick={() => setOpenTooltipId(openTooltipId === `exercise-${i}` ? null : `exercise-${i}`)}
                       >
-                    <div className="flex items-center gap-3">
-                      {exercise.type === "cardio" ? (
-                        <Activity className="h-4 w-4 text-primary" />
-                      ) : exercise.type === "weighted" ? (
-                        <Dumbbell className="h-4 w-4 text-primary" />
-                      ) : exercise.type === "timed" ? (
-                        <Timer className="h-4 w-4 text-primary" />
-                      ) : (
-                        <User className="h-4 w-4 text-primary" />
-                      )}
-                      <span className="font-medium">{exercise.name}</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {exercise.type === "cardio" ? (
-                        <>
-                          {pluralizeWithCount(exercise.sets, "подход", "подхода", "подходов")} · {exercise.totalDistance.toFixed(1)} км · {exercise.totalDuration} мин
-                        </>
-                      ) : exercise.type === "timed" ? (
-                        <>
-                          {pluralizeWithCount(exercise.sets, "подход", "подхода", "подходов")} · {exercise.totalPlankSeconds} сек
-                        </>
-                      ) : (
-                        <>
-                          {pluralizeWithCount(exercise.sets, "подход", "подхода", "подходов")} · {pluralizeWithCount(exercise.totalReps, "повторение", "повторения", "повторений")}
-                          {exercise.maxWeight > 0 && ` · ${exercise.maxWeight} кг`}
-                        </>
-                      )}
-                    </div>
+                        <div className="flex items-center gap-2">
+                          {exercise.type === "cardio" ? (
+                            <Activity className="h-4 w-4 text-primary flex-shrink-0" />
+                          ) : exercise.type === "weighted" ? (
+                            <Dumbbell className="h-4 w-4 text-primary flex-shrink-0" />
+                          ) : exercise.type === "timed" ? (
+                            <Timer className="h-4 w-4 text-primary flex-shrink-0" />
+                          ) : (
+                            <User className="h-4 w-4 text-primary flex-shrink-0" />
+                          )}
+                          <span className="font-medium text-sm truncate">{exercise.name}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1 ml-6">
+                          {exercise.type === "cardio" ? (
+                            <>{exercise.sets} подх · {exercise.totalDistance.toFixed(1)} км · {exercise.totalDuration} мин</>
+                          ) : exercise.type === "timed" ? (
+                            <>{exercise.sets} подх · {exercise.totalPlankSeconds} сек</>
+                          ) : exercise.type === "bodyweight" ? (
+                            <>{exercise.sets} подх · {exercise.totalReps} повт</>
+                          ) : (
+                            <>{exercise.sets} подх · {exercise.totalReps} повт{exercise.maxWeight > 0 && ` · ${exercise.maxWeight} кг`}</>
+                          )}
+                        </div>
                       </div>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -256,9 +251,21 @@ export default function CalendarPage() {
 
                 {/* Workout notes */}
                 {selectedWorkout.notes && (
-                  <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg mt-3">
-                    <MessageSquare className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-muted-foreground line-clamp-2">{selectedWorkout.notes}</p>
+                  <div className="flex items-start gap-2 p-2.5 bg-muted/30 rounded-lg mt-2">
+                    <MessageSquare className="h-3.5 w-3.5 text-primary flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-muted-foreground line-clamp-2">{selectedWorkout.notes}</p>
+                  </div>
+                )}
+
+                {/* Photo */}
+                {selectedWorkout.photo_url && (
+                  <div className="mt-3">
+                    <img
+                      src={selectedWorkout.photo_url}
+                      alt=""
+                      className="w-full h-32 rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => setIsPhotoFullscreen(true)}
+                    />
                   </div>
                 )}
               </div>
@@ -269,6 +276,27 @@ export default function CalendarPage() {
             )}
           </CardContent>
         </Card>
+      )}
+
+      {/* Fullscreen Photo Viewer */}
+      {isPhotoFullscreen && selectedWorkout?.photo_url && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setIsPhotoFullscreen(false)}
+        >
+          <button
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+            onClick={() => setIsPhotoFullscreen(false)}
+          >
+            <X className="h-6 w-6 text-white" />
+          </button>
+          <img
+            src={selectedWorkout.photo_url}
+            alt=""
+            className="max-w-full max-h-full object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
       )}
     </div>
   );

@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { format, isWithinInterval, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { format, isWithinInterval, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, subMonths, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Plus, Calendar as CalendarIcon, Trash2, Filter, X, Dumbbell, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -72,6 +72,11 @@ export default function Workouts() {
   const getUniqueExercises = (workout: typeof workouts extends (infer T)[] | undefined ? T : never) => {
     const exerciseIds = new Set(workout?.workout_sets?.map(s => s.exercise_id));
     return exerciseIds.size;
+  };
+
+  const isWeekend = (dateStr: string) => {
+    const day = parseISO(dateStr).getDay();
+    return day === 0 || day === 6;
   };
 
   // Filter workouts by date range
@@ -358,7 +363,12 @@ export default function Workouts() {
                     <span className="font-medium text-foreground">
                       {format(new Date(workout.date), "d MMMM", { locale: ru })}
                     </span>
-                    <span className="text-xs px-1.5 py-0.5 bg-primary/10 text-primary rounded font-medium">
+                    <span className={cn(
+                      "text-xs px-1.5 py-0.5 rounded font-medium",
+                      isWeekend(workout.date)
+                        ? "bg-primary/10 text-primary"
+                        : "bg-sky-500/10 text-sky-600 dark:text-sky-400"
+                    )}>
                       {format(new Date(workout.date), "EEEE", { locale: ru })}
                     </span>
                   </div>

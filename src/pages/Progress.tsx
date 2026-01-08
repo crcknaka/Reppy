@@ -736,22 +736,22 @@ export default function Progress() {
                     <div className="font-semibold text-foreground truncate">
                       {entry.display_name || "Аноним"}
                     </div>
-                    <div className="text-xs text-muted-foreground flex gap-2">
-                      {entry.current_weight && <span>Вес: {entry.current_weight} кг</span>}
-                      {entry.height && <span>Рост: {entry.height} см</span>}
+                    <div className="text-xs text-muted-foreground flex flex-wrap gap-x-2 gap-y-0.5">
+                      {entry.current_weight && <span className="whitespace-nowrap">Вес: {entry.current_weight} кг</span>}
+                      {entry.height && <span className="whitespace-nowrap">Рост: {entry.height} см</span>}
                     </div>
                   </div>
 
                   {/* Stats */}
-                  <div className="text-right">
-                    <div className="font-bold text-lg text-foreground">
+                  <div className="text-right shrink-0 ml-2">
+                    <div className="font-bold text-base sm:text-lg text-foreground whitespace-nowrap">
                       {entry.max_distance > 0 ? `${entry.max_distance} км` :
                        entry.max_weight > 0 ? `${entry.max_weight} кг` :
-                       `${entry.max_reps} повт.`}
+                       `${entry.max_reps} раз.`}
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground whitespace-nowrap">
                       {entry.max_distance > 0 ? `Всего: ${entry.total_distance.toFixed(1)} км` :
-                       `Всего: ${entry.total_reps} ${pluralize(entry.total_reps, "повторение", "повторения", "повторений")}`}
+                       `Всего: ${entry.total_reps} ${pluralize(entry.total_reps, "раз", "раза", "раз")}`}
                     </div>
                   </div>
                 </div>

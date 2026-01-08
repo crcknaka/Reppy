@@ -367,7 +367,7 @@ export default function Progress() {
             onClick={() => setTimeFilter("7days")}
             className="text-xs"
           >
-            За 7 дней
+            7 дней
           </Button>
           <Button
             variant={timeFilter === "30days" ? "default" : "outline"}
@@ -375,7 +375,7 @@ export default function Progress() {
             onClick={() => setTimeFilter("30days")}
             className="text-xs"
           >
-            За 30 дней
+            30 дней
           </Button>
           <Button
             variant={timeFilter === "month" ? "default" : "outline"}
@@ -383,7 +383,7 @@ export default function Progress() {
             onClick={() => setTimeFilter("month")}
             className="text-xs"
           >
-            Этот месяц
+            Месяц
           </Button>
           <Button
             variant={timeFilter === "all" ? "default" : "outline"}
@@ -391,7 +391,7 @@ export default function Progress() {
             onClick={() => setTimeFilter("all")}
             className="text-xs"
           >
-            За всё время
+            Всё время
           </Button>
         </div>
       </div>
@@ -506,7 +506,7 @@ export default function Progress() {
               <CardContent className="pt-4">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
                   <Clock className="h-4 w-4" />
-                  <span className="text-xs">Планка (время)</span>
+                  <span className="text-xs">Стоял в планке</span>
                 </div>
                 <p className="text-2xl font-bold text-foreground">
                   {stats.totalPlankSeconds >= 3600

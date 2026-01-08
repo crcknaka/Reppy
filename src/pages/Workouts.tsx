@@ -179,7 +179,7 @@ export default function Workouts() {
                 "bg-primary text-primary-foreground hover:bg-primary/90"
             )}
           >
-            За 7 дней
+            7 дней
           </Button>
           <Button
             variant="outline"
@@ -194,7 +194,7 @@ export default function Workouts() {
                 "bg-primary text-primary-foreground hover:bg-primary/90"
             )}
           >
-            За 30 дней
+            30 дней
           </Button>
           <Button
             variant="outline"
@@ -235,7 +235,7 @@ export default function Workouts() {
                 className="gap-2 text-xs"
               >
                 <CalendarIcon className="h-3.5 w-3.5" />
-                Выбрать период
+                Период
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">

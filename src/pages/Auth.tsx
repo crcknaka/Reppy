@@ -10,8 +10,10 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Auth() {
-  const { user, signIn, signUp, loading: authLoading } = useAuth();
+  const { user, signIn, signUp, resetPassword, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
 
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -59,6 +61,79 @@ export default function Auth() {
       setLoading(false);
     }
   };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotPasswordEmail) {
+      toast.error("Введите email");
+      return;
+    }
+    setLoading(true);
+    try {
+      await resetPassword(forgotPasswordEmail);
+      toast.success("Письмо для сброса пароля отправлено! Проверьте почту.");
+      setShowForgotPassword(false);
+      setForgotPasswordEmail("");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Ошибка отправки письма";
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Forgot password form
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="w-full max-w-md animate-fade-in">
+          <div className="flex items-center justify-center mb-8">
+            <img
+              src="/logo.jpg"
+              alt="FitTrack Logo"
+              className="max-h-20 rounded-xl object-contain"
+            />
+          </div>
+
+          <Card className="border-border/50 shadow-lg">
+            <CardHeader className="text-center">
+              <CardTitle className="text-xl">Восстановление пароля</CardTitle>
+              <CardDescription>
+                Введите email, и мы отправим ссылку для сброса пароля
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="forgot-email">Email</Label>
+                  <Input
+                    id="forgot-email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={forgotPasswordEmail}
+                    onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Отправить ссылку
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => setShowForgotPassword(false)}
+                >
+                  Назад к входу
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -113,6 +188,13 @@ export default function Auth() {
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Войти
                   </Button>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="w-full text-sm text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Забыли пароль?
+                  </button>
                 </form>
               </TabsContent>
 

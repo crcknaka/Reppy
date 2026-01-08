@@ -12,6 +12,7 @@ import CalendarPage from "@/pages/CalendarPage";
 import Progress from "@/pages/Progress";
 import Exercises from "@/pages/Exercises";
 import Settings from "@/pages/Settings";
+import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "@/pages/NotFound";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
@@ -58,6 +59,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/auth" element={<Auth />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route
         path="/"
         element={

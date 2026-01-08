@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { User, Save } from "lucide-react";
+import { User, Save, LogOut, Lock } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +21,7 @@ const AVATARS = [
 export default function Settings() {
   const { data: profile, isLoading } = useProfile();
   const updateProfile = useUpdateProfile();
+  const { signOut, updatePassword } = useAuth();
 
   const [displayName, setDisplayName] = useState("");
   const [gender, setGender] = useState<"male" | "female" | "other" | "none">("none");
@@ -28,6 +30,11 @@ export default function Settings() {
   const [currentWeight, setCurrentWeight] = useState("");
   const [avatar, setAvatar] = useState("");
   const [isSkuf, setIsSkuf] = useState(false);
+
+  // Password change state
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   // Load profile data when it's available
   useEffect(() => {
@@ -56,6 +63,33 @@ export default function Settings() {
       toast.success("Профиль обновлен");
     } catch (error) {
       toast.error("Ошибка сохранения профиля");
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      toast.error("Заполните оба поля");
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error("Пароль должен быть минимум 6 символов");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Пароли не совпадают");
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      await updatePassword(newPassword);
+      toast.success("Пароль успешно изменен");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Ошибка смены пароля";
+      toast.error(errorMessage);
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -231,6 +265,59 @@ export default function Settings() {
         </div>
         </CardContent>
       </Card>
+
+      {/* Change Password Card */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Lock className="h-5 w-5 text-primary" />
+            Сменить пароль
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">Новый пароль</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                placeholder="Минимум 6 символов"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Подтвердите пароль</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Повторите пароль"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+            <Button
+              onClick={handleChangePassword}
+              disabled={passwordLoading}
+              variant="secondary"
+              className="w-full gap-2"
+            >
+              <Lock className="h-4 w-4" />
+              {passwordLoading ? "Сохранение..." : "Изменить пароль"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Logout Button */}
+      <Button
+        variant="outline"
+        onClick={signOut}
+        className="w-full gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+      >
+        <LogOut className="h-4 w-4" />
+        Выйти из аккаунта
+      </Button>
     </div>
   );
 }

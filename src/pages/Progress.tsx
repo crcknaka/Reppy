@@ -403,7 +403,7 @@ export default function Progress() {
             </Card>
           )}
 
-          {selectedExerciseData?.type !== "bodyweight" && selectedExerciseData?.type !== "cardio" && (
+          {selectedExerciseData?.type !== "bodyweight" && selectedExerciseData?.type !== "cardio" && selectedExerciseData?.type !== "timed" && (
             <Card>
               <CardContent className="pt-4">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -427,7 +427,7 @@ export default function Progress() {
             </CardContent>
           </Card>
 
-          {selectedExerciseData?.type !== "bodyweight" && selectedExerciseData?.type !== "cardio" && (
+          {selectedExerciseData?.type !== "bodyweight" && selectedExerciseData?.type !== "cardio" && selectedExerciseData?.type !== "timed" && (
             <Card>
               <CardContent className="pt-4">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -455,7 +455,7 @@ export default function Progress() {
             </Card>
           )}
 
-          {stats.totalDurationHours > 0 && selectedExerciseData?.type === "cardio" && (
+          {stats.totalDurationHours > 0 && (selectedExerciseData?.type === "cardio" || selectedExercise === "all") && (
             <Card>
               <CardContent className="pt-4">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -469,12 +469,12 @@ export default function Progress() {
             </Card>
           )}
 
-          {selectedExerciseData?.type === "timed" && stats.totalPlankSeconds > 0 && (
+          {stats.totalPlankSeconds > 0 && (selectedExerciseData?.type === "timed" || selectedExercise === "all") && (
             <Card>
               <CardContent className="pt-4">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
                   <Clock className="h-4 w-4" />
-                  <span className="text-xs">Общее время</span>
+                  <span className="text-xs">Планка (время)</span>
                 </div>
                 <p className="text-2xl font-bold text-foreground">
                   {stats.totalPlankSeconds} сек

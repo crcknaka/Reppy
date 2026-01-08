@@ -29,6 +29,19 @@ WHERE NOT EXISTS (
   SELECT 1 FROM public.exercises WHERE name = 'Планка' AND is_preset = true
 );
 
+-- ШАГ 5: Исправляем constraint для поддержки планки
+-- Удаляем старый constraint который требует оба поля кардио
+ALTER TABLE public.workout_sets DROP CONSTRAINT IF EXISTS workout_sets_cardio_check;
+
+-- Создаем новый constraint: кардио поля должны быть либо оба заполнены, либо оба пустые
+ALTER TABLE public.workout_sets ADD CONSTRAINT workout_sets_cardio_check
+CHECK (
+  -- Либо оба поля кардио заполнены вместе
+  (distance_km IS NOT NULL AND duration_minutes IS NOT NULL)
+  -- Либо оба поля кардио пустые
+  OR (distance_km IS NULL AND duration_minutes IS NULL)
+);
+
 -- ============================================
 -- ПРОВЕРКА РЕЗУЛЬТАТОВ
 -- ============================================

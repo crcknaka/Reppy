@@ -155,7 +155,10 @@ export default function Progress() {
     const totalSets = chartData.reduce((sum, d) => sum + d.sets, 0);
     const maxWeight = Math.max(...chartData.map((d) => d.weight));
     const totalVolume = chartData.reduce((sum, d) => sum + d.volume, 0);
-    const workoutCount = chartData.length;
+    // Count only workouts where the exercise was actually performed (has sets)
+    const workoutCount = selectedExercise === "all"
+      ? chartData.length
+      : chartData.filter(d => d.sets > 0).length;
 
     // Calculate trend (last 7 vs previous 7)
     const last7 = chartData.slice(-7);

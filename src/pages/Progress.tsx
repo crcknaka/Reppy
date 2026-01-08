@@ -35,7 +35,7 @@ export default function Progress() {
   const [currentWeight, setCurrentWeight] = useState<number | null>(null);
   const [timeFilter, setTimeFilter] = useState<"today" | "7days" | "30days" | "month" | "all">("30days");
   const [leaderboardExercise, setLeaderboardExercise] = useState<string>("Штанга лёжа");
-  const [leaderboardPeriod, setLeaderboardPeriod] = useState<"all" | "month">("all");
+  const [leaderboardPeriod, setLeaderboardPeriod] = useState<"all" | "month" | "today">("all");
 
   // Load leaderboard data
   const { data: leaderboardData } = useLeaderboard(leaderboardExercise, leaderboardPeriod);
@@ -184,27 +184,13 @@ export default function Progress() {
     const prev7Reps = prev7.reduce((sum, d) => sum + d.reps, 0);
     const repsTrend = prev7Reps > 0 ? ((last7Reps - prev7Reps) / prev7Reps) * 100 : 0;
 
-    // Кардио статистика
-    const totalDistance = workouts
-      ?.flatMap(w => w.workout_sets || [])
-      .filter(s => selectedExercise === "all" || s.exercise_id === selectedExercise)
-      .filter(s => s.distance_km !== null)
-      .reduce((sum, s) => sum + (s.distance_km || 0), 0) || 0;
-
-    const totalDurationMinutes = workouts
-      ?.flatMap(w => w.workout_sets || [])
-      .filter(s => selectedExercise === "all" || s.exercise_id === selectedExercise)
-      .filter(s => s.duration_minutes !== null)
-      .reduce((sum, s) => sum + (s.duration_minutes || 0), 0) || 0;
-
+    // Кардио статистика - используем chartData который уже отфильтрован по времени
+    const totalDistance = chartData.reduce((sum, d) => sum + d.distance, 0);
+    const totalDurationMinutes = chartData.reduce((sum, d) => sum + d.duration, 0);
     const totalDurationHours = totalDurationMinutes / 60;
 
-    // Для timed упражнений (планка) - подсчитать секунды
-    const totalPlankSeconds = workouts
-      ?.flatMap(w => w.workout_sets || [])
-      .filter(s => selectedExercise === "all" || s.exercise_id === selectedExercise)
-      .filter(s => s.plank_seconds !== null)
-      .reduce((sum, s) => sum + (s.plank_seconds || 0), 0) || 0;
+    // Для timed упражнений (планка) - подсчитать секунды из chartData
+    const totalPlankSeconds = chartData.reduce((sum, d) => sum + d.plankTime, 0);
 
     return {
       totalReps,
@@ -218,7 +204,7 @@ export default function Progress() {
       totalDurationMinutes,
       totalPlankSeconds,
     };
-  }, [chartData, workouts, selectedExercise]);
+  }, [chartData, selectedExercise]);
 
   const selectedExerciseData = exercises?.find((e) => e.id === selectedExercise);
 
@@ -482,7 +468,7 @@ export default function Progress() {
             </Card>
           )}
 
-          {stats.totalDurationHours > 0 && (selectedExerciseData?.type === "cardio" || selectedExercise === "all") && (
+          {stats.totalDurationMinutes > 0 && (selectedExerciseData?.type === "cardio" || selectedExercise === "all") && (
             <Card>
               <CardContent className="pt-4">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -490,7 +476,9 @@ export default function Progress() {
                   <span className="text-xs">Времени бегал</span>
                 </div>
                 <p className="text-2xl font-bold text-foreground">
-                  {stats.totalDurationHours.toFixed(2)} ч
+                  {stats.totalDurationMinutes >= 60
+                    ? `${stats.totalDurationHours.toFixed(2)} ч`
+                    : `${stats.totalDurationMinutes.toFixed(0)} мин`}
                 </p>
               </CardContent>
             </Card>
@@ -504,7 +492,9 @@ export default function Progress() {
                   <span className="text-xs">Планка (время)</span>
                 </div>
                 <p className="text-2xl font-bold text-foreground">
-                  {stats.totalPlankSeconds} сек
+                  {stats.totalPlankSeconds >= 3600
+                    ? `${(stats.totalPlankSeconds / 3600).toFixed(2)} ч`
+                    : `${(stats.totalPlankSeconds / 60).toFixed(2)} мин`}
                 </p>
               </CardContent>
             </Card>
@@ -691,13 +681,14 @@ export default function Progress() {
               </SelectContent>
             </Select>
 
-            <Select value={leaderboardPeriod} onValueChange={(v) => setLeaderboardPeriod(v as "all" | "month")}>
+            <Select value={leaderboardPeriod} onValueChange={(v) => setLeaderboardPeriod(v as "all" | "month" | "today")}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">За всё время</SelectItem>
                 <SelectItem value="month">За этот месяц</SelectItem>
+                <SelectItem value="today">За сегодня</SelectItem>
               </SelectContent>
             </Select>
           </div>

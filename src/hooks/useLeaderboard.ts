@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { startOfMonth } from "date-fns";
+import { startOfMonth, startOfDay } from "date-fns";
 
 export interface LeaderboardEntry {
   user_id: string;
@@ -35,7 +35,7 @@ interface WorkoutSet {
 
 export function useLeaderboard(
   exerciseName: string,
-  timeFilter: "all" | "month" = "all"
+  timeFilter: "all" | "month" | "today" = "all"
 ) {
   return useQuery({
     queryKey: ["leaderboard", exerciseName, timeFilter],
@@ -77,6 +77,12 @@ export function useLeaderboard(
         filteredSets = filteredSets.filter((set) => {
           const workoutDate = new Date(set.workout.date);
           return workoutDate >= monthStart;
+        });
+      } else if (timeFilter === "today") {
+        const todayStart = startOfDay(new Date());
+        filteredSets = filteredSets.filter((set) => {
+          const workoutDate = new Date(set.workout.date);
+          return workoutDate >= todayStart;
         });
       }
 

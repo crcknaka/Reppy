@@ -2,11 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 
+/*
   FitTrack Design System
   Dark theme with energetic coral/orange accents
   All colors in HSL format
 */
+
+/* Disable text selection globally */
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Allow selection only in input fields */
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
 
 @layer base {
   :root {

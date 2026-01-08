@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,6 +57,7 @@ export default function WorkoutDetail() {
   const [editWeight, setEditWeight] = useState("");
   const [editDistance, setEditDistance] = useState("");
   const [editDuration, setEditDuration] = useState("");
+  const [openTooltipId, setOpenTooltipId] = useState<string | null>(null);
 
   const workout = workouts?.find((w) => w.id === id);
 
@@ -525,11 +527,24 @@ export default function WorkoutDetail() {
                 </div>
 
                 {/* Table Rows */}
+                <TooltipProvider>
                 {sets.sort((a, b) => a.set_number - b.set_number).map((set) => (
-                  <div
+                  <Tooltip
                     key={set.id}
-                    className="grid grid-cols-[60px_1fr_1fr_80px] gap-2 items-center p-3 bg-muted/50 rounded-lg"
+                    open={openTooltipId === set.id}
+                    onOpenChange={(open) => setOpenTooltipId(open ? set.id : null)}
                   >
+                    <TooltipTrigger asChild>
+                      <div
+                        className="grid grid-cols-[60px_1fr_1fr_80px] gap-2 items-center p-3 bg-muted/50 rounded-lg cursor-pointer select-none"
+                        onClick={(e) => {
+                          // Не открывать тултип если кликнули на кнопки редактирования/удаления
+                          if ((e.target as HTMLElement).closest('button')) {
+                            return;
+                          }
+                          setOpenTooltipId(openTooltipId === set.id ? null : set.id);
+                        }}
+                      >
                     <div className="text-center font-bold text-foreground">
                       {set.set_number}
                     </div>
@@ -634,8 +649,14 @@ export default function WorkoutDetail() {
                         </div>
                       </>
                     )}
-                  </div>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Время: {format(new Date(set.created_at), "HH:mm", { locale: ru })}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 ))}
+                </TooltipProvider>
 
                 {/* Add Next Set Button */}
                 <Button
@@ -665,7 +686,7 @@ export default function WorkoutDetail() {
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-primary" />
-              Комментарий к тренировке
+              Комментарий
             </CardTitle>
             {!isEditingNotes && (
               <Button
@@ -711,7 +732,7 @@ export default function WorkoutDetail() {
             </div>
           ) : (
             <div className="text-muted-foreground whitespace-pre-wrap">
-              {notes || "Комментариев пока нет"}
+              {notes || "Пока пусто"}
             </div>
           )}
         </CardContent>

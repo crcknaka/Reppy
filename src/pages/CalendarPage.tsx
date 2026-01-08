@@ -4,6 +4,7 @@ import { ru } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, User, MessageSquare, Activity, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useWorkouts } from "@/hooks/useWorkouts";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,7 @@ export default function CalendarPage() {
   const weekDays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [openTooltipId, setOpenTooltipId] = useState<string | null>(null);
   const selectedWorkout = selectedDate ? getWorkoutForDate(selectedDate) : null;
 
   return (
@@ -166,6 +168,7 @@ export default function CalendarPage() {
             {selectedWorkout.workout_sets && selectedWorkout.workout_sets.length > 0 ? (
               <div className="space-y-2">
                 {/* Group by exercise */}
+                <TooltipProvider>
                 {Object.values(
                   selectedWorkout.workout_sets.reduce((acc, set) => {
                     const exerciseId = set.exercise_id;
@@ -178,6 +181,7 @@ export default function CalendarPage() {
                         maxWeight: 0,
                         totalDistance: 0,
                         totalDuration: 0,
+                        allSets: [],
                       };
                     }
                     acc[exerciseId].sets++;
@@ -187,6 +191,7 @@ export default function CalendarPage() {
                     }
                     acc[exerciseId].totalDistance += set.distance_km || 0;
                     acc[exerciseId].totalDuration += set.duration_minutes || 0;
+                    acc[exerciseId].allSets.push(set);
                     return acc;
                   }, {} as Record<string, {
                     name: string;
@@ -196,9 +201,19 @@ export default function CalendarPage() {
                     maxWeight: number;
                     totalDistance: number;
                     totalDuration: number;
+                    allSets: any[];
                   }>)
                 ).map((exercise, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <Tooltip
+                    key={i}
+                    open={openTooltipId === `exercise-${i}`}
+                    onOpenChange={(open) => setOpenTooltipId(open ? `exercise-${i}` : null)}
+                  >
+                    <TooltipTrigger asChild>
+                      <div
+                        className="flex items-center justify-between p-3 bg-muted/50 rounded-lg cursor-pointer select-none"
+                        onClick={() => setOpenTooltipId(openTooltipId === `exercise-${i}` ? null : `exercise-${i}`)}
+                      >
                     <div className="flex items-center gap-3">
                       {exercise.type === "cardio" ? (
                         <Activity className="h-4 w-4 text-primary" />
@@ -221,8 +236,14 @@ export default function CalendarPage() {
                         </>
                       )}
                     </div>
-                  </div>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Время: {format(new Date(exercise.allSets.sort((a: any, b: any) => a.set_number - b.set_number)[0].created_at), "HH:mm", { locale: ru })}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 ))}
+                </TooltipProvider>
 
                 {/* Workout notes */}
                 {selectedWorkout.notes && (

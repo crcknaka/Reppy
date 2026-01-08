@@ -396,6 +396,23 @@ export default function Progress() {
         </div>
       </div>
 
+      {/* No data message */}
+      {!stats && (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="p-4 bg-muted rounded-full mb-4">
+              <TrendingUp className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="font-semibold text-foreground mb-1">Нет данных {getFilterText()}</h3>
+            <p className="text-muted-foreground text-sm">
+              {selectedExercise === "all"
+                ? "Выполни тренировку, чтобы увидеть статистику"
+                : "Выполни это упражнение, чтобы увидеть статистику"}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Stats cards */}
       {stats && (
         <div className="grid grid-cols-2 gap-3">
@@ -503,7 +520,7 @@ export default function Progress() {
       )}
 
       {/* Chart */}
-      {selectedExercise !== "all" && (
+      {selectedExercise !== "all" && chartData.length > 0 && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-3">
@@ -548,80 +565,79 @@ export default function Progress() {
             </div>
           </CardHeader>
           <CardContent>
-            {chartData.length > 0 ? (
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  {selectedExerciseData?.type === "cardio" ? (
-                    <BarChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                      <XAxis
-                        dataKey="date"
-                        tick={{ fontSize: 12 }}
-                        className="text-muted-foreground"
-                      />
-                      <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "hsl(var(--card))",
-                          border: "1px solid hsl(var(--border))",
-                          borderRadius: "8px",
-                        }}
-                      />
-                      <Bar
-                        dataKey={cardioMetric === "distance" ? "distance" : "duration"}
-                        fill="hsl(var(--primary))"
-                        radius={[4, 4, 0, 0]}
-                        name={cardioMetric === "distance" ? "Дистанция (км)" : "Время (мин)"}
-                      />
-                    </BarChart>
-                  ) : selectedExerciseData?.type === "timed" ? (
-                    <BarChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                      <XAxis
-                        dataKey="date"
-                        tick={{ fontSize: 12 }}
-                        className="text-muted-foreground"
-                      />
-                      <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "hsl(var(--card))",
-                          border: "1px solid hsl(var(--border))",
-                          borderRadius: "8px",
-                        }}
-                      />
-                      <Bar
-                        dataKey="plankTime"
-                        fill="hsl(var(--primary))"
-                        radius={[4, 4, 0, 0]}
-                        name="Время (сек)"
-                      />
-                    </BarChart>
-                  ) : metric === "reps" ? (
-                    <BarChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                      <XAxis
-                        dataKey="date"
-                        tick={{ fontSize: 12 }}
-                        className="text-muted-foreground"
-                      />
-                      <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "hsl(var(--card))",
-                          border: "1px solid hsl(var(--border))",
-                          borderRadius: "8px",
-                        }}
-                      />
-                      <Bar
-                        dataKey="reps"
-                        fill="hsl(var(--primary))"
-                        radius={[4, 4, 0, 0]}
-                        name="Повторения"
-                      />
-                    </BarChart>
-                  ) : (
-                    <LineChart data={chartData}>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                {selectedExerciseData?.type === "cardio" ? (
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 12 }}
+                      className="text-muted-foreground"
+                    />
+                    <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "8px",
+                      }}
+                    />
+                    <Bar
+                      dataKey={cardioMetric === "distance" ? "distance" : "duration"}
+                      fill="hsl(var(--primary))"
+                      radius={[4, 4, 0, 0]}
+                      name={cardioMetric === "distance" ? "Дистанция (км)" : "Время (мин)"}
+                    />
+                  </BarChart>
+                ) : selectedExerciseData?.type === "timed" ? (
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 12 }}
+                      className="text-muted-foreground"
+                    />
+                    <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "8px",
+                      }}
+                    />
+                    <Bar
+                      dataKey="plankTime"
+                      fill="hsl(var(--primary))"
+                      radius={[4, 4, 0, 0]}
+                      name="Время (сек)"
+                    />
+                  </BarChart>
+                ) : metric === "reps" ? (
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 12 }}
+                      className="text-muted-foreground"
+                    />
+                    <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--card))",
+                        border: "1px solid hsl(var(--border))",
+                        borderRadius: "8px",
+                      }}
+                    />
+                    <Bar
+                      dataKey="reps"
+                      fill="hsl(var(--primary))"
+                      radius={[4, 4, 0, 0]}
+                      name="Повторения"
+                    />
+                  </BarChart>
+                ) : (
+                  <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                     <XAxis
                       dataKey="date"
@@ -648,12 +664,7 @@ export default function Progress() {
                 )}
               </ResponsiveContainer>
             </div>
-          ) : (
-            <div className="h-64 flex items-center justify-center text-muted-foreground">
-              Нет данных {getFilterText()}
-            </div>
-          )}
-        </CardContent>
+          </CardContent>
       </Card>
       )}
 

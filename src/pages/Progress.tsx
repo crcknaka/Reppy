@@ -309,48 +309,68 @@ export default function Progress() {
     }
   };
 
-  // Calculate max values for history records
-  const historyMaxValues = useMemo(() => {
-    if (!exerciseHistory.length) return { maxReps: 0, maxWeight: 0, maxDistance: 0, maxPlankSeconds: 0 };
+  // Find the FIRST record set index (first occurrence of max value)
+  const recordSetIndex = useMemo(() => {
+    if (!exerciseHistory.length || !selectedExerciseData) return -1;
 
-    return {
-      maxReps: Math.max(...exerciseHistory.map(s => s.reps || 0)),
-      maxWeight: Math.max(...exerciseHistory.map(s => s.weight || 0)),
-      maxDistance: Math.max(...exerciseHistory.map(s => s.distance_km || 0)),
-      maxPlankSeconds: Math.max(...exerciseHistory.map(s => s.plank_seconds || 0)),
-    };
-  }, [exerciseHistory]);
+    const exerciseType = selectedExerciseData.type;
 
-  // Check if a set is a record
-  const isRecordSet = (set: typeof exerciseHistory[0], exerciseType: string | undefined) => {
-    switch (exerciseType) {
-      case "weighted":
-        return set.weight === historyMaxValues.maxWeight && historyMaxValues.maxWeight > 0;
-      case "bodyweight":
-        return set.reps === historyMaxValues.maxReps && historyMaxValues.maxReps > 0;
-      case "cardio":
-        return set.distance_km === historyMaxValues.maxDistance && historyMaxValues.maxDistance > 0;
-      case "timed":
-        return set.plank_seconds === historyMaxValues.maxPlankSeconds && historyMaxValues.maxPlankSeconds > 0;
-      default:
-        return false;
-    }
-  };
+    // First find max value
+    let maxValue = 0;
+    exerciseHistory.forEach((set) => {
+      let value = 0;
+      switch (exerciseType) {
+        case "weighted":
+          value = set.weight || 0;
+          break;
+        case "bodyweight":
+          value = set.reps || 0;
+          break;
+        case "cardio":
+          value = set.distance_km || 0;
+          break;
+        case "timed":
+          value = set.plank_seconds || 0;
+          break;
+      }
+      if (value > maxValue) {
+        maxValue = value;
+      }
+    });
 
-  // Group exercise history by date
+    if (maxValue === 0) return -1;
+
+    // Then find first occurrence of max value
+    return exerciseHistory.findIndex((set) => {
+      switch (exerciseType) {
+        case "weighted":
+          return set.weight === maxValue;
+        case "bodyweight":
+          return set.reps === maxValue;
+        case "cardio":
+          return set.distance_km === maxValue;
+        case "timed":
+          return set.plank_seconds === maxValue;
+        default:
+          return false;
+      }
+    });
+  }, [exerciseHistory, selectedExerciseData]);
+
+  // Group exercise history by date with global index preserved
   const groupedHistory = useMemo(() => {
-    const groups: Map<string, typeof exerciseHistory> = new Map();
+    const groups: Map<string, Array<{ set: typeof exerciseHistory[0]; globalIndex: number }>> = new Map();
 
-    exerciseHistory.forEach(set => {
+    exerciseHistory.forEach((set, globalIndex) => {
       const dateKey = set.date;
       if (!groups.has(dateKey)) {
         groups.set(dateKey, []);
       }
-      groups.get(dateKey)!.push(set);
+      groups.get(dateKey)!.push({ set, globalIndex });
     });
 
     // Convert to array and format headers
-    return Array.from(groups.entries()).map(([dateKey, sets]) => {
+    return Array.from(groups.entries()).map(([dateKey, setsWithIndex]) => {
       const parsedDate = parseISO(dateKey);
       // Full day name with capital letter
       const dayOfWeek = format(parsedDate, "EEEE", { locale: ru });
@@ -363,7 +383,7 @@ export default function Progress() {
       return {
         dateKey,
         header: `${capitalizedDay}, ${day} ${capitalizedMonth}`,
-        sets,
+        setsWithIndex,
       };
     });
   }, [exerciseHistory]);
@@ -871,15 +891,15 @@ export default function Progress() {
                         {group.header}
                       </div>
                       {/* Sets for this date */}
-                      {group.sets.map((set, setIndex) => {
-                        const isRecord = isRecordSet(set, selectedExerciseData?.type);
+                      {group.setsWithIndex.map(({ set, globalIndex }, setIndex) => {
+                        const isRecord = globalIndex === recordSetIndex;
                         return (
                           <div
                             key={setIndex}
                             className={cn(
                               "px-4 py-2.5 pl-10 cursor-pointer transition-colors text-sm flex items-center justify-between",
                               "hover:bg-primary/5",
-                              setIndex !== group.sets.length - 1 && "border-b border-border/30",
+                              setIndex !== group.setsWithIndex.length - 1 && "border-b border-border/30",
                               isRecord && "bg-yellow-500/5"
                             )}
                             onClick={() => navigate(`/workout/${set.workoutId}`)}

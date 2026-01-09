@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format, isToday, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
-import { ArrowLeft, Plus, Trash2, User, Dumbbell, MessageSquare, Save, Pencil, X, Activity, Timer, Camera, Loader2, ImageIcon, LayoutGrid } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, User, Dumbbell, MessageSquare, Save, Pencil, X, Activity, Timer, Camera, Loader2, ImageIcon, LayoutGrid, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -91,6 +91,71 @@ export default function WorkoutDetail() {
     }
   }, [location.state, exercises, navigate, location.pathname]);
 
+  // Group sets by exercise - must be before early returns to follow hooks rules
+  const setsByExercise = useMemo(() => {
+    if (!workout?.workout_sets) return {};
+    return workout.workout_sets.reduce((acc, set) => {
+      const exerciseId = set.exercise_id;
+      if (!acc[exerciseId]) {
+        acc[exerciseId] = {
+          exercise: set.exercise,
+          sets: [],
+        };
+      }
+      acc[exerciseId].sets.push(set);
+      return acc;
+    }, {} as Record<string, { exercise: typeof workout.workout_sets[0]["exercise"]; sets: typeof workout.workout_sets }>);
+  }, [workout?.workout_sets]);
+
+  // Calculate max values per exercise and track which set is the record (first one with max value)
+  const recordSetIds = useMemo(() => {
+    const result: Set<string> = new Set();
+
+    Object.entries(setsByExercise).forEach(([, { exercise, sets }]) => {
+      if (!sets || sets.length === 0) return;
+
+      const sortedSets = [...sets].sort((a, b) => a.set_number - b.set_number);
+
+      switch (exercise?.type) {
+        case "weighted": {
+          const maxWeight = Math.max(...sortedSets.map(s => s.weight || 0));
+          if (maxWeight > 0) {
+            // Find FIRST set with max weight
+            const firstMaxSet = sortedSets.find(s => s.weight === maxWeight);
+            if (firstMaxSet) result.add(firstMaxSet.id);
+          }
+          break;
+        }
+        case "bodyweight": {
+          const maxReps = Math.max(...sortedSets.map(s => s.reps || 0));
+          if (maxReps > 0) {
+            const firstMaxSet = sortedSets.find(s => s.reps === maxReps);
+            if (firstMaxSet) result.add(firstMaxSet.id);
+          }
+          break;
+        }
+        case "cardio": {
+          const maxDistance = Math.max(...sortedSets.map(s => s.distance_km || 0));
+          if (maxDistance > 0) {
+            const firstMaxSet = sortedSets.find(s => s.distance_km === maxDistance);
+            if (firstMaxSet) result.add(firstMaxSet.id);
+          }
+          break;
+        }
+        case "timed": {
+          const maxSeconds = Math.max(...sortedSets.map(s => s.plank_seconds || 0));
+          if (maxSeconds > 0) {
+            const firstMaxSet = sortedSets.find(s => s.plank_seconds === maxSeconds);
+            if (firstMaxSet) result.add(firstMaxSet.id);
+          }
+          break;
+        }
+      }
+    });
+
+    return result;
+  }, [setsByExercise]);
+
   if (isWorkoutLoading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
@@ -106,19 +171,6 @@ export default function WorkoutDetail() {
       </div>
     );
   }
-
-  // Group sets by exercise
-  const setsByExercise = workout.workout_sets?.reduce((acc, set) => {
-    const exerciseId = set.exercise_id;
-    if (!acc[exerciseId]) {
-      acc[exerciseId] = {
-        exercise: set.exercise,
-        sets: [],
-      };
-    }
-    acc[exerciseId].sets.push(set);
-    return acc;
-  }, {} as Record<string, { exercise: typeof workout.workout_sets[0]["exercise"]; sets: typeof workout.workout_sets }>) || {};
 
   const handleAddSet = async () => {
     if (!selectedExercise) {
@@ -636,8 +688,8 @@ export default function WorkoutDetail() {
                 <div className={cn(
                   "grid gap-2 px-3 py-2 text-xs font-semibold text-muted-foreground uppercase",
                   exercise?.type === "bodyweight" || exercise?.type === "timed"
-                    ? "grid-cols-[60px_1fr_80px]"
-                    : "grid-cols-[60px_1fr_1fr_80px]"
+                    ? "grid-cols-[60px_1fr_80px_32px]"
+                    : "grid-cols-[60px_1fr_1fr_80px_32px]"
                 )}>
                   <div className="text-center">Подход</div>
                   <div className="text-center">
@@ -650,6 +702,7 @@ export default function WorkoutDetail() {
                       {exercise?.type === "cardio" ? "Время (мин)" : "Вес"}
                     </div>
                   )}
+                  <div></div>
                   <div></div>
                 </div>
 
@@ -664,10 +717,13 @@ export default function WorkoutDetail() {
                     <TooltipTrigger asChild>
                       <div
                         className={cn(
-                          "grid gap-2 items-center p-3 bg-muted/50 rounded-lg cursor-pointer select-none",
+                          "grid gap-2 items-center p-3 rounded-lg cursor-pointer select-none",
                           exercise?.type === "bodyweight" || exercise?.type === "timed"
-                            ? "grid-cols-[60px_1fr_80px]"
-                            : "grid-cols-[60px_1fr_1fr_80px]"
+                            ? "grid-cols-[60px_1fr_80px_32px]"
+                            : "grid-cols-[60px_1fr_1fr_80px_32px]",
+                          recordSetIds.has(set.id)
+                            ? "bg-yellow-100 dark:bg-yellow-900/30"
+                            : "bg-muted/50"
                         )}
                         onClick={(e) => {
                           // Не открывать тултип если кликнули на кнопки редактирования/удаления
@@ -778,6 +834,11 @@ export default function WorkoutDetail() {
                             <X className="h-4 w-4" />
                           </Button>
                         </div>
+                        <div className="flex justify-center">
+                          {recordSetIds.has(set.id) && (
+                            <Trophy className="h-5 w-5 text-yellow-500" />
+                          )}
+                        </div>
                       </>
                     ) : (
                       <>
@@ -812,7 +873,7 @@ export default function WorkoutDetail() {
                             </div>
                           </>
                         )}
-                        {isOwner && (
+                        {isOwner ? (
                           <div className="flex gap-1 justify-end">
                             <Button
                               variant="ghost"
@@ -831,7 +892,14 @@ export default function WorkoutDetail() {
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
+                        ) : (
+                          <div></div>
                         )}
+                        <div className="flex justify-center">
+                          {recordSetIds.has(set.id) && (
+                            <Trophy className="h-5 w-5 text-yellow-500" />
+                          )}
+                        </div>
                       </>
                     )}
                       </div>

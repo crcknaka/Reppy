@@ -688,8 +688,8 @@ export default function WorkoutDetail() {
                 <div className={cn(
                   "grid gap-2 px-3 py-2 text-xs font-semibold text-muted-foreground uppercase",
                   exercise?.type === "bodyweight" || exercise?.type === "timed"
-                    ? "grid-cols-[60px_1fr_80px]"
-                    : "grid-cols-[60px_1fr_1fr_80px]"
+                    ? "grid-cols-[60px_1fr_56px]"
+                    : "grid-cols-[60px_1fr_1fr_56px]"
                 )}>
                   <div className="text-center">Подход</div>
                   <div className="text-center">
@@ -718,8 +718,8 @@ export default function WorkoutDetail() {
                         className={cn(
                           "relative grid gap-2 items-center p-3 rounded-lg cursor-pointer select-none",
                           exercise?.type === "bodyweight" || exercise?.type === "timed"
-                            ? "grid-cols-[60px_1fr_80px]"
-                            : "grid-cols-[60px_1fr_1fr_80px]",
+                            ? "grid-cols-[60px_1fr_56px]"
+                            : "grid-cols-[60px_1fr_1fr_56px]",
                           recordSetIds.has(set.id)
                             ? "bg-yellow-100 dark:bg-yellow-900/30"
                             : "bg-muted/50"
@@ -734,7 +734,7 @@ export default function WorkoutDetail() {
                       >
                     {/* Trophy icon - absolute positioned on the left */}
                     {recordSetIds.has(set.id) && (
-                      <Trophy className="absolute left-1 top-1/2 -translate-y-1/2 h-4 w-4 text-yellow-500" />
+                      <Trophy className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-yellow-500" />
                     )}
                     <div className="text-center font-bold text-foreground">
                       {set.set_number}
@@ -872,22 +872,22 @@ export default function WorkoutDetail() {
                           </>
                         )}
                         {isOwner ? (
-                          <div className="flex gap-1 justify-end">
+                          <div className="flex gap-0 justify-end -mr-1">
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted"
                               onClick={() => handleEditSet(set)}
                             >
-                              <Pencil className="h-4 w-4" />
+                              <Pencil className="h-3.5 w-3.5" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted"
                               onClick={() => handleDeleteSet(set.id)}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </div>
                         ) : (

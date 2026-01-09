@@ -688,8 +688,8 @@ export default function WorkoutDetail() {
                 <div className={cn(
                   "grid gap-2 px-3 py-2 text-xs font-semibold text-muted-foreground uppercase",
                   exercise?.type === "bodyweight" || exercise?.type === "timed"
-                    ? "grid-cols-[60px_1fr_80px_32px]"
-                    : "grid-cols-[60px_1fr_1fr_80px_32px]"
+                    ? "grid-cols-[60px_1fr_80px]"
+                    : "grid-cols-[60px_1fr_1fr_80px]"
                 )}>
                   <div className="text-center">Подход</div>
                   <div className="text-center">
@@ -702,7 +702,6 @@ export default function WorkoutDetail() {
                       {exercise?.type === "cardio" ? "Время (мин)" : "Вес"}
                     </div>
                   )}
-                  <div></div>
                   <div></div>
                 </div>
 
@@ -717,10 +716,10 @@ export default function WorkoutDetail() {
                     <TooltipTrigger asChild>
                       <div
                         className={cn(
-                          "grid gap-2 items-center p-3 rounded-lg cursor-pointer select-none",
+                          "relative grid gap-2 items-center p-3 rounded-lg cursor-pointer select-none",
                           exercise?.type === "bodyweight" || exercise?.type === "timed"
-                            ? "grid-cols-[60px_1fr_80px_32px]"
-                            : "grid-cols-[60px_1fr_1fr_80px_32px]",
+                            ? "grid-cols-[60px_1fr_80px]"
+                            : "grid-cols-[60px_1fr_1fr_80px]",
                           recordSetIds.has(set.id)
                             ? "bg-yellow-100 dark:bg-yellow-900/30"
                             : "bg-muted/50"
@@ -733,6 +732,10 @@ export default function WorkoutDetail() {
                           setOpenTooltipId(openTooltipId === set.id ? null : set.id);
                         }}
                       >
+                    {/* Trophy icon - absolute positioned on the left */}
+                    {recordSetIds.has(set.id) && (
+                      <Trophy className="absolute left-1 top-1/2 -translate-y-1/2 h-4 w-4 text-yellow-500" />
+                    )}
                     <div className="text-center font-bold text-foreground">
                       {set.set_number}
                     </div>
@@ -834,11 +837,6 @@ export default function WorkoutDetail() {
                             <X className="h-4 w-4" />
                           </Button>
                         </div>
-                        <div className="flex justify-center">
-                          {recordSetIds.has(set.id) && (
-                            <Trophy className="h-5 w-5 text-yellow-500" />
-                          )}
-                        </div>
                       </>
                     ) : (
                       <>
@@ -895,11 +893,6 @@ export default function WorkoutDetail() {
                         ) : (
                           <div></div>
                         )}
-                        <div className="flex justify-center">
-                          {recordSetIds.has(set.id) && (
-                            <Trophy className="h-5 w-5 text-yellow-500" />
-                          )}
-                        </div>
                       </>
                     )}
                       </div>

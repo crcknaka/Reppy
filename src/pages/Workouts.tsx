@@ -160,39 +160,9 @@ export default function Workouts() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between gap-3">
-        <div className="space-y-1 min-w-0 flex-1">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Тренировки</h1>
-          <p className="text-muted-foreground text-base">
-            {isViewingOther ? `Тренировки ${viewingUserProfile?.display_name || "пользователя"}` : "История твоих тренировок"}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <Select value={targetUserId || ""} onValueChange={handleUserChange}>
-            <SelectTrigger className="w-[140px] sm:w-[180px]">
-              <SelectValue placeholder="Выберите" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={user?.id || ""}>
-                <div className="flex items-center gap-2">
-                  <span>{currentUserProfile?.avatar || "👤"}</span>
-                  <span className="truncate">{currentUserProfile?.display_name || "Я"}</span>
-                  <span className="text-muted-foreground text-xs">(Вы)</span>
-                </div>
-              </SelectItem>
-              <SelectSeparator />
-              {allProfiles?.filter(p => p.user_id !== user?.id).map((profile) => (
-                <SelectItem key={profile.user_id} value={profile.user_id}>
-                  <div className="flex items-center gap-2">
-                    <span>{profile.avatar || "👤"}</span>
-                    <span className="truncate">{profile.display_name || "Аноним"}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
           {!isViewingOther && (
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
@@ -222,6 +192,29 @@ export default function Workouts() {
             </Popover>
           )}
         </div>
+        <Select value={targetUserId || ""} onValueChange={handleUserChange}>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectValue placeholder="Выберите" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={user?.id || ""}>
+              <div className="flex items-center gap-2">
+                <span>{currentUserProfile?.avatar || "👤"}</span>
+                <span className="truncate">{currentUserProfile?.display_name || "Я"}</span>
+                <span className="text-muted-foreground text-xs">(Вы)</span>
+              </div>
+            </SelectItem>
+            <SelectSeparator />
+            {allProfiles?.filter(p => p.user_id !== user?.id).map((profile) => (
+              <SelectItem key={profile.user_id} value={profile.user_id}>
+                <div className="flex items-center gap-2">
+                  <span>{profile.avatar || "👤"}</span>
+                  <span className="truncate">{profile.display_name || "Аноним"}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {isViewingOther && viewingUserProfile && (

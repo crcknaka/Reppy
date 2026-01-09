@@ -3,6 +3,7 @@ import { useTheme } from "next-themes";
 import { User, Save, LogOut, Lock, Eye, EyeOff, ChevronDown, Sun, Moon, Monitor, Download, FileJson, FileSpreadsheet } from "lucide-react";
 import { useWorkouts } from "@/hooks/useWorkouts";
 import { format } from "date-fns";
+import * as XLSX from "xlsx";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -85,7 +86,12 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const [passwordSectionOpen, setPasswordSectionOpen] = useState(false);
+
+  // Section states
+  const [profileOpen, setProfileOpen] = useState(true);
+  const [appOpen, setAppOpen] = useState(false);
+  const [dataOpen, setDataOpen] = useState(false);
+  const [securityOpen, setSecurityOpen] = useState(false);
 
   // Load profile data when it's available
   useEffect(() => {
@@ -240,6 +246,75 @@ export default function Settings() {
     }
   };
 
+  const exportToXLS = () => {
+    if (!workouts || workouts.length === 0) {
+      toast.error("Нет данных для экспорта");
+      return;
+    }
+    setExportLoading(true);
+    try {
+      const data: Array<Record<string, string | number | null>> = [];
+
+      workouts.forEach(w => {
+        if (w.workout_sets && w.workout_sets.length > 0) {
+          w.workout_sets.forEach(s => {
+            data.push({
+              "Дата": w.date,
+              "Упражнение": s.exercise?.name || "",
+              "Тип": s.exercise?.type || "",
+              "Подход": s.set_number,
+              "Повторения": s.reps,
+              "Вес (кг)": s.weight,
+              "Дистанция (км)": s.distance_km,
+              "Время (мин)": s.duration_minutes,
+              "Планка (сек)": s.plank_seconds,
+              "Заметки": w.notes || ""
+            });
+          });
+        } else {
+          data.push({
+            "Дата": w.date,
+            "Упражнение": "",
+            "Тип": "",
+            "Подход": null,
+            "Повторения": null,
+            "Вес (кг)": null,
+            "Дистанция (км)": null,
+            "Время (мин)": null,
+            "Планка (сек)": null,
+            "Заметки": w.notes || ""
+          });
+        }
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Тренировки");
+
+      // Auto-size columns
+      const colWidths = [
+        { wch: 12 }, // Дата
+        { wch: 25 }, // Упражнение
+        { wch: 12 }, // Тип
+        { wch: 8 },  // Подход
+        { wch: 12 }, // Повторения
+        { wch: 10 }, // Вес
+        { wch: 14 }, // Дистанция
+        { wch: 12 }, // Время
+        { wch: 12 }, // Планка
+        { wch: 30 }, // Заметки
+      ];
+      worksheet["!cols"] = colWidths;
+
+      XLSX.writeFile(workbook, `fittrack-export-${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+      toast.success("Данные экспортированы в Excel");
+    } catch {
+      toast.error("Ошибка экспорта");
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6 animate-fade-in">
@@ -261,7 +336,6 @@ export default function Settings() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
             Настройки
           </h1>
-          <p className="text-muted-foreground text-base">Настройки</p>
         </div>
 
         {/* Logo - Mobile only */}
@@ -275,259 +349,321 @@ export default function Settings() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <User className="h-5 w-5 text-primary" />
-              Профиль
-            </div>
-            {/* Avatar Selection - Right Side */}
-            <Dialog>
-              <DialogTrigger asChild>
-                <button className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-4xl hover:bg-primary/20 transition-colors cursor-pointer border-2 border-primary/20">
-                  {avatar || "👤"}
-                </button>
-              </DialogTrigger>
-              <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Выбери аватар</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 pt-2">
-                  {AVATAR_CATEGORIES.map((category) => (
-                    <div key={category.name}>
-                      <p className="text-xs font-medium text-muted-foreground mb-2">{category.name}</p>
-                      <div className="grid grid-cols-5 gap-2">
-                        {category.emojis.map((emoji) => (
-                          <button
-                            key={emoji}
-                            type="button"
-                            onClick={() => setAvatar(emoji)}
-                            className={cn(
-                              "text-2xl p-2.5 rounded-lg transition-all active:scale-95",
-                              avatar === emoji
-                                ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary ring-offset-2"
-                                : "bg-muted hover:bg-muted/70"
-                            )}
-                          >
-                            {emoji}
-                          </button>
+      {/* ═══════════════════════════════════════════════════════════════
+          СЕКЦИЯ: ПРОФИЛЬ
+      ═══════════════════════════════════════════════════════════════ */}
+      <Collapsible open={profileOpen} onOpenChange={setProfileOpen}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="pb-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
+              <CardTitle className="text-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <User className="h-5 w-5 text-primary" />
+                  Профиль
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">{avatar || "👤"}</span>
+                  <ChevronDown className={cn(
+                    "h-5 w-5 text-muted-foreground transition-transform duration-200",
+                    profileOpen && "rotate-180"
+                  )} />
+                </div>
+              </CardTitle>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Avatar Selection */}
+                <div className="flex justify-center">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button className="flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 text-5xl hover:bg-primary/20 transition-colors cursor-pointer border-2 border-primary/20">
+                        {avatar || "👤"}
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Выбери аватар</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 pt-2">
+                        {AVATAR_CATEGORIES.map((category) => (
+                          <div key={category.name}>
+                            <p className="text-xs font-medium text-muted-foreground mb-2">{category.name}</p>
+                            <div className="grid grid-cols-5 gap-2">
+                              {category.emojis.map((emoji) => (
+                                <button
+                                  key={emoji}
+                                  type="button"
+                                  onClick={() => setAvatar(emoji)}
+                                  className={cn(
+                                    "text-2xl p-2.5 rounded-lg transition-all active:scale-95",
+                                    avatar === emoji
+                                      ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary ring-offset-2"
+                                      : "bg-muted hover:bg-muted/70"
+                                  )}
+                                >
+                                  {emoji}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         ))}
                       </div>
-                    </div>
-                  ))}
+                    </DialogContent>
+                  </Dialog>
                 </div>
-              </DialogContent>
-            </Dialog>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-            <div className="space-y-4">
 
-          {/* Display Name and Gender */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="displayName">Имя</Label>
-              <Input
-                id="displayName"
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Введите ваше имя"
-              />
-            </div>
+                {/* Display Name and Gender */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="displayName">Имя</Label>
+                    <Input
+                      id="displayName"
+                      type="text"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder="Введите ваше имя"
+                    />
+                  </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="gender">Пол</Label>
-              <Select value={gender} onValueChange={(v) => setGender(v as "male" | "female" | "other" | "none")}>
-                <SelectTrigger id="gender">
-                  <SelectValue placeholder="Выберите пол" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Не указано</SelectItem>
-                  <SelectItem value="male">Мужской</SelectItem>
-                  <SelectItem value="female">Женский</SelectItem>
-                  <SelectItem value="other">Другой</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">Пол</Label>
+                    <Select value={gender} onValueChange={(v) => setGender(v as "male" | "female" | "other" | "none")}>
+                      <SelectTrigger id="gender">
+                        <SelectValue placeholder="Выберите пол" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Не указано</SelectItem>
+                        <SelectItem value="male">Мужской</SelectItem>
+                        <SelectItem value="female">Женский</SelectItem>
+                        <SelectItem value="other">Другой</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
-          {/* Date of Birth and Skuf */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="dateOfBirth">Дата рождения</Label>
-              <Input
-                id="dateOfBirth"
-                type="date"
-                value={dateOfBirth}
-                onChange={(e) => setDateOfBirth(e.target.value)}
-              />
-            </div>
+                {/* Date of Birth and Skuf */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="dateOfBirth">Дата рождения</Label>
+                    <Input
+                      id="dateOfBirth"
+                      type="date"
+                      value={dateOfBirth}
+                      onChange={(e) => setDateOfBirth(e.target.value)}
+                    />
+                  </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="skuf">Скуф</Label>
-              <div className="flex items-center h-10 px-3">
-                <Checkbox
-                  id="skuf"
-                  checked={isSkuf}
-                  onCheckedChange={(checked) => setIsSkuf(checked as boolean)}
-                />
-                <label
-                  htmlFor="skuf"
-                  className="ml-2 text-sm cursor-pointer select-none"
+                  <div className="space-y-2">
+                    <Label htmlFor="skuf">Скуф</Label>
+                    <div className="flex items-center h-10 px-3">
+                      <Checkbox
+                        id="skuf"
+                        checked={isSkuf}
+                        onCheckedChange={(checked) => setIsSkuf(checked as boolean)}
+                      />
+                      <label
+                        htmlFor="skuf"
+                        className="ml-2 text-sm cursor-pointer select-none"
+                      >
+                        {isSkuf ? "Да" : "Нет"}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Height and Weight */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="height">Рост (см)</Label>
+                    <Input
+                      id="height"
+                      type="number"
+                      step="0.1"
+                      value={height}
+                      onChange={(e) => setHeight(e.target.value)}
+                      placeholder="Введите рост"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="currentWeight">Вес (кг)</Label>
+                    <Input
+                      id="currentWeight"
+                      type="number"
+                      step="0.1"
+                      value={currentWeight}
+                      onChange={(e) => setCurrentWeight(e.target.value)}
+                      placeholder="Введите вес"
+                    />
+                  </div>
+                </div>
+
+                {/* Save Button */}
+                <Button
+                  onClick={handleSave}
+                  disabled={updateProfile.isPending}
+                  className="w-full gap-2"
                 >
-                  {isSkuf ? "Да" : "Нет"}
-                </label>
+                  <Save className="h-4 w-4" />
+                  Сохранить
+                </Button>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
-          {/* Height and Weight */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="height">Рост (см)</Label>
-              <Input
-                id="height"
-                type="number"
-                step="0.1"
-                value={height}
-                onChange={(e) => setHeight(e.target.value)}
-                placeholder="Введите рост"
-              />
-            </div>
+      {/* ═══════════════════════════════════════════════════════════════
+          СЕКЦИЯ: ПРИЛОЖЕНИЕ
+      ═══════════════════════════════════════════════════════════════ */}
+      <Collapsible open={appOpen} onOpenChange={setAppOpen}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="pb-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
+              <CardTitle className="text-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {theme === "dark" ? <Moon className="h-5 w-5 text-primary" /> :
+                   theme === "light" ? <Sun className="h-5 w-5 text-primary" /> :
+                   <Monitor className="h-5 w-5 text-primary" />}
+                  Приложение
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-muted-foreground">
+                    {theme === "dark" ? "Тёмная" : theme === "light" ? "Светлая" : "Авто"}
+                  </span>
+                  <ChevronDown className={cn(
+                    "h-5 w-5 text-muted-foreground transition-transform duration-200",
+                    appOpen && "rotate-180"
+                  )} />
+                </div>
+              </CardTitle>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  onClick={() => setTheme("light")}
+                  className={cn(
+                    "flex flex-col items-center gap-2 p-3 rounded-lg transition-all",
+                    theme === "light"
+                      ? "bg-primary text-primary-foreground shadow-md"
+                      : "bg-muted hover:bg-muted/70"
+                  )}
+                >
+                  <Sun className="h-5 w-5" />
+                  <span className="text-sm font-medium">Светлая</span>
+                </button>
+                <button
+                  onClick={() => setTheme("dark")}
+                  className={cn(
+                    "flex flex-col items-center gap-2 p-3 rounded-lg transition-all",
+                    theme === "dark"
+                      ? "bg-primary text-primary-foreground shadow-md"
+                      : "bg-muted hover:bg-muted/70"
+                  )}
+                >
+                  <Moon className="h-5 w-5" />
+                  <span className="text-sm font-medium">Тёмная</span>
+                </button>
+                <button
+                  onClick={() => setTheme("system")}
+                  className={cn(
+                    "flex flex-col items-center gap-2 p-3 rounded-lg transition-all",
+                    theme === "system"
+                      ? "bg-primary text-primary-foreground shadow-md"
+                      : "bg-muted hover:bg-muted/70"
+                  )}
+                >
+                  <Monitor className="h-5 w-5" />
+                  <span className="text-sm font-medium">Авто</span>
+                </button>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
-            <div className="space-y-2">
-              <Label htmlFor="currentWeight">Вес (кг)</Label>
-              <Input
-                id="currentWeight"
-                type="number"
-                step="0.1"
-                value={currentWeight}
-                onChange={(e) => setCurrentWeight(e.target.value)}
-                placeholder="Введите вес"
-              />
-            </div>
-          </div>
+      {/* ═══════════════════════════════════════════════════════════════
+          СЕКЦИЯ: ДАННЫЕ
+      ═══════════════════════════════════════════════════════════════ */}
+      <Collapsible open={dataOpen} onOpenChange={setDataOpen}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="pb-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
+              <CardTitle className="text-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Download className="h-5 w-5 text-primary" />
+                  Данные
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-muted-foreground">
+                    {workouts?.length || 0} тренировок
+                  </span>
+                  <ChevronDown className={cn(
+                    "h-5 w-5 text-muted-foreground transition-transform duration-200",
+                    dataOpen && "rotate-180"
+                  )} />
+                </div>
+              </CardTitle>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Скачайте все ваши тренировки для резервного копирования или анализа
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                <Button
+                  variant="outline"
+                  onClick={exportToXLS}
+                  disabled={exportLoading || !workouts?.length}
+                  className="gap-2"
+                >
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Excel
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={exportToCSV}
+                  disabled={exportLoading || !workouts?.length}
+                  className="gap-2"
+                >
+                  <FileSpreadsheet className="h-4 w-4" />
+                  CSV
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={exportToJSON}
+                  disabled={exportLoading || !workouts?.length}
+                  className="gap-2"
+                >
+                  <FileJson className="h-4 w-4" />
+                  JSON
+                </Button>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
-          {/* Save Button */}
-          <Button
-            onClick={handleSave}
-            disabled={updateProfile.isPending}
-            className="w-full gap-2"
-          >
-            <Save className="h-4 w-4" />
-            Сохранить
-          </Button>
-        </div>
-        </CardContent>
-      </Card>
-
-      {/* Theme Selection */}
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg flex items-center gap-2">
-            {theme === "dark" ? <Moon className="h-5 w-5 text-primary" /> :
-             theme === "light" ? <Sun className="h-5 w-5 text-primary" /> :
-             <Monitor className="h-5 w-5 text-primary" />}
-            Тема оформления
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              onClick={() => setTheme("light")}
-              className={cn(
-                "flex flex-col items-center gap-2 p-3 rounded-lg transition-all",
-                theme === "light"
-                  ? "bg-primary text-primary-foreground shadow-md"
-                  : "bg-muted hover:bg-muted/70"
-              )}
-            >
-              <Sun className="h-5 w-5" />
-              <span className="text-sm font-medium">Светлая</span>
-            </button>
-            <button
-              onClick={() => setTheme("dark")}
-              className={cn(
-                "flex flex-col items-center gap-2 p-3 rounded-lg transition-all",
-                theme === "dark"
-                  ? "bg-primary text-primary-foreground shadow-md"
-                  : "bg-muted hover:bg-muted/70"
-              )}
-            >
-              <Moon className="h-5 w-5" />
-              <span className="text-sm font-medium">Тёмная</span>
-            </button>
-            <button
-              onClick={() => setTheme("system")}
-              className={cn(
-                "flex flex-col items-center gap-2 p-3 rounded-lg transition-all",
-                theme === "system"
-                  ? "bg-primary text-primary-foreground shadow-md"
-                  : "bg-muted hover:bg-muted/70"
-              )}
-            >
-              <Monitor className="h-5 w-5" />
-              <span className="text-sm font-medium">Авто</span>
-            </button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Export Data */}
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Download className="h-5 w-5 text-primary" />
-            Экспорт данных
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground mb-4">
-            Скачайте все ваши тренировки для резервного копирования или анализа
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant="outline"
-              onClick={exportToCSV}
-              disabled={exportLoading || !workouts?.length}
-              className="gap-2"
-            >
-              <FileSpreadsheet className="h-4 w-4" />
-              CSV (Excel)
-            </Button>
-            <Button
-              variant="outline"
-              onClick={exportToJSON}
-              disabled={exportLoading || !workouts?.length}
-              className="gap-2"
-            >
-              <FileJson className="h-4 w-4" />
-              JSON
-            </Button>
-          </div>
-          {workouts && workouts.length > 0 && (
-            <p className="text-xs text-muted-foreground mt-3">
-              {workouts.length} тренировок будет экспортировано
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Change Password Card - Collapsible */}
-      <Collapsible open={passwordSectionOpen} onOpenChange={setPasswordSectionOpen}>
+      {/* ═══════════════════════════════════════════════════════════════
+          СЕКЦИЯ: СМЕНА ПАРОЛЯ
+      ═══════════════════════════════════════════════════════════════ */}
+      <Collapsible open={securityOpen} onOpenChange={setSecurityOpen}>
         <Card>
           <CollapsibleTrigger asChild>
             <CardHeader className="pb-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
               <CardTitle className="text-lg flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Lock className="h-5 w-5 text-primary" />
-                  Сменить пароль
+                  Смена пароля
                 </div>
                 <ChevronDown className={cn(
                   "h-5 w-5 text-muted-foreground transition-transform duration-200",
-                  passwordSectionOpen && "rotate-180"
+                  securityOpen && "rotate-180"
                 )} />
               </CardTitle>
             </CardHeader>
@@ -580,7 +716,9 @@ export default function Settings() {
         </Card>
       </Collapsible>
 
-      {/* Logout Button with Confirmation */}
+      {/* ═══════════════════════════════════════════════════════════════
+          ВЫХОД ИЗ АККАУНТА
+      ═══════════════════════════════════════════════════════════════ */}
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button

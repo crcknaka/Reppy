@@ -29,6 +29,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useProfile";
 import { uploadWorkoutPhoto, deleteWorkoutPhoto, validateImageFile } from "@/lib/photoUpload";
 import { ViewingUserBanner } from "@/components/ViewingUserBanner";
+import { ExerciseTimer } from "@/components/ExerciseTimer";
 
 export default function WorkoutDetail() {
   const { id } = useParams<{ id: string }>();
@@ -67,6 +68,7 @@ export default function WorkoutDetail() {
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [photoToDelete, setPhotoToDelete] = useState(false);
   const [isPhotoFullscreen, setIsPhotoFullscreen] = useState(false);
+  const [showTimer, setShowTimer] = useState(false);
 
   // Load workout notes when workout changes
   useEffect(() => {
@@ -253,6 +255,7 @@ export default function WorkoutDetail() {
       setWeight("");
       setDistance("");
       setDuration("");
+      setShowTimer(false);
     }
   };
 
@@ -561,18 +564,39 @@ export default function WorkoutDetail() {
                     </div>
                   </div>
                 ) : selectedExercise.type === "timed" ? (
-                  <div className="space-y-2">
-                    <Label>Время (сек)</Label>
-                    <Input
-                      type="number"
-                      inputMode="numeric"
-                      enterKeyHint="done"
-                      placeholder="60"
-                      value={duration}
-                      onChange={(e) => setDuration(e.target.value)}
-                      autoFocus
+                  showTimer ? (
+                    <ExerciseTimer
+                      onSave={(seconds) => {
+                        setDuration(seconds.toString());
+                        setShowTimer(false);
+                      }}
+                      onCancel={() => setShowTimer(false)}
                     />
-                  </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Время (сек)</Label>
+                        <Input
+                          type="number"
+                          inputMode="numeric"
+                          enterKeyHint="done"
+                          placeholder="60"
+                          value={duration}
+                          onChange={(e) => setDuration(e.target.value)}
+                          autoFocus
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full gap-2"
+                        onClick={() => setShowTimer(true)}
+                      >
+                        <Timer className="h-4 w-4" />
+                        Включить таймер
+                      </Button>
+                    </div>
+                  )
                 ) : (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -612,13 +636,15 @@ export default function WorkoutDetail() {
                   </div>
                 )}
 
-                <Button
-                  type="submit"
-                  className="w-full mt-4"
-                  disabled={addSet.isPending}
-                >
-                  Добавить
-                </Button>
+                {!(selectedExercise.type === "timed" && showTimer) && (
+                  <Button
+                    type="submit"
+                    className="w-full mt-4"
+                    disabled={addSet.isPending}
+                  >
+                    Добавить
+                  </Button>
+                )}
               </form>
             </div>
           )}

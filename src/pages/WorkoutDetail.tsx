@@ -522,15 +522,18 @@ export default function WorkoutDetail() {
             </>
           ) : (
             <div className="space-y-4 mt-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedExercise(null)}
-                className="mb-2"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Назад к упражнениям
-              </Button>
+              {!(selectedExercise.type === "timed" && showTimer) && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDialogChange(false)}
+                  className="mb-2"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Назад
+                </Button>
+              )}
 
               <form onSubmit={(e) => { e.preventDefault(); handleAddSet(); }}>
                 {selectedExercise.type === "cardio" ? (

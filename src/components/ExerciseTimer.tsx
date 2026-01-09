@@ -193,6 +193,7 @@ export function ExerciseTimer({ onSave, onCancel }: ExerciseTimerProps) {
 
         <div className="flex gap-2 w-full">
           <Button
+            type="button"
             variant="outline"
             className="flex-1"
             onClick={handleReset}
@@ -201,6 +202,7 @@ export function ExerciseTimer({ onSave, onCancel }: ExerciseTimerProps) {
             Заново
           </Button>
           <Button
+            type="button"
             className="flex-1"
             onClick={handleSaveResult}
           >
@@ -308,6 +310,7 @@ export function ExerciseTimer({ onSave, onCancel }: ExerciseTimerProps) {
         {!isRunning ? (
           <>
             <Button
+              type="button"
               variant="outline"
               className="flex-1"
               onClick={onCancel}
@@ -315,6 +318,7 @@ export function ExerciseTimer({ onSave, onCancel }: ExerciseTimerProps) {
               Отмена
             </Button>
             <Button
+              type="button"
               className="flex-1"
               onClick={handleStart}
               disabled={mode === "countdown" && countdownTarget <= 0}
@@ -326,6 +330,7 @@ export function ExerciseTimer({ onSave, onCancel }: ExerciseTimerProps) {
         ) : (
           <>
             <Button
+              type="button"
               variant="outline"
               className="flex-1"
               onClick={handlePause}
@@ -334,6 +339,7 @@ export function ExerciseTimer({ onSave, onCancel }: ExerciseTimerProps) {
               Пауза
             </Button>
             <Button
+              type="button"
               className="flex-1"
               onClick={handleStop}
             >
@@ -347,6 +353,7 @@ export function ExerciseTimer({ onSave, onCancel }: ExerciseTimerProps) {
       {/* Reset button when paused */}
       {!isRunning && wasPaused && (
         <Button
+          type="button"
           variant="ghost"
           size="sm"
           onClick={handleReset}

@@ -453,19 +453,22 @@ export default function WorkoutDetail() {
                     <div className="space-y-2">
                       <Label>Дистанция (км)</Label>
                       <Input
+                        id="add-distance"
                         type="number"
                         inputMode="decimal"
-                        enterKeyHint="done"
+                        enterKeyHint="next"
                         step="0.1"
                         placeholder="5.5"
                         value={distance}
                         onChange={(e) => setDistance(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); document.getElementById('add-duration')?.focus(); } }}
                         autoFocus
                       />
                     </div>
                     <div className="space-y-2">
                       <Label>Время (мин)</Label>
                       <Input
+                        id="add-duration"
                         type="number"
                         inputMode="numeric"
                         enterKeyHint="done"
@@ -493,12 +496,14 @@ export default function WorkoutDetail() {
                     <div className="space-y-2">
                       <Label>Повторения</Label>
                       <Input
+                        id="add-reps"
                         type="number"
                         inputMode="numeric"
-                        enterKeyHint="done"
+                        enterKeyHint={selectedExercise.type === "weighted" ? "next" : "done"}
                         placeholder="8"
                         value={reps}
                         onChange={(e) => setReps(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter" && selectedExercise.type === "weighted") { e.preventDefault(); document.getElementById('add-weight')?.focus(); } }}
                         autoFocus
                       />
                     </div>
@@ -506,6 +511,7 @@ export default function WorkoutDetail() {
                       <div className="space-y-2">
                         <Label>Вес (кг)</Label>
                         <Input
+                          id="add-weight"
                           type="number"
                           inputMode="decimal"
                           enterKeyHint="done"
@@ -647,14 +653,15 @@ export default function WorkoutDetail() {
                     {editingSetId === set.id ? (
                       <>
                         {exercise?.type === "cardio" ? (
-                          <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }} className="contents">
+                          <>
                             <Input
                               type="number"
                               inputMode="decimal"
-                              enterKeyHint="done"
+                              enterKeyHint="next"
                               step="0.1"
                               value={editDistance}
                               onChange={(e) => setEditDistance(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === "Enter") { (e.currentTarget.nextElementSibling as HTMLInputElement)?.focus(); } }}
                               className="h-8 text-center"
                               placeholder="км"
                               autoFocus
@@ -665,43 +672,47 @@ export default function WorkoutDetail() {
                               enterKeyHint="done"
                               value={editDuration}
                               onChange={(e) => setEditDuration(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleSaveEdit(); } }}
                               className="h-8 text-center"
                               placeholder="мин"
                             />
-                          </form>
+                          </>
                         ) : exercise?.type === "timed" ? (
-                          <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }} className="contents">
+                          <>
                             <Input
                               type="number"
                               inputMode="numeric"
                               enterKeyHint="done"
                               value={editDuration}
                               onChange={(e) => setEditDuration(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleSaveEdit(); } }}
                               className="h-8 text-center"
                               placeholder="сек"
                               autoFocus
                             />
-                          </form>
+                          </>
                         ) : exercise?.type === "bodyweight" ? (
-                          <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }} className="contents">
+                          <>
                             <Input
                               type="number"
                               inputMode="numeric"
                               enterKeyHint="done"
                               value={editReps}
                               onChange={(e) => setEditReps(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleSaveEdit(); } }}
                               className="h-8 text-center"
                               autoFocus
                             />
-                          </form>
+                          </>
                         ) : (
-                          <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }} className="contents">
+                          <>
                             <Input
                               type="number"
                               inputMode="numeric"
-                              enterKeyHint="done"
+                              enterKeyHint="next"
                               value={editReps}
                               onChange={(e) => setEditReps(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === "Enter") { (e.currentTarget.nextElementSibling as HTMLInputElement)?.focus(); } }}
                               className="h-8 text-center"
                               autoFocus
                             />
@@ -712,10 +723,11 @@ export default function WorkoutDetail() {
                               step="0.5"
                               value={editWeight}
                               onChange={(e) => setEditWeight(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleSaveEdit(); } }}
                               className="h-8 text-center"
                               placeholder="—"
                             />
-                          </form>
+                          </>
                         )}
                         <div className="flex gap-1">
                           <Button

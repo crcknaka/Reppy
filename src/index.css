@@ -80,6 +80,61 @@ textarea,
     --chart-5: 280 70% 60%;
   }
 
+  /* Accent Color Schemes - Light */
+  :root[data-accent="coral"] {
+    --primary: 16 90% 55%;
+    --accent: 16 90% 55%;
+    --ring: 16 90% 55%;
+    --sidebar-primary: 16 90% 55%;
+    --sidebar-ring: 16 90% 55%;
+    --chart-1: 16 90% 55%;
+  }
+
+  :root[data-accent="blue"] {
+    --primary: 217 91% 60%;
+    --accent: 217 91% 60%;
+    --ring: 217 91% 60%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-ring: 217 91% 60%;
+    --chart-1: 217 91% 60%;
+  }
+
+  :root[data-accent="green"] {
+    --primary: 142 70% 45%;
+    --accent: 142 70% 45%;
+    --ring: 142 70% 45%;
+    --sidebar-primary: 142 70% 45%;
+    --sidebar-ring: 142 70% 45%;
+    --chart-1: 142 70% 45%;
+  }
+
+  :root[data-accent="purple"] {
+    --primary: 270 70% 60%;
+    --accent: 270 70% 60%;
+    --ring: 270 70% 60%;
+    --sidebar-primary: 270 70% 60%;
+    --sidebar-ring: 270 70% 60%;
+    --chart-1: 270 70% 60%;
+  }
+
+  :root[data-accent="pink"] {
+    --primary: 330 80% 60%;
+    --accent: 330 80% 60%;
+    --ring: 330 80% 60%;
+    --sidebar-primary: 330 80% 60%;
+    --sidebar-ring: 330 80% 60%;
+    --chart-1: 330 80% 60%;
+  }
+
+  :root[data-accent="teal"] {
+    --primary: 175 70% 45%;
+    --accent: 175 70% 45%;
+    --ring: 175 70% 45%;
+    --sidebar-primary: 175 70% 45%;
+    --sidebar-ring: 175 70% 45%;
+    --chart-1: 175 70% 45%;
+  }
+
   .dark {
     --background: 220 25% 8%;
     --foreground: 220 15% 95%;
@@ -128,6 +183,61 @@ textarea,
     --chart-3: 38 92% 50%;
     --chart-4: 200 80% 55%;
     --chart-5: 280 70% 60%;
+  }
+
+  /* Accent Color Schemes - Dark */
+  .dark[data-accent="coral"] {
+    --primary: 16 90% 55%;
+    --accent: 16 90% 55%;
+    --ring: 16 90% 55%;
+    --sidebar-primary: 16 90% 55%;
+    --sidebar-ring: 16 90% 55%;
+    --chart-1: 16 90% 55%;
+  }
+
+  .dark[data-accent="blue"] {
+    --primary: 217 91% 60%;
+    --accent: 217 91% 60%;
+    --ring: 217 91% 60%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-ring: 217 91% 60%;
+    --chart-1: 217 91% 60%;
+  }
+
+  .dark[data-accent="green"] {
+    --primary: 142 70% 50%;
+    --accent: 142 70% 50%;
+    --ring: 142 70% 50%;
+    --sidebar-primary: 142 70% 50%;
+    --sidebar-ring: 142 70% 50%;
+    --chart-1: 142 70% 50%;
+  }
+
+  .dark[data-accent="purple"] {
+    --primary: 270 70% 65%;
+    --accent: 270 70% 65%;
+    --ring: 270 70% 65%;
+    --sidebar-primary: 270 70% 65%;
+    --sidebar-ring: 270 70% 65%;
+    --chart-1: 270 70% 65%;
+  }
+
+  .dark[data-accent="pink"] {
+    --primary: 330 80% 65%;
+    --accent: 330 80% 65%;
+    --ring: 330 80% 65%;
+    --sidebar-primary: 330 80% 65%;
+    --sidebar-ring: 330 80% 65%;
+    --chart-1: 330 80% 65%;
+  }
+
+  .dark[data-accent="teal"] {
+    --primary: 175 70% 50%;
+    --accent: 175 70% 50%;
+    --ring: 175 70% 50%;
+    --sidebar-primary: 175 70% 50%;
+    --sidebar-ring: 175 70% 50%;
+    --chart-1: 175 70% 50%;
   }
 }
 

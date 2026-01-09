@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
+import { useAccentColor, ACCENT_COLORS } from "@/hooks/useAccentColor";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -71,6 +72,7 @@ export default function Settings() {
   const updateProfile = useUpdateProfile();
   const { signOut, updatePassword } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { accentColor, setAccentColor } = useAccentColor();
   const [exportLoading, setExportLoading] = useState(false);
 
   const [displayName, setDisplayName] = useState("");
@@ -557,44 +559,69 @@ export default function Settings() {
             </CardHeader>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  onClick={() => setTheme("light")}
-                  className={cn(
-                    "flex flex-col items-center gap-2 p-3 rounded-lg transition-all",
-                    theme === "light"
-                      ? "bg-primary text-primary-foreground shadow-md"
-                      : "bg-muted hover:bg-muted/70"
-                  )}
-                >
-                  <Sun className="h-5 w-5" />
-                  <span className="text-sm font-medium">Светлая</span>
-                </button>
-                <button
-                  onClick={() => setTheme("dark")}
-                  className={cn(
-                    "flex flex-col items-center gap-2 p-3 rounded-lg transition-all",
-                    theme === "dark"
-                      ? "bg-primary text-primary-foreground shadow-md"
-                      : "bg-muted hover:bg-muted/70"
-                  )}
-                >
-                  <Moon className="h-5 w-5" />
-                  <span className="text-sm font-medium">Тёмная</span>
-                </button>
-                <button
-                  onClick={() => setTheme("system")}
-                  className={cn(
-                    "flex flex-col items-center gap-2 p-3 rounded-lg transition-all",
-                    theme === "system"
-                      ? "bg-primary text-primary-foreground shadow-md"
-                      : "bg-muted hover:bg-muted/70"
-                  )}
-                >
-                  <Monitor className="h-5 w-5" />
-                  <span className="text-sm font-medium">Авто</span>
-                </button>
+            <CardContent className="space-y-6">
+              {/* Тема */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-muted-foreground">Тема</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => setTheme("light")}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-3 rounded-lg transition-all",
+                      theme === "light"
+                        ? "bg-primary text-primary-foreground shadow-md"
+                        : "bg-muted hover:bg-muted/70"
+                    )}
+                  >
+                    <Sun className="h-5 w-5" />
+                    <span className="text-sm font-medium">Светлая</span>
+                  </button>
+                  <button
+                    onClick={() => setTheme("dark")}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-3 rounded-lg transition-all",
+                      theme === "dark"
+                        ? "bg-primary text-primary-foreground shadow-md"
+                        : "bg-muted hover:bg-muted/70"
+                    )}
+                  >
+                    <Moon className="h-5 w-5" />
+                    <span className="text-sm font-medium">Тёмная</span>
+                  </button>
+                  <button
+                    onClick={() => setTheme("system")}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-3 rounded-lg transition-all",
+                      theme === "system"
+                        ? "bg-primary text-primary-foreground shadow-md"
+                        : "bg-muted hover:bg-muted/70"
+                    )}
+                  >
+                    <Monitor className="h-5 w-5" />
+                    <span className="text-sm font-medium">Авто</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Цвет акцента */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-muted-foreground">Цвет акцента</p>
+                <div className="grid grid-cols-6 gap-2">
+                  {ACCENT_COLORS.map((color) => (
+                    <button
+                      key={color.value}
+                      onClick={() => setAccentColor(color.value)}
+                      className={cn(
+                        "flex items-center justify-center w-full aspect-square rounded-lg transition-all",
+                        accentColor === color.value
+                          ? "ring-2 ring-offset-2 ring-offset-background ring-foreground scale-110"
+                          : "hover:scale-105"
+                      )}
+                      style={{ backgroundColor: color.color }}
+                      title={color.label}
+                    />
+                  ))}
+                </div>
               </div>
             </CardContent>
           </CollapsibleContent>

@@ -694,12 +694,12 @@ export default function WorkoutDetail() {
                   <div className="text-center">Подход</div>
                   <div className="text-center">
                     {exercise?.type === "cardio" ? "Дистанция" :
-                     exercise?.type === "timed" ? "Время (сек)" :
+                     exercise?.type === "timed" ? "Время" :
                      "Повторений"}
                   </div>
                   {exercise?.type !== "bodyweight" && exercise?.type !== "timed" && (
                     <div className="text-center">
-                      {exercise?.type === "cardio" ? "Время (мин)" : "Вес"}
+                      {exercise?.type === "cardio" ? "Время" : "Вес"}
                     </div>
                   )}
                   <div></div>

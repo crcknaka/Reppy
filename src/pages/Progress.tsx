@@ -309,15 +309,17 @@ export default function Progress() {
     }
   };
 
-  // Find the FIRST record set index (first occurrence of max value)
+  // Find the LAST record set index (newest date with max value, last set on that date)
   const recordSetIndex = useMemo(() => {
     if (!exerciseHistory.length || !selectedExerciseData) return -1;
 
     const exerciseType = selectedExerciseData.type;
-
-    // First find max value
     let maxValue = 0;
-    exerciseHistory.forEach((set) => {
+    let recordIndex = -1;
+
+    // exerciseHistory is sorted by date descending (newest first)
+    // We want the LAST occurrence of max value (oldest), so we iterate from end
+    exerciseHistory.forEach((set, index) => {
       let value = 0;
       switch (exerciseType) {
         case "weighted":
@@ -333,28 +335,14 @@ export default function Progress() {
           value = set.plank_seconds || 0;
           break;
       }
-      if (value > maxValue) {
+
+      if (value > 0 && value >= maxValue) {
         maxValue = value;
+        recordIndex = index;
       }
     });
 
-    if (maxValue === 0) return -1;
-
-    // Then find first occurrence of max value
-    return exerciseHistory.findIndex((set) => {
-      switch (exerciseType) {
-        case "weighted":
-          return set.weight === maxValue;
-        case "bodyweight":
-          return set.reps === maxValue;
-        case "cardio":
-          return set.distance_km === maxValue;
-        case "timed":
-          return set.plank_seconds === maxValue;
-        default:
-          return false;
-      }
-    });
+    return recordIndex;
   }, [exerciseHistory, selectedExerciseData]);
 
   // Group exercise history by date with global index preserved

@@ -3,9 +3,10 @@ import { format, isWithinInterval, startOfDay, endOfDay, subDays, startOfMonth, 
 import { ru } from "date-fns/locale";
 import { Plus, Calendar as CalendarIcon, Trash2, Filter, X, Dumbbell, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator } from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,16 +17,31 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useWorkouts, useCreateWorkout, useDeleteWorkout } from "@/hooks/useWorkouts";
-import { useNavigate } from "react-router-dom";
+import { useWorkouts, useCreateWorkout, useDeleteWorkout, useUserWorkouts } from "@/hooks/useWorkouts";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { pluralizeWithCount } from "@/lib/pluralize";
 import { DateRange } from "react-day-picker";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProfile, useUserProfile } from "@/hooks/useProfile";
+import { useAllProfiles } from "@/hooks/useAllProfiles";
+import { ViewingUserBanner } from "@/components/ViewingUserBanner";
 
 export default function Workouts() {
   const navigate = useNavigate();
-  const { data: workouts, isLoading } = useWorkouts();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { user } = useAuth();
+
+  const viewingUserId = searchParams.get("user");
+  const isViewingOther = viewingUserId && viewingUserId !== user?.id;
+  const targetUserId = viewingUserId || user?.id;
+
+  const { data: currentUserProfile } = useProfile();
+  const { data: viewingUserProfile } = useUserProfile(isViewingOther ? viewingUserId : null);
+  const { data: allProfiles } = useAllProfiles();
+
+  const { data: workouts, isLoading } = useUserWorkouts(targetUserId);
   const createWorkout = useCreateWorkout();
   const deleteWorkout = useDeleteWorkout();
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -33,6 +49,21 @@ export default function Workouts() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [workoutToDelete, setWorkoutToDelete] = useState<string | null>(null);
+
+  const handleUserChange = (userId: string) => {
+    if (userId === user?.id) {
+      searchParams.delete("user");
+      setSearchParams(searchParams);
+    } else {
+      setSearchParams({ user: userId });
+    }
+    setDateRange(undefined);
+  };
+
+  const handleBackToMyWorkouts = () => {
+    searchParams.delete("user");
+    setSearchParams(searchParams);
+  };
 
   const handleCreateWorkout = async () => {
     if (!date) return;
@@ -129,38 +160,77 @@ export default function Workouts() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
+      <div className="flex items-center justify-between gap-3">
+        <div className="space-y-1 min-w-0 flex-1">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Тренировки</h1>
-          <p className="text-muted-foreground text-base">История твоих тренировок</p>
+          <p className="text-muted-foreground text-base">
+            {isViewingOther ? `Тренировки ${viewingUserProfile?.display_name || "пользователя"}` : "История твоих тренировок"}
+          </p>
         </div>
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button className="gap-2 shadow-lg">
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Новая тренировка</span>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="end">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              locale={ru}
-              className="rounded-md border-0"
-            />
-            <div className="p-3 border-t border-border">
-              <Button 
-                className="w-full" 
-                onClick={handleCreateWorkout}
-                disabled={createWorkout.isPending}
-              >
-                Создать на {date && format(date, "d MMM", { locale: ru })}
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <Select value={targetUserId || ""} onValueChange={handleUserChange}>
+            <SelectTrigger className="w-[140px] sm:w-[180px]">
+              <SelectValue placeholder="Выберите" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={user?.id || ""}>
+                <div className="flex items-center gap-2">
+                  <span>{currentUserProfile?.avatar || "👤"}</span>
+                  <span className="truncate">{currentUserProfile?.display_name || "Я"}</span>
+                  <span className="text-muted-foreground text-xs">(Вы)</span>
+                </div>
+              </SelectItem>
+              <SelectSeparator />
+              {allProfiles?.filter(p => p.user_id !== user?.id).map((profile) => (
+                <SelectItem key={profile.user_id} value={profile.user_id}>
+                  <div className="flex items-center gap-2">
+                    <span>{profile.avatar || "👤"}</span>
+                    <span className="truncate">{profile.display_name || "Аноним"}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {!isViewingOther && (
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger asChild>
+                <Button className="gap-2 shadow-lg">
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden sm:inline">Новая</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  locale={ru}
+                  className="rounded-md border-0"
+                />
+                <div className="p-3 border-t border-border">
+                  <Button
+                    className="w-full"
+                    onClick={handleCreateWorkout}
+                    disabled={createWorkout.isPending}
+                  >
+                    Создать на {date && format(date, "d MMM", { locale: ru })}
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
       </div>
+
+      {isViewingOther && viewingUserProfile && (
+        <ViewingUserBanner
+          avatar={viewingUserProfile.avatar}
+          displayName={viewingUserProfile.display_name}
+          onClose={handleBackToMyWorkouts}
+        />
+      )}
 
       {/* Date Filter */}
       <div className="space-y-3">
@@ -383,14 +453,16 @@ export default function Workouts() {
                   )}
                 </div>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-muted-foreground hover:text-red-500 flex-shrink-0"
-                  onClick={(e) => handleDeleteWorkout(workout.id, e)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                {!isViewingOther && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-red-500 flex-shrink-0"
+                    onClick={(e) => handleDeleteWorkout(workout.id, e)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ))}

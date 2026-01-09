@@ -23,6 +23,7 @@ export interface WorkoutSet {
 
 export interface Workout {
   id: string;
+  user_id: string;
   date: string;
   notes: string | null;
   photo_url: string | null;
@@ -270,5 +271,69 @@ export function useUpdateWorkout() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workouts"] });
     },
+  });
+}
+
+export function useUserWorkouts(userId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["workouts", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("workouts")
+        .select(`
+          *,
+          workout_sets (
+            id,
+            workout_id,
+            exercise_id,
+            set_number,
+            reps,
+            weight,
+            distance_km,
+            duration_minutes,
+            plank_seconds,
+            created_at,
+            exercise:exercises (id, name, type, image_url)
+          )
+        `)
+        .eq('user_id', userId!)
+        .order("date", { ascending: false });
+
+      if (error) throw error;
+      return data as Workout[];
+    },
+    enabled: !!userId,
+  });
+}
+
+export function useSingleWorkout(workoutId: string | undefined) {
+  return useQuery({
+    queryKey: ["workout", workoutId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("workouts")
+        .select(`
+          *,
+          workout_sets (
+            id,
+            workout_id,
+            exercise_id,
+            set_number,
+            reps,
+            weight,
+            distance_km,
+            duration_minutes,
+            plank_seconds,
+            created_at,
+            exercise:exercises (id, name, type, image_url)
+          )
+        `)
+        .eq('id', workoutId!)
+        .single();
+
+      if (error) throw error;
+      return data as Workout;
+    },
+    enabled: !!workoutId,
   });
 }

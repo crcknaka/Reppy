@@ -59,3 +59,20 @@ export function useUpdateProfile() {
     },
   });
 }
+
+export function useUserProfile(userId: string | null | undefined) {
+  return useQuery({
+    queryKey: ["profile", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", userId!)
+        .single();
+
+      if (error) throw error;
+      return data as Profile;
+    },
+    enabled: !!userId,
+  });
+}

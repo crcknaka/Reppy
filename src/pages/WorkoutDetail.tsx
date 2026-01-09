@@ -21,24 +21,32 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useWorkouts, useAddSet, useDeleteSet, useUpdateSet, useUpdateWorkout } from "@/hooks/useWorkouts";
+import { useSingleWorkout, useAddSet, useDeleteSet, useUpdateSet, useUpdateWorkout } from "@/hooks/useWorkouts";
 import { useExercises, Exercise } from "@/hooks/useExercises";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/hooks/useProfile";
 import { uploadWorkoutPhoto, deleteWorkoutPhoto, validateImageFile } from "@/lib/photoUpload";
+import { ViewingUserBanner } from "@/components/ViewingUserBanner";
 
 export default function WorkoutDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { data: workouts } = useWorkouts();
+  const { data: workout, isLoading: isWorkoutLoading } = useSingleWorkout(id);
   const { data: exercises } = useExercises();
   const addSet = useAddSet();
   const deleteSet = useDeleteSet();
   const updateSet = useUpdateSet();
   const updateWorkout = useUpdateWorkout();
+
+  // Check if current user is the owner
+  const isOwner = workout?.user_id === user?.id;
+
+  // Fetch workout owner's profile for banner (only when viewing others)
+  const { data: workoutOwnerProfile } = useUserProfile(!isOwner && workout ? workout.user_id : null);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
@@ -59,8 +67,6 @@ export default function WorkoutDetail() {
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [photoToDelete, setPhotoToDelete] = useState(false);
   const [isPhotoFullscreen, setIsPhotoFullscreen] = useState(false);
-
-  const workout = workouts?.find((w) => w.id === id);
 
   // Load workout notes when workout changes
   useEffect(() => {
@@ -84,6 +90,14 @@ export default function WorkoutDetail() {
       }
     }
   }, [location.state, exercises, navigate, location.pathname]);
+
+  if (isWorkoutLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!workout) {
     return (
@@ -332,13 +346,22 @@ export default function WorkoutDetail() {
         </div>
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
-        <DialogTrigger asChild>
-          <Button className="w-full gap-2 shadow-lg">
-            <Plus className="h-4 w-4" />
-            Добавить подход
-          </Button>
-        </DialogTrigger>
+      {!isOwner && workoutOwnerProfile && (
+        <ViewingUserBanner
+          avatar={workoutOwnerProfile.avatar}
+          displayName={workoutOwnerProfile.display_name}
+          onClose={() => navigate("/")}
+        />
+      )}
+
+      {isOwner && (
+        <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
+          <DialogTrigger asChild>
+            <Button className="w-full gap-2 shadow-lg">
+              <Plus className="h-4 w-4" />
+              Добавить подход
+            </Button>
+          </DialogTrigger>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="exercise-dialog-description">
           <DialogHeader>
             <DialogTitle>
@@ -542,6 +565,7 @@ export default function WorkoutDetail() {
           )}
         </DialogContent>
       </Dialog>
+      )}
 
       {Object.keys(setsByExercise).length === 0 ? (
         <Card className="border-dashed">
@@ -781,24 +805,26 @@ export default function WorkoutDetail() {
                             </div>
                           </>
                         )}
-                        <div className="flex gap-1 justify-end">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
-                            onClick={() => handleEditSet(set)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
-                            onClick={() => handleDeleteSet(set.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        {isOwner && (
+                          <div className="flex gap-1 justify-end">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+                              onClick={() => handleEditSet(set)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+                              onClick={() => handleDeleteSet(set.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
                       </>
                     )}
                       </div>
@@ -811,21 +837,23 @@ export default function WorkoutDetail() {
                 </TooltipProvider>
 
                 {/* Add Next Set Button */}
-                <Button
-                  variant="outline"
-                  className="w-full mt-2 gap-2"
-                  onClick={() => {
-                    // Найти полное упражнение из списка exercises
-                    const fullExercise = exercises?.find(e => e.id === exerciseId);
-                    if (fullExercise) {
-                      setSelectedExercise(fullExercise);
-                      setDialogOpen(true);
-                    }
-                  }}
-                >
-                  <Plus className="h-4 w-4" />
-                  Ешё подход
-                </Button>
+                {isOwner && (
+                  <Button
+                    variant="outline"
+                    className="w-full mt-2 gap-2"
+                    onClick={() => {
+                      // Найти полное упражнение из списка exercises
+                      const fullExercise = exercises?.find(e => e.id === exerciseId);
+                      if (fullExercise) {
+                        setSelectedExercise(fullExercise);
+                        setDialogOpen(true);
+                      }
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Ешё подход
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -840,7 +868,7 @@ export default function WorkoutDetail() {
               <MessageSquare className="h-5 w-5 text-primary" />
               Комментарий
             </CardTitle>
-            {!isEditingNotes && (
+            {isOwner && !isEditingNotes && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -853,7 +881,7 @@ export default function WorkoutDetail() {
           </div>
         </CardHeader>
         <CardContent>
-          {isEditingNotes ? (
+          {isOwner && isEditingNotes ? (
             <div className="space-y-3">
               <Textarea
                 placeholder="Как прошла тренировка? Какие ощущения?"
@@ -899,7 +927,7 @@ export default function WorkoutDetail() {
               <ImageIcon className="h-5 w-5 text-primary" />
               Фото
             </CardTitle>
-            {workout?.photo_url && (
+            {isOwner && workout?.photo_url && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -921,7 +949,7 @@ export default function WorkoutDetail() {
                 onClick={() => setIsPhotoFullscreen(true)}
               />
             </div>
-          ) : (
+          ) : isOwner ? (
             <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
               {isUploadingPhoto ? (
                 <>
@@ -943,6 +971,10 @@ export default function WorkoutDetail() {
                 className="hidden"
               />
             </label>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              Нет фото
+            </div>
           )}
         </CardContent>
       </Card>

@@ -11,9 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { useAccentColor, ACCENT_COLORS } from "@/hooks/useAccentColor";
 import { toast } from "sonner";
@@ -391,11 +391,12 @@ export default function Settings() {
           <CollapsibleContent>
             <CardContent className="pt-4 pb-6">
               <div className="space-y-4">
-                {/* Avatar Selection */}
-                <div className="flex justify-center">
+                {/* Avatar + Age */}
+                <div className="flex items-center gap-4">
+                  {/* Avatar Selection */}
                   <Dialog>
                     <DialogTrigger asChild>
-                      <button className="flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 text-5xl hover:bg-primary/20 transition-colors cursor-pointer border-2 border-primary/20">
+                      <button className="flex-shrink-0 flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 text-5xl hover:bg-primary/20 transition-colors cursor-pointer border-2 border-primary/20">
                         {avatar || "👤"}
                       </button>
                     </DialogTrigger>
@@ -429,6 +430,36 @@ export default function Settings() {
                       </div>
                     </DialogContent>
                   </Dialog>
+
+                  {/* Age display */}
+                  {dateOfBirth && (() => {
+                    const birthDate = new Date(dateOfBirth);
+                    const today = new Date();
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    const monthDiff = today.getMonth() - birthDate.getMonth();
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                      age--;
+                    }
+                    if (age >= 0 && age < 150) {
+                      const lastDigit = age % 10;
+                      const lastTwoDigits = age % 100;
+                      let suffix = "лет";
+                      if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+                        suffix = "лет";
+                      } else if (lastDigit === 1) {
+                        suffix = "год";
+                      } else if (lastDigit >= 2 && lastDigit <= 4) {
+                        suffix = "года";
+                      }
+                      return (
+                        <div className="text-center">
+                          <div className="text-3xl font-bold text-primary">{age}</div>
+                          <div className="text-sm text-muted-foreground">{suffix}</div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
 
                 {/* Display Name and Gender */}
@@ -440,7 +471,7 @@ export default function Settings() {
                       type="text"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="Введите ваше имя"
+                      placeholder="Введите имя"
                     />
                   </div>
 
@@ -463,36 +494,7 @@ export default function Settings() {
                 {/* Date of Birth and Zodiac */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="dateOfBirth">
-                      Дата рождения
-                      {dateOfBirth && (() => {
-                        const birthDate = new Date(dateOfBirth);
-                        const today = new Date();
-                        let age = today.getFullYear() - birthDate.getFullYear();
-                        const monthDiff = today.getMonth() - birthDate.getMonth();
-                        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                          age--;
-                        }
-                        if (age >= 0 && age < 150) {
-                          const lastDigit = age % 10;
-                          const lastTwoDigits = age % 100;
-                          let suffix = "лет";
-                          if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
-                            suffix = "лет";
-                          } else if (lastDigit === 1) {
-                            suffix = "год";
-                          } else if (lastDigit >= 2 && lastDigit <= 4) {
-                            suffix = "года";
-                          }
-                          return (
-                            <span className="text-muted-foreground font-normal ml-1">
-                              ({age} {suffix})
-                            </span>
-                          );
-                        }
-                        return null;
-                      })()}
-                    </Label>
+                    <Label htmlFor="dateOfBirth">Дата рождения</Label>
                     <Input
                       id="dateOfBirth"
                       type="date"
@@ -501,7 +503,6 @@ export default function Settings() {
                     />
                   </div>
 
-                  {/* Zodiac Sign */}
                   <div className="space-y-2">
                     <Label>Знак зодиака</Label>
                     {dateOfBirth ? (() => {
@@ -527,19 +528,23 @@ export default function Settings() {
                         month < z.end[0] || (month === z.end[0] && day <= z.end[1])
                       ) || zodiacSigns[0];
                       return (
-                        <TooltipProvider>
-                          <Tooltip delayDuration={0}>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-background cursor-pointer hover:bg-muted/50 transition-colors">
-                                <span className="text-xl">{zodiac.sign}</span>
-                                <span className="text-sm">{zodiac.name}</span>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className="flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-background hover:bg-muted/50 transition-colors w-full">
+                              <span className="text-xl">{zodiac.sign}</span>
+                              <span className="text-sm">{zodiac.name}</span>
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64 p-3">
+                            <div className="flex items-start gap-2">
+                              <span className="text-2xl">{zodiac.sign}</span>
+                              <div>
+                                <p className="font-medium">{zodiac.name}</p>
+                                <p className="text-sm text-muted-foreground">{zodiac.desc}</p>
                               </div>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom" className="max-w-[200px] text-center">
-                              <p>{zodiac.desc}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       );
                     })() : (
                       <div className="flex items-center h-10 px-3 rounded-md border border-input bg-background text-muted-foreground text-sm">

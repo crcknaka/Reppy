@@ -447,84 +447,91 @@ export default function WorkoutDetail() {
                 Назад к упражнениям
               </Button>
 
-              {selectedExercise.type === "cardio" ? (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Дистанция (км)</Label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      placeholder="5.5"
-                      value={distance}
-                      onChange={(e) => setDistance(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleAddSet()}
-                      autoFocus
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Время (мин)</Label>
-                    <Input
-                      type="number"
-                      placeholder="30"
-                      value={duration}
-                      onChange={(e) => setDuration(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleAddSet()}
-                    />
-                  </div>
-                </div>
-              ) : selectedExercise.type === "timed" ? (
-                <div className="space-y-2">
-                  <Label>Время (сек)</Label>
-                  <Input
-                    type="number"
-                    placeholder="60"
-                    value={duration}
-                    onChange={(e) => setDuration(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleAddSet()}
-                    autoFocus
-                  />
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Повторения</Label>
-                    <Input
-                      type="number"
-                      placeholder="8"
-                      value={reps}
-                      onChange={(e) => setReps(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleAddSet()}
-                      autoFocus
-                    />
-                  </div>
-                  {selectedExercise.type === "weighted" && (
+              <form onSubmit={(e) => { e.preventDefault(); handleAddSet(); }}>
+                {selectedExercise.type === "cardio" ? (
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Вес (кг)</Label>
+                      <Label>Дистанция (км)</Label>
                       <Input
                         type="number"
-                        step="0.5"
-                        placeholder="18"
-                        value={weight}
-                        onChange={(e) => setWeight(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleAddSet()}
+                        inputMode="decimal"
+                        enterKeyHint="done"
+                        step="0.1"
+                        placeholder="5.5"
+                        value={distance}
+                        onChange={(e) => setDistance(e.target.value)}
+                        autoFocus
                       />
-                      {selectedExercise.name.toLowerCase().includes("гантел") && (
-                        <p className="text-xs text-muted-foreground">
-                          Укажи вес одной гантели
-                        </p>
-                      )}
                     </div>
-                  )}
-                </div>
-              )}
+                    <div className="space-y-2">
+                      <Label>Время (мин)</Label>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        enterKeyHint="done"
+                        placeholder="30"
+                        value={duration}
+                        onChange={(e) => setDuration(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                ) : selectedExercise.type === "timed" ? (
+                  <div className="space-y-2">
+                    <Label>Время (сек)</Label>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      enterKeyHint="done"
+                      placeholder="60"
+                      value={duration}
+                      onChange={(e) => setDuration(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Повторения</Label>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        enterKeyHint="done"
+                        placeholder="8"
+                        value={reps}
+                        onChange={(e) => setReps(e.target.value)}
+                        autoFocus
+                      />
+                    </div>
+                    {selectedExercise.type === "weighted" && (
+                      <div className="space-y-2">
+                        <Label>Вес (кг)</Label>
+                        <Input
+                          type="number"
+                          inputMode="decimal"
+                          enterKeyHint="done"
+                          step="0.5"
+                          placeholder="18"
+                          value={weight}
+                          onChange={(e) => setWeight(e.target.value)}
+                        />
+                        {selectedExercise.name.toLowerCase().includes("гантел") && (
+                          <p className="text-xs text-muted-foreground">
+                            Укажи вес одной гантели
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
 
-              <Button
-                className="w-full"
-                onClick={handleAddSet}
-                disabled={addSet.isPending}
-              >
-                Добавить
-              </Button>
+                <Button
+                  type="submit"
+                  className="w-full mt-4"
+                  disabled={addSet.isPending}
+                >
+                  Добавить
+                </Button>
+              </form>
             </div>
           )}
         </DialogContent>
@@ -640,69 +647,75 @@ export default function WorkoutDetail() {
                     {editingSetId === set.id ? (
                       <>
                         {exercise?.type === "cardio" ? (
-                          <>
+                          <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }} className="contents">
                             <Input
                               type="number"
+                              inputMode="decimal"
+                              enterKeyHint="done"
                               step="0.1"
                               value={editDistance}
                               onChange={(e) => setEditDistance(e.target.value)}
-                              onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
                               className="h-8 text-center"
                               placeholder="км"
                               autoFocus
                             />
                             <Input
                               type="number"
+                              inputMode="numeric"
+                              enterKeyHint="done"
                               value={editDuration}
                               onChange={(e) => setEditDuration(e.target.value)}
-                              onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
                               className="h-8 text-center"
                               placeholder="мин"
                             />
-                          </>
+                          </form>
                         ) : exercise?.type === "timed" ? (
-                          <>
+                          <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }} className="contents">
                             <Input
                               type="number"
+                              inputMode="numeric"
+                              enterKeyHint="done"
                               value={editDuration}
                               onChange={(e) => setEditDuration(e.target.value)}
-                              onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
                               className="h-8 text-center"
                               placeholder="сек"
                               autoFocus
                             />
-                          </>
+                          </form>
                         ) : exercise?.type === "bodyweight" ? (
-                          <>
+                          <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }} className="contents">
                             <Input
                               type="number"
+                              inputMode="numeric"
+                              enterKeyHint="done"
                               value={editReps}
                               onChange={(e) => setEditReps(e.target.value)}
-                              onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
                               className="h-8 text-center"
                               autoFocus
                             />
-                          </>
+                          </form>
                         ) : (
-                          <>
+                          <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }} className="contents">
                             <Input
                               type="number"
+                              inputMode="numeric"
+                              enterKeyHint="done"
                               value={editReps}
                               onChange={(e) => setEditReps(e.target.value)}
-                              onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
                               className="h-8 text-center"
                               autoFocus
                             />
                             <Input
                               type="number"
+                              inputMode="decimal"
+                              enterKeyHint="done"
                               step="0.5"
                               value={editWeight}
                               onChange={(e) => setEditWeight(e.target.value)}
-                              onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
                               className="h-8 text-center"
                               placeholder="—"
                             />
-                          </>
+                          </form>
                         )}
                         <div className="flex gap-1">
                           <Button

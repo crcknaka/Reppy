@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { format, subDays, startOfMonth, startOfDay } from "date-fns";
+import { format, subDays, startOfMonth, endOfMonth, startOfDay, endOfDay, parseISO, subMonths, isWithinInterval } from "date-fns";
 import { ru } from "date-fns/locale";
-import { Zap, Repeat, Plus, Trophy, Medal, Activity, Clock, Weight, TrendingUp, User, Dumbbell, Timer, LayoutGrid } from "lucide-react";
+import { Zap, Repeat, Plus, Trophy, Medal, Activity, Clock, Weight, TrendingUp, User, Dumbbell, Timer, LayoutGrid, ChevronDown, Calendar as CalendarIcon, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { DateRange } from "react-day-picker";
 import { useWorkouts } from "@/hooks/useWorkouts";
 import { useExercises } from "@/hooks/useExercises";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
@@ -36,9 +40,14 @@ export default function Progress() {
   const [weightDate, setWeightDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [bodyWeightHistory, setBodyWeightHistory] = useState<Array<{ date: string; weight: number }>>([]);
   const [currentWeight, setCurrentWeight] = useState<number | null>(null);
-  const [timeFilter, setTimeFilter] = useState<"today" | "7days" | "30days" | "month" | "all">("30days");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 29),
+    to: new Date(),
+  });
+  const [filterOpen, setFilterOpen] = useState(false);
   const [leaderboardExercise, setLeaderboardExercise] = useState<string>("Штанга лёжа");
   const [leaderboardPeriod, setLeaderboardPeriod] = useState<"all" | "month" | "today">("all");
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // Load leaderboard data
   const { data: leaderboardData } = useLeaderboard(leaderboardExercise, leaderboardPeriod);
@@ -136,31 +145,20 @@ export default function Progress() {
   const chartData = useMemo(() => {
     if (!workouts) return [];
 
-    let startDate: Date;
-    const today = new Date();
-
-    switch (timeFilter) {
-      case "today":
-        startDate = startOfDay(today);
-        break;
-      case "7days":
-        startDate = subDays(today, 7);
-        break;
-      case "30days":
-        startDate = subDays(today, 30);
-        break;
-      case "month":
-        startDate = startOfMonth(today);
-        break;
-      case "all":
-        startDate = new Date(0); // Beginning of time
-        break;
-      default:
-        startDate = subDays(today, 30);
-    }
-
     const filteredWorkouts = workouts
-      .filter((w) => new Date(w.date) >= startDate)
+      .filter((w) => {
+        if (!dateRange?.from) return true;
+        const workoutDate = new Date(w.date);
+        if (dateRange.from && dateRange.to) {
+          return isWithinInterval(workoutDate, {
+            start: startOfDay(dateRange.from),
+            end: endOfDay(dateRange.to),
+          });
+        } else if (dateRange.from) {
+          return startOfDay(workoutDate).getTime() >= startOfDay(dateRange.from).getTime();
+        }
+        return true;
+      })
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     return filteredWorkouts.map((workout) => {
@@ -189,7 +187,7 @@ export default function Progress() {
         plankTime: totalPlankTime,
       };
     });
-  }, [workouts, selectedExercise, currentWeight, timeFilter]);
+  }, [workouts, selectedExercise, currentWeight, dateRange]);
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -236,56 +234,177 @@ export default function Progress() {
 
   const selectedExerciseData = exercises?.find((e) => e.id === selectedExercise);
 
+  // Exercise history for collapsible
+  const exerciseHistory = useMemo(() => {
+    if (selectedExercise === "all" || !workouts) return [];
+
+    // Use same dateRange filter as chartData
+    const filteredWorkouts = workouts.filter(w => {
+      if (!dateRange?.from) return true;
+      const workoutDate = new Date(w.date);
+      if (dateRange.from && dateRange.to) {
+        return isWithinInterval(workoutDate, {
+          start: startOfDay(dateRange.from),
+          end: endOfDay(dateRange.to),
+        });
+      } else if (dateRange.from) {
+        return startOfDay(workoutDate).getTime() >= startOfDay(dateRange.from).getTime();
+      }
+      return true;
+    });
+
+    const sets: Array<{
+      date: string;
+      workoutId: string;
+      reps: number | null;
+      weight: number | null;
+      distance_km: number | null;
+      duration_minutes: number | null;
+      plank_seconds: number | null;
+    }> = [];
+
+    filteredWorkouts.forEach(workout => {
+      workout.workout_sets
+        ?.filter(set => set.exercise_id === selectedExercise)
+        .forEach(set => {
+          sets.push({
+            date: workout.date,
+            workoutId: workout.id,
+            reps: set.reps,
+            weight: set.weight,
+            distance_km: set.distance_km,
+            duration_minutes: set.duration_minutes,
+            plank_seconds: set.plank_seconds,
+          });
+        });
+    });
+
+    return sets;
+  }, [workouts, selectedExercise, dateRange]);
+
+  // Format set line based on exercise type
+  const formatSetLine = (set: typeof exerciseHistory[0], exerciseType: string | undefined) => {
+    const parsedDate = parseISO(set.date);
+    const dayOfWeek = format(parsedDate, "EEEEEE", { locale: ru }); // Пн, Вт, etc.
+    const capitalizedDay = dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1);
+    const date = format(parsedDate, "d MMM", { locale: ru });
+    const datePrefix = `${capitalizedDay}, ${date}`;
+
+    switch (exerciseType) {
+      case "weighted":
+        return `${datePrefix} · ${set.reps} × ${set.weight} кг`;
+      case "bodyweight":
+        return `${datePrefix} · ${set.reps} повт`;
+      case "cardio": {
+        const parts = [];
+        if (set.distance_km) parts.push(`${set.distance_km} км`);
+        if (set.duration_minutes) parts.push(`${set.duration_minutes} мин`);
+        return `${datePrefix} · ${parts.join(", ")}`;
+      }
+      case "timed": {
+        const seconds = set.plank_seconds || 0;
+        const minutes = (seconds / 60).toFixed(2);
+        return `${datePrefix} · ${seconds} сек (${minutes} мин)`;
+      }
+      default:
+        return datePrefix;
+    }
+  };
+
+  // Check if single day is selected (from === to)
+  const isSingleDaySelected = dateRange?.from && dateRange?.to &&
+    format(dateRange.from, "yyyy-MM-dd") === format(dateRange.to, "yyyy-MM-dd");
+
   // Get filter period text
   const getFilterText = () => {
-    switch (timeFilter) {
-      case "today":
-        return "за сегодня";
-      case "7days":
-        return "за 7 дней";
-      case "30days":
-        return "за 30 дней";
-      case "month":
-        return "за месяц";
-      case "all":
-        return "за всё время";
-      default:
-        return "за 30 дней";
+    if (!dateRange?.from) return "за всё время";
+    if (isSingleDaySelected) {
+      return format(dateRange.from!, "d MMMM", { locale: ru });
     }
+    if (dateRange.from && dateRange.to) {
+      return `${format(dateRange.from, "d MMM", { locale: ru })} — ${format(dateRange.to, "d MMM", { locale: ru })}`;
+    }
+    return `с ${format(dateRange.from, "d MMM", { locale: ru })}`;
+  };
+
+  // Quick filter handlers
+  const handleQuickFilter = (days: number | "current-month" | "last-month" | "all") => {
+    const today = new Date();
+
+    if (days === "all") {
+      setDateRange(undefined);
+    } else if (days === "current-month") {
+      setDateRange({
+        from: startOfMonth(today),
+        to: endOfMonth(today),
+      });
+    } else if (days === "last-month") {
+      const lastMonth = subMonths(today, 1);
+      setDateRange({
+        from: startOfMonth(lastMonth),
+        to: endOfMonth(lastMonth),
+      });
+    } else {
+      setDateRange({
+        from: subDays(today, days - 1),
+        to: today,
+      });
+    }
+    setFilterOpen(false);
+  };
+
+  // Select single day (from chart click)
+  const handleSelectDay = (dateStr: string) => {
+    const date = parseISO(dateStr);
+    setDateRange({
+      from: date,
+      to: date,
+    });
+    setHistoryOpen(true);
+  };
+
+  // Check if filter matches preset
+  const isFilterActive = (days: number | "current-month" | "last-month" | "all") => {
+    const today = new Date();
+    if (days === "all") return !dateRange?.from;
+    if (!dateRange?.from || !dateRange?.to) return false;
+    // Single day selection doesn't match any preset
+    if (isSingleDaySelected) return false;
+
+    if (days === "current-month") {
+      return format(dateRange.from, "yyyy-MM-dd") === format(startOfMonth(today), "yyyy-MM-dd") &&
+        format(dateRange.to, "yyyy-MM-dd") === format(endOfMonth(today), "yyyy-MM-dd");
+    }
+    if (days === "last-month") {
+      const lastMonth = subMonths(today, 1);
+      return format(dateRange.from, "yyyy-MM-dd") === format(startOfMonth(lastMonth), "yyyy-MM-dd") &&
+        format(dateRange.to, "yyyy-MM-dd") === format(endOfMonth(lastMonth), "yyyy-MM-dd");
+    }
+    return format(dateRange.from, "yyyy-MM-dd") === format(subDays(today, days - 1), "yyyy-MM-dd") &&
+      format(dateRange.to, "yyyy-MM-dd") === format(today, "yyyy-MM-dd");
   };
 
   // Prepare body weight chart data
   const bodyWeightChartData = useMemo(() => {
-    let startDate: Date;
-    const today = new Date();
-
-    switch (timeFilter) {
-      case "today":
-        startDate = startOfDay(today);
-        break;
-      case "7days":
-        startDate = subDays(today, 7);
-        break;
-      case "30days":
-        startDate = subDays(today, 30);
-        break;
-      case "month":
-        startDate = startOfMonth(today);
-        break;
-      case "all":
-        startDate = new Date(0);
-        break;
-      default:
-        startDate = subDays(today, 30);
-    }
-
     return bodyWeightHistory
-      .filter((w) => new Date(w.date) >= startDate)
+      .filter((w) => {
+        if (!dateRange?.from) return true;
+        const weightDate = new Date(w.date);
+        if (dateRange.from && dateRange.to) {
+          return isWithinInterval(weightDate, {
+            start: startOfDay(dateRange.from),
+            end: endOfDay(dateRange.to),
+          });
+        } else if (dateRange.from) {
+          return startOfDay(weightDate).getTime() >= startOfDay(dateRange.from).getTime();
+        }
+        return true;
+      })
       .map((w) => ({
         date: format(new Date(w.date), "d MMM", { locale: ru }),
         weight: w.weight,
       }));
-  }, [bodyWeightHistory, timeFilter]);
+  }, [bodyWeightHistory, dateRange]);
 
   const handleSaveWeight = async () => {
     if (!user || !newWeight) return;
@@ -428,46 +547,113 @@ export default function Progress() {
         {/* Time filter buttons */}
         <div className="flex gap-2 flex-wrap">
           <Button
-            variant={timeFilter === "today" ? "default" : "outline"}
+            variant={isFilterActive(7) ? "default" : "outline"}
             size="sm"
-            onClick={() => setTimeFilter("today")}
-            className="text-xs"
-          >
-            Сегодня
-          </Button>
-          <Button
-            variant={timeFilter === "7days" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setTimeFilter("7days")}
+            onClick={() => handleQuickFilter(7)}
             className="text-xs"
           >
             7 дней
           </Button>
           <Button
-            variant={timeFilter === "30days" ? "default" : "outline"}
+            variant={isFilterActive(30) ? "default" : "outline"}
             size="sm"
-            onClick={() => setTimeFilter("30days")}
+            onClick={() => handleQuickFilter(30)}
             className="text-xs"
           >
             30 дней
           </Button>
           <Button
-            variant={timeFilter === "month" ? "default" : "outline"}
+            variant={isFilterActive("current-month") ? "default" : "outline"}
             size="sm"
-            onClick={() => setTimeFilter("month")}
+            onClick={() => handleQuickFilter("current-month")}
             className="text-xs"
           >
-            Месяц
+            Этот месяц
           </Button>
           <Button
-            variant={timeFilter === "all" ? "default" : "outline"}
+            variant={isFilterActive("last-month") ? "default" : "outline"}
             size="sm"
-            onClick={() => setTimeFilter("all")}
+            onClick={() => handleQuickFilter("last-month")}
+            className="text-xs"
+          >
+            Прошлый месяц
+          </Button>
+
+          <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 text-xs"
+              >
+                <CalendarIcon className="h-3.5 w-3.5" />
+                Период
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="range"
+                selected={dateRange}
+                onSelect={setDateRange}
+                locale={ru}
+                className="rounded-md border-0"
+                numberOfMonths={1}
+              />
+              <div className="p-3 border-t border-border flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setDateRange(undefined);
+                    setFilterOpen(false);
+                  }}
+                >
+                  Сбросить
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={() => setFilterOpen(false)}
+                  disabled={!dateRange?.from}
+                >
+                  Применить
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          <Button
+            variant={isFilterActive("all") ? "default" : "outline"}
+            size="sm"
+            onClick={() => handleQuickFilter("all")}
             className="text-xs"
           >
             Всё время
           </Button>
         </div>
+
+        {/* Current filter indicator */}
+        {dateRange?.from && (
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Фильтр:</span>
+            <span className={cn(
+              "font-medium px-2 py-0.5 rounded",
+              isSingleDaySelected
+                ? "bg-primary/10 text-primary"
+                : "bg-muted text-foreground"
+            )}>
+              {getFilterText()}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setDateRange(undefined)}
+              className="h-6 px-2 text-xs gap-1"
+            >
+              <X className="h-3 w-3" />
+              Сбросить
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* No data message */}
@@ -593,6 +779,46 @@ export default function Progress() {
         </div>
       )}
 
+      {/* Exercise history collapsible */}
+      {selectedExercise !== "all" && exerciseHistory.length > 0 && (
+        <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
+          <Card>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Repeat className="h-5 w-5 text-primary" />
+                    История подходов
+                    <span className="text-sm font-normal text-muted-foreground">
+                      ({exerciseHistory.length})
+                    </span>
+                  </CardTitle>
+                  <ChevronDown className={cn(
+                    "h-5 w-5 text-muted-foreground transition-transform duration-200",
+                    historyOpen && "rotate-180"
+                  )} />
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                <div className="space-y-1 max-h-[300px] overflow-y-auto">
+                  {exerciseHistory.map((set, index) => (
+                    <div
+                      key={index}
+                      className="py-2 px-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors text-sm text-muted-foreground"
+                      onClick={() => navigate(`/workout/${set.workoutId}`)}
+                    >
+                      {formatSetLine(set, selectedExerciseData?.type)}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      )}
+
       {/* Chart */}
       {selectedExercise !== "all" && chartData.length > 0 && (
         <Card>
@@ -662,6 +888,10 @@ export default function Progress() {
                       fill="hsl(var(--primary))"
                       radius={[4, 4, 0, 0]}
                       name={cardioMetric === "distance" ? "Дистанция (км)" : "Время (мин)"}
+                      cursor="pointer"
+                      onClick={(data) => {
+                        if (data?.fullDate) handleSelectDay(data.fullDate);
+                      }}
                     />
                   </BarChart>
                 ) : selectedExerciseData?.type === "timed" ? (
@@ -685,6 +915,10 @@ export default function Progress() {
                       fill="hsl(var(--primary))"
                       radius={[4, 4, 0, 0]}
                       name="Время (сек)"
+                      cursor="pointer"
+                      onClick={(data) => {
+                        if (data?.fullDate) handleSelectDay(data.fullDate);
+                      }}
                     />
                   </BarChart>
                 ) : metric === "reps" ? (
@@ -708,6 +942,10 @@ export default function Progress() {
                       fill="hsl(var(--primary))"
                       radius={[4, 4, 0, 0]}
                       name="Повторения"
+                      cursor="pointer"
+                      onClick={(data) => {
+                        if (data?.fullDate) handleSelectDay(data.fullDate);
+                      }}
                     />
                   </BarChart>
                 ) : (
@@ -731,7 +969,15 @@ export default function Progress() {
                       dataKey="weight"
                       stroke="hsl(var(--primary))"
                       strokeWidth={2}
-                      dot={{ fill: "hsl(var(--primary))", strokeWidth: 0 }}
+                      dot={{ fill: "hsl(var(--primary))", strokeWidth: 0, cursor: "pointer" }}
+                      activeDot={{
+                        r: 6,
+                        cursor: "pointer",
+                        onClick: (_, payload) => {
+                          const data = payload?.payload;
+                          if (data?.fullDate) handleSelectDay(data.fullDate);
+                        }
+                      }}
                       name="Вес (кг)"
                     />
                   </LineChart>

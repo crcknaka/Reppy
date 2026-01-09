@@ -3,7 +3,7 @@ import { useTheme } from "next-themes";
 import { User, Save, LogOut, Lock, Eye, EyeOff, ChevronDown, Sun, Moon, Monitor, Download, FileJson, FileSpreadsheet } from "lucide-react";
 import { useWorkouts } from "@/hooks/useWorkouts";
 import { format } from "date-fns";
-import * as XLSX from "xlsx";
+import * as XLSX from "xlsx-js-style";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -253,45 +253,35 @@ export default function Settings() {
     }
     setExportLoading(true);
     try {
-      const data: Array<Record<string, string | number | null>> = [];
+      const headers = ["Дата", "Упражнение", "Тип", "Подход", "Повторения", "Вес (кг)", "Дистанция (км)", "Время (мин)", "Планка (сек)", "Заметки"];
+      const data: (string | number | null)[][] = [headers];
 
       workouts.forEach(w => {
         if (w.workout_sets && w.workout_sets.length > 0) {
           w.workout_sets.forEach(s => {
-            data.push({
-              "Дата": w.date,
-              "Упражнение": s.exercise?.name || "",
-              "Тип": s.exercise?.type || "",
-              "Подход": s.set_number,
-              "Повторения": s.reps,
-              "Вес (кг)": s.weight,
-              "Дистанция (км)": s.distance_km,
-              "Время (мин)": s.duration_minutes,
-              "Планка (сек)": s.plank_seconds,
-              "Заметки": w.notes || ""
-            });
+            data.push([
+              w.date,
+              s.exercise?.name || "",
+              s.exercise?.type || "",
+              s.set_number,
+              s.reps,
+              s.weight,
+              s.distance_km,
+              s.duration_minutes,
+              s.plank_seconds,
+              w.notes || ""
+            ]);
           });
         } else {
-          data.push({
-            "Дата": w.date,
-            "Упражнение": "",
-            "Тип": "",
-            "Подход": null,
-            "Повторения": null,
-            "Вес (кг)": null,
-            "Дистанция (км)": null,
-            "Время (мин)": null,
-            "Планка (сек)": null,
-            "Заметки": w.notes || ""
-          });
+          data.push([w.date, "", "", null, null, null, null, null, null, w.notes || ""]);
         }
       });
 
-      const worksheet = XLSX.utils.json_to_sheet(data);
+      const worksheet = XLSX.utils.aoa_to_sheet(data);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Тренировки");
 
-      // Auto-size columns
+      // Column widths
       const colWidths = [
         { wch: 12 }, // Дата
         { wch: 25 }, // Упражнение
@@ -305,6 +295,31 @@ export default function Settings() {
         { wch: 30 }, // Заметки
       ];
       worksheet["!cols"] = colWidths;
+
+      // Style headers (bold) and center numeric columns
+      const centerCols = [3, 4, 5, 6, 7, 8]; // Подход, Повторения, Вес, Дистанция, Время, Планка (0-indexed)
+      const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
+
+      for (let C = range.s.c; C <= range.e.c; C++) {
+        // Header row - bold
+        const headerCell = worksheet[XLSX.utils.encode_cell({ r: 0, c: C })];
+        if (headerCell) {
+          headerCell.s = {
+            font: { bold: true },
+            alignment: { horizontal: "center", vertical: "center" }
+          };
+        }
+
+        // Data rows - center numeric columns
+        if (centerCols.includes(C)) {
+          for (let R = 1; R <= range.e.r; R++) {
+            const cell = worksheet[XLSX.utils.encode_cell({ r: R, c: C })];
+            if (cell) {
+              cell.s = { alignment: { horizontal: "center", vertical: "center" } };
+            }
+          }
+        }
+      }
 
       XLSX.writeFile(workbook, `fittrack-export-${format(new Date(), "yyyy-MM-dd")}.xlsx`);
       toast.success("Данные экспортированы в Excel");

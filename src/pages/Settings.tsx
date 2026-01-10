@@ -71,8 +71,9 @@ export default function Settings() {
   const { data: workouts } = useWorkouts();
   const updateProfile = useUpdateProfile();
   const { signOut, updatePassword } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const { accentColor, setAccentColor } = useAccentColor();
+  const logoSrc = resolvedTheme === "dark" ? "/logo-white.png" : "/logo-black.png";
   const [exportLoading, setExportLoading] = useState(false);
 
   const [displayName, setDisplayName] = useState("");
@@ -360,7 +361,7 @@ export default function Settings() {
         {/* Logo - Mobile only */}
         <div className="md:hidden">
           <img
-            src="/logo.jpg"
+            src={logoSrc}
             alt="FitTrack Logo"
             className="rounded-lg object-contain"
             style={{ height: '4rem', width: '11rem' }}

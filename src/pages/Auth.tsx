@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +12,8 @@ import { toast } from "sonner";
 
 export default function Auth() {
   const { user, signIn, signUp, resetPassword, loading: authLoading } = useAuth();
+  const { resolvedTheme } = useTheme();
+  const logoSrc = resolvedTheme === "dark" ? "/logo-white.png" : "/logo-black.png";
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
@@ -89,7 +92,7 @@ export default function Auth() {
         <div className="w-full max-w-md animate-fade-in">
           <div className="flex items-center justify-center mb-8">
             <img
-              src="/logo.jpg"
+              src={logoSrc}
               alt="FitTrack Logo"
               className="max-h-20 rounded-xl object-contain"
             />
@@ -140,7 +143,7 @@ export default function Auth() {
       <div className="w-full max-w-md animate-fade-in">
         <div className="flex items-center justify-center mb-8">
           <img
-            src="/logo.jpg"
+            src={logoSrc}
             alt="FitTrack Logo"
             className="max-h-20 rounded-xl object-contain"
           />

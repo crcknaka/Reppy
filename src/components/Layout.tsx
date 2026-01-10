@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Calendar, TrendingUp, ListPlus, LogOut, Activity, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
 interface LayoutProps {
@@ -20,6 +21,8 @@ export default function Layout({ children }: LayoutProps) {
   const { signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
+  const logoSrc = resolvedTheme === "dark" ? "/logo-white.png" : "/logo-black.png";
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -58,7 +61,7 @@ export default function Layout({ children }: LayoutProps) {
         <div className="p-6 border-b border-border">
           <div className="flex items-center justify-center cursor-pointer" onClick={() => navigate("/")}>
             <img
-              src="/logo.jpg"
+              src={logoSrc}
               alt="FitTrack Logo"
               className="max-h-16 rounded-lg object-contain hover:opacity-80 transition-opacity"
             />

@@ -29,6 +29,7 @@ export interface Workout {
   photo_url: string | null;
   created_at: string;
   updated_at: string;
+  is_locked: boolean;
   workout_sets?: WorkoutSet[];
 }
 
@@ -409,5 +410,49 @@ export function useUserAllTimeBests(userId: string | null | undefined) {
       return bestsByExercise;
     },
     enabled: !!userId,
+  });
+}
+
+export function useLockWorkout() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (workoutId: string) => {
+      const { data, error } = await supabase
+        .from("workouts")
+        .update({ is_locked: true })
+        .eq("id", workoutId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workouts"] });
+      queryClient.invalidateQueries({ queryKey: ["workout"] });
+    },
+  });
+}
+
+export function useUnlockWorkout() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (workoutId: string) => {
+      const { data, error } = await supabase
+        .from("workouts")
+        .update({ is_locked: false })
+        .eq("id", workoutId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workouts"] });
+      queryClient.invalidateQueries({ queryKey: ["workout"] });
+    },
   });
 }

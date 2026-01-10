@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format, isToday, parseISO } from "date-fns";
 import { ru } from "date-fns/locale";
-import { ArrowLeft, Plus, Trash2, User, Dumbbell, MessageSquare, Save, Pencil, X, Activity, Timer, Camera, Loader2, ImageIcon, LayoutGrid, Trophy, Search, Share2, Copy, Check, Ban } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, User, Dumbbell, MessageSquare, Save, Pencil, X, Activity, Timer, Camera, Loader2, ImageIcon, LayoutGrid, Trophy, Search, Share2, Copy, Check, Ban, Lock, Unlock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useSingleWorkout, useAddSet, useDeleteSet, useUpdateSet, useUpdateWorkout, useUserAllTimeBests } from "@/hooks/useWorkouts";
+import { useSingleWorkout, useAddSet, useDeleteSet, useUpdateSet, useUpdateWorkout, useUserAllTimeBests, useLockWorkout, useUnlockWorkout } from "@/hooks/useWorkouts";
 import { useExercises, Exercise } from "@/hooks/useExercises";
 import { useWorkoutShare, useCreateWorkoutShare, useDeactivateWorkoutShare } from "@/hooks/useWorkoutShare";
 import { toast } from "sonner";
@@ -79,6 +79,11 @@ export default function WorkoutDetail() {
   const { data: workoutShare } = useWorkoutShare(workout?.id);
   const createShare = useCreateWorkoutShare();
   const deactivateShare = useDeactivateWorkoutShare();
+
+  // Lock hooks
+  const lockWorkout = useLockWorkout();
+  const unlockWorkout = useUnlockWorkout();
+  const [unlockDialogOpen, setUnlockDialogOpen] = useState(false);
 
   // Load workout notes when workout changes
   useEffect(() => {
@@ -440,6 +445,31 @@ export default function WorkoutDetail() {
     toast.success("Ссылка скопирована");
   };
 
+  const handleLockWorkout = async () => {
+    if (!workout) return;
+
+    try {
+      await lockWorkout.mutateAsync(workout.id);
+      toast.success("Тренировка заблокирована");
+    } catch (error) {
+      console.error("Lock error:", error);
+      toast.error("Ошибка блокировки");
+    }
+  };
+
+  const handleUnlockWorkout = async () => {
+    if (!workout) return;
+
+    try {
+      await unlockWorkout.mutateAsync(workout.id);
+      toast.success("Тренировка разблокирована");
+      setUnlockDialogOpen(false);
+    } catch (error) {
+      console.error("Unlock error:", error);
+      toast.error("Ошибка разблокировки");
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center gap-4">
@@ -467,67 +497,112 @@ export default function WorkoutDetail() {
           </div>
         </div>
         {isOwner && (
-          <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Share2 className="h-5 w-5" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Поделиться тренировкой</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 mt-4">
-                {workoutShare ? (
-                  <>
-                    <div className="space-y-2">
-                      <Label>Публичная ссылка</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          readOnly
-                          value={`${window.location.origin}/share/${workoutShare.share_token}`}
-                          className="font-mono text-sm"
-                        />
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={copyShareLink}
-                        >
-                          {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-                        </Button>
+          <>
+            <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Share2 className="h-5 w-5" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Поделиться тренировкой</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 mt-4">
+                  {workoutShare ? (
+                    <>
+                      <div className="space-y-2">
+                        <Label>Публичная ссылка</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            readOnly
+                            value={`${window.location.origin}/share/${workoutShare.share_token}`}
+                            className="font-mono text-sm"
+                          />
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={copyShareLink}
+                          >
+                            {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Любой человек с этой ссылкой сможет посмотреть вашу тренировку
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        Любой человек с этой ссылкой сможет посмотреть вашу тренировку
+                      <Button
+                        variant="destructive"
+                        className="w-full gap-2"
+                        onClick={handleDeactivateShare}
+                        disabled={deactivateShare.isPending}
+                      >
+                        <Ban className="h-4 w-4" />
+                        Деактивировать ссылку
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm text-muted-foreground">
+                        Создайте публичную ссылку, чтобы поделиться своей тренировкой с друзьями
                       </p>
-                    </div>
-                    <Button
-                      variant="destructive"
-                      className="w-full gap-2"
-                      onClick={handleDeactivateShare}
-                      disabled={deactivateShare.isPending}
-                    >
-                      <Ban className="h-4 w-4" />
-                      Деактивировать ссылку
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-sm text-muted-foreground">
-                      Создайте публичную ссылку, чтобы поделиться своей тренировкой с друзьями
-                    </p>
-                    <Button
-                      className="w-full gap-2"
-                      onClick={handleShareWorkout}
-                      disabled={createShare.isPending}
-                    >
-                      <Share2 className="h-4 w-4" />
-                      Создать ссылку
-                    </Button>
-                  </>
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
+                      <Button
+                        className="w-full gap-2"
+                        onClick={handleShareWorkout}
+                        disabled={createShare.isPending}
+                      >
+                        <Share2 className="h-4 w-4" />
+                        Создать ссылку
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* Lock/Unlock Button */}
+            {workout?.is_locked ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setUnlockDialogOpen(true)}
+                  className="text-yellow-600 dark:text-yellow-500 hover:text-yellow-700 dark:hover:text-yellow-400"
+                >
+                  <Lock className="h-5 w-5" />
+                </Button>
+
+                <AlertDialog open={unlockDialogOpen} onOpenChange={setUnlockDialogOpen}>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Разблокировать тренировку?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Вы уверены, что хотите разблокировать эту тренировку? После разблокировки вы сможете редактировать и удалять данные.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Отмена</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleUnlockWorkout}
+                        disabled={unlockWorkout.isPending}
+                      >
+                        Разблокировать
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            ) : (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleLockWorkout}
+                disabled={lockWorkout.isPending}
+              >
+                <Unlock className="h-5 w-5" />
+              </Button>
+            )}
+          </>
         )}
       </div>
 
@@ -539,7 +614,7 @@ export default function WorkoutDetail() {
         />
       )}
 
-      {isOwner && (
+      {isOwner && !workout?.is_locked && (
         <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
           <DialogTrigger asChild>
             <Button className="w-full gap-2 shadow-lg">
@@ -1036,7 +1111,7 @@ export default function WorkoutDetail() {
                             </div>
                           </>
                         )}
-                        {isOwner ? (
+                        {isOwner && !workout?.is_locked ? (
                           <div className="flex gap-0 justify-end -mr-1">
                             <Button
                               variant="ghost"
@@ -1070,7 +1145,7 @@ export default function WorkoutDetail() {
                 </TooltipProvider>
 
                 {/* Add Next Set Button */}
-                {isOwner && (
+                {isOwner && !workout?.is_locked && (
                   <Button
                     variant="outline"
                     className="w-full mt-2 gap-2"
@@ -1101,7 +1176,7 @@ export default function WorkoutDetail() {
               <MessageSquare className="h-5 w-5 text-primary" />
               Комментарий
             </CardTitle>
-            {isOwner && !isEditingNotes && (
+            {isOwner && !isEditingNotes && !workout?.is_locked && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -1160,7 +1235,7 @@ export default function WorkoutDetail() {
               <ImageIcon className="h-5 w-5 text-primary" />
               Фото
             </CardTitle>
-            {isOwner && workout?.photo_url && (
+            {isOwner && workout?.photo_url && !workout?.is_locked && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -1182,7 +1257,7 @@ export default function WorkoutDetail() {
                 onClick={() => setIsPhotoFullscreen(true)}
               />
             </div>
-          ) : isOwner ? (
+          ) : isOwner && !workout?.is_locked ? (
             <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
               {isUploadingPhoto ? (
                 <>

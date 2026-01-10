@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { format, isWithinInterval, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, subMonths, parseISO, isToday } from "date-fns";
 import { ru } from "date-fns/locale";
-import { Plus, Calendar as CalendarIcon, Trash2, Filter, X, Dumbbell, MessageSquare } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, Trash2, Filter, X, Dumbbell, MessageSquare, Lock, Unlock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useWorkouts, useCreateWorkout, useDeleteWorkout, useUserWorkouts } from "@/hooks/useWorkouts";
+import { useWorkouts, useCreateWorkout, useDeleteWorkout, useUserWorkouts, useLockWorkout, useUnlockWorkout } from "@/hooks/useWorkouts";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -44,6 +44,8 @@ export default function Workouts() {
   const { data: workouts, isLoading } = useUserWorkouts(targetUserId);
   const createWorkout = useCreateWorkout();
   const deleteWorkout = useDeleteWorkout();
+  const lockWorkout = useLockWorkout();
+  const unlockWorkout = useUnlockWorkout();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [open, setOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -87,12 +89,37 @@ export default function Workouts() {
 
   const confirmDelete = async () => {
     if (!workoutToDelete) return;
+
+    // Check if workout is locked
+    const workout = workouts?.find(w => w.id === workoutToDelete);
+    if (workout?.is_locked) {
+      toast.error("Невозможно удалить заблокированную тренировку");
+      setWorkoutToDelete(null);
+      return;
+    }
+
     try {
       await deleteWorkout.mutateAsync(workoutToDelete);
       toast.success("Тренировка удалена");
       setWorkoutToDelete(null);
     } catch (error) {
       toast.error("Ошибка удаления");
+    }
+  };
+
+  const handleToggleLock = async (workoutId: string, isLocked: boolean, e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    try {
+      if (isLocked) {
+        await unlockWorkout.mutateAsync(workoutId);
+        toast.success("Тренировка разблокирована");
+      } else {
+        await lockWorkout.mutateAsync(workoutId);
+        toast.success("Тренировка заблокирована");
+      }
+    } catch (error) {
+      toast.error("Ошибка блокировки");
     }
   };
 
@@ -453,14 +480,30 @@ export default function Workouts() {
                 </div>
 
                 {!isViewingOther && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-muted-foreground hover:text-red-500 flex-shrink-0"
-                    onClick={(e) => handleDeleteWorkout(workout.id, e)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground flex-shrink-0"
+                      onClick={(e) => handleToggleLock(workout.id, workout.is_locked, e)}
+                    >
+                      {workout.is_locked ? (
+                        <Lock className="h-4 w-4" />
+                      ) : (
+                        <Unlock className="h-4 w-4" />
+                      )}
+                    </Button>
+                    {!workout.is_locked && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-red-500 flex-shrink-0"
+                        onClick={(e) => handleDeleteWorkout(workout.id, e)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 )}
               </CardContent>
             </Card>

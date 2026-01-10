@@ -170,6 +170,7 @@ export type Database = {
           photo_url: string | null
           updated_at: string
           user_id: string
+          is_locked: boolean
         }
         Insert: {
           created_at?: string
@@ -179,6 +180,7 @@ export type Database = {
           photo_url?: string | null
           updated_at?: string
           user_id: string
+          is_locked?: boolean
         }
         Update: {
           created_at?: string
@@ -188,6 +190,7 @@ export type Database = {
           photo_url?: string | null
           updated_at?: string
           user_id?: string
+          is_locked?: boolean
         }
         Relationships: []
       }

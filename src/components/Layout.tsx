@@ -63,7 +63,7 @@ export default function Layout({ children }: LayoutProps) {
             <img
               src={logoSrc}
               alt="FitTrack Logo"
-              className="max-h-16 rounded-lg object-contain hover:opacity-80 transition-opacity"
+              className="max-h-20 rounded-lg object-contain hover:opacity-80 transition-opacity"
             />
           </div>
         </div>

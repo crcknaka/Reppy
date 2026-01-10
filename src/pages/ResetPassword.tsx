@@ -72,7 +72,7 @@ export default function ResetPassword() {
             <img
               src={logoSrc}
               alt="FitTrack Logo"
-              className="max-h-20 rounded-xl object-contain"
+              className="max-h-24 rounded-xl object-contain"
             />
           </div>
 
@@ -99,7 +99,7 @@ export default function ResetPassword() {
           <img
             src={logoSrc}
             alt="FitTrack Logo"
-            className="max-h-20 rounded-xl object-contain"
+            className="max-h-24 rounded-xl object-contain"
           />
         </div>
 

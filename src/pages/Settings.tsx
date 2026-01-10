@@ -364,7 +364,7 @@ export default function Settings() {
             src={logoSrc}
             alt="FitTrack Logo"
             className="rounded-lg object-contain"
-            style={{ height: '4rem', width: '11rem' }}
+            style={{ height: '5rem', width: '13rem' }}
           />
         </div>
       </div>

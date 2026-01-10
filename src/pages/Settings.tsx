@@ -91,7 +91,7 @@ export default function Settings() {
   const [showNewPassword, setShowNewPassword] = useState(false);
 
   // Section states
-  const [profileOpen, setProfileOpen] = useState(true);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [appOpen, setAppOpen] = useState(false);
   const [dataOpen, setDataOpen] = useState(false);
   const [securityOpen, setSecurityOpen] = useState(false);

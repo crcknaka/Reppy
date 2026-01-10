@@ -51,6 +51,7 @@ export default function Workouts() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [workoutToDelete, setWorkoutToDelete] = useState<string | null>(null);
+  const [workoutToUnlock, setWorkoutToUnlock] = useState<string | null>(null);
 
   const handleUserChange = (userId: string) => {
     if (userId === user?.id) {
@@ -110,16 +111,29 @@ export default function Workouts() {
   const handleToggleLock = async (workoutId: string, isLocked: boolean, e: React.MouseEvent) => {
     e.stopPropagation();
 
-    try {
-      if (isLocked) {
-        await unlockWorkout.mutateAsync(workoutId);
-        toast.success("Тренировка разблокирована");
-      } else {
+    if (isLocked) {
+      // Show confirmation dialog for unlocking
+      setWorkoutToUnlock(workoutId);
+    } else {
+      // Lock without confirmation
+      try {
         await lockWorkout.mutateAsync(workoutId);
         toast.success("Тренировка заблокирована");
+      } catch (error) {
+        toast.error("Ошибка блокировки");
       }
+    }
+  };
+
+  const confirmUnlock = async () => {
+    if (!workoutToUnlock) return;
+
+    try {
+      await unlockWorkout.mutateAsync(workoutToUnlock);
+      toast.success("Тренировка разблокирована");
+      setWorkoutToUnlock(null);
     } catch (error) {
-      toast.error("Ошибка блокировки");
+      toast.error("Ошибка разблокировки");
     }
   };
 
@@ -524,6 +538,24 @@ export default function Workouts() {
             <AlertDialogCancel>Отмена</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Unlock Confirmation Dialog */}
+      <AlertDialog open={!!workoutToUnlock} onOpenChange={(open) => !open && setWorkoutToUnlock(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Разблокировать тренировку?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Вы уверены, что хотите разблокировать эту тренировку? После разблокировки вы сможете редактировать и удалять данные.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmUnlock}>
+              Разблокировать
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

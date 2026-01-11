@@ -347,9 +347,9 @@ export default function Workouts() {
             <Button
               variant="outline"
               size="icon"
-              className="h-9 w-9"
+              className="h-9 w-9 shrink-0"
             >
-              <CalendarIcon className="h-4 w-4" />
+              <CalendarIcon className="h-3.5 w-3.5" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">

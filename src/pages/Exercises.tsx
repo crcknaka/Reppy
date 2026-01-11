@@ -183,48 +183,48 @@ export default function Exercises() {
       </div>
 
       {/* Search and Filter */}
-      <div className="flex gap-3">
+      <div className="flex gap-2 items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             placeholder="Поиск..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="pl-9 h-9 text-xs"
           />
         </div>
         <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as "all" | "bodyweight" | "weighted" | "cardio")}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="h-9 w-auto min-w-[120px] text-xs px-3">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">
               <div className="flex items-center gap-2">
-                <LayoutGrid className="h-4 w-4" />
+                <LayoutGrid className="h-3.5 w-3.5" />
                 Все типы
               </div>
             </SelectItem>
             <SelectItem value="bodyweight">
               <div className="flex items-center gap-2">
-                <User className="h-4 w-4" />
+                <User className="h-3.5 w-3.5" />
                 Собственный вес
               </div>
             </SelectItem>
             <SelectItem value="weighted">
               <div className="flex items-center gap-2">
-                <Dumbbell className="h-4 w-4" />
+                <Dumbbell className="h-3.5 w-3.5" />
                 С отягощением
               </div>
             </SelectItem>
             <SelectItem value="cardio">
               <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4" />
+                <Activity className="h-3.5 w-3.5" />
                 Кардио
               </div>
             </SelectItem>
             <SelectItem value="timed">
               <div className="flex items-center gap-2">
-                <Timer className="h-4 w-4" />
+                <Timer className="h-3.5 w-3.5" />
                 На время
               </div>
             </SelectItem>

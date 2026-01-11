@@ -543,46 +543,46 @@ export default function Progress() {
       </div>
 
       {/* Filters */}
-      <div className="space-y-3">
-        {/* Exercise type and exercise selector */}
-        <div className="grid grid-cols-2 gap-3">
+      <div className="space-y-2">
+        {/* All filters in one row */}
+        <div className="flex items-center gap-2 flex-wrap">
           <Select
             value={exerciseTypeFilter}
             onValueChange={(v) => {
               setExerciseTypeFilter(v as "all" | "weighted" | "bodyweight" | "cardio" | "timed");
             }}
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-9 w-auto min-w-[120px] text-xs px-3">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">
                 <div className="flex items-center gap-2">
-                  <LayoutGrid className="h-4 w-4" />
+                  <LayoutGrid className="h-3.5 w-3.5" />
                   Все типы
                 </div>
               </SelectItem>
               <SelectItem value="bodyweight">
                 <div className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
+                  <User className="h-3.5 w-3.5" />
                   Собственный вес
                 </div>
               </SelectItem>
               <SelectItem value="weighted">
                 <div className="flex items-center gap-2">
-                  <Dumbbell className="h-4 w-4" />
+                  <Dumbbell className="h-3.5 w-3.5" />
                   С отягощением
                 </div>
               </SelectItem>
               <SelectItem value="cardio">
                 <div className="flex items-center gap-2">
-                  <Activity className="h-4 w-4" />
+                  <Activity className="h-3.5 w-3.5" />
                   Кардио
                 </div>
               </SelectItem>
               <SelectItem value="timed">
                 <div className="flex items-center gap-2">
-                  <Timer className="h-4 w-4" />
+                  <Timer className="h-3.5 w-3.5" />
                   На время
                 </div>
               </SelectItem>
@@ -590,8 +590,8 @@ export default function Progress() {
           </Select>
 
           <Select value={selectedExercise} onValueChange={setSelectedExercise}>
-            <SelectTrigger>
-              <SelectValue placeholder="Выбери упражнение" />
+            <SelectTrigger className="h-9 w-auto min-w-[140px] max-w-[180px] text-xs px-3">
+              <SelectValue placeholder="Упражнение" />
             </SelectTrigger>
             <SelectContent>
               {exerciseTypeFilter === "all" && (
@@ -604,10 +604,8 @@ export default function Progress() {
               ))}
             </SelectContent>
           </Select>
-        </div>
 
-        {/* Time filter */}
-        <div className="flex items-center gap-2">
+          {/* Time filter */}
           <Popover open={filterOpen} onOpenChange={setFilterOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -681,9 +679,9 @@ export default function Progress() {
               <Button
                 variant="outline"
                 size="icon"
-                className="h-9 w-9"
+                className="h-9 w-9 shrink-0"
               >
-                <CalendarIcon className="h-4 w-4" />
+                <CalendarIcon className="h-3.5 w-3.5" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -743,12 +741,12 @@ export default function Progress() {
         <div className="grid grid-cols-2 gap-3">
           {selectedExerciseData?.type !== "cardio" && selectedExerciseData?.type !== "timed" && (
             <Card>
-              <CardContent className="pt-4">
+              <CardContent className="p-3">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                  <Repeat className="h-4 w-4" />
+                  <Repeat className="h-3.5 w-3.5" />
                   <span className="text-xs"> {pluralize(stats.totalReps, "Повторение", "Повторения", "Повторений")}</span>
                 </div>
-                <p className="text-2xl font-bold text-foreground">{stats.totalReps}</p>
+                <p className="text-xl font-bold text-foreground">{stats.totalReps}</p>
                 {stats.repsTrend !== 0 && (
                   <p className={`text-xs ${stats.repsTrend > 0 ? "text-success" : "text-destructive"}`}>
                     {stats.repsTrend > 0 ? "+" : ""}{stats.repsTrend.toFixed(0)}% за неделю
@@ -760,12 +758,12 @@ export default function Progress() {
 
           {selectedExerciseData?.type !== "bodyweight" && selectedExerciseData?.type !== "cardio" && selectedExerciseData?.type !== "timed" && (
             <Card>
-              <CardContent className="pt-4">
+              <CardContent className="p-3">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                  <Weight className="h-4 w-4" />
+                  <Weight className="h-3.5 w-3.5" />
                   <span className="text-xs">Макс. вес</span>
                 </div>
-                <p className="text-2xl font-bold text-foreground">
+                <p className="text-xl font-bold text-foreground">
                   {stats.maxWeight > 0 ? `${stats.maxWeight} кг` : "—"}
                 </p>
               </CardContent>
@@ -773,23 +771,23 @@ export default function Progress() {
           )}
 
           <Card>
-            <CardContent className="pt-4">
+            <CardContent className="p-3">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <Zap className="h-4 w-4" />
+                <Zap className="h-3.5 w-3.5" />
                 <span className="text-xs">{pluralize(stats.workoutCount, "Тренировка", "Тренировки", "Тренировок")}</span>
               </div>
-              <p className="text-2xl font-bold text-foreground">{stats.workoutCount}</p>
+              <p className="text-xl font-bold text-foreground">{stats.workoutCount}</p>
             </CardContent>
           </Card>
 
           {selectedExerciseData?.type !== "bodyweight" && selectedExerciseData?.type !== "cardio" && selectedExerciseData?.type !== "timed" && (
             <Card>
-              <CardContent className="pt-4">
+              <CardContent className="p-3">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                  <TrendingUp className="h-4 w-4" />
+                  <TrendingUp className="h-3.5 w-3.5" />
                   <span className="text-xs">Объём</span>
                 </div>
-                <p className="text-2xl font-bold text-foreground">
+                <p className="text-xl font-bold text-foreground">
                   {stats.totalVolume.toLocaleString()} кг
                 </p>
               </CardContent>
@@ -798,12 +796,12 @@ export default function Progress() {
 
           {stats.totalDistance > 0 && (
             <Card>
-              <CardContent className="pt-4">
+              <CardContent className="p-3">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                  <Activity className="h-4 w-4" />
+                  <Activity className="h-3.5 w-3.5" />
                   <span className="text-xs">Пробежал</span>
                 </div>
-                <p className="text-2xl font-bold text-foreground">
+                <p className="text-xl font-bold text-foreground">
                   {stats.totalDistance.toFixed(1)} км
                 </p>
               </CardContent>
@@ -812,12 +810,12 @@ export default function Progress() {
 
           {stats.totalDurationMinutes > 0 && (selectedExerciseData?.type === "cardio" || selectedExercise === "all") && (
             <Card>
-              <CardContent className="pt-4">
+              <CardContent className="p-3">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                  <Clock className="h-4 w-4" />
+                  <Clock className="h-3.5 w-3.5" />
                   <span className="text-xs">Бегал</span>
                 </div>
-                <p className="text-2xl font-bold text-foreground">
+                <p className="text-xl font-bold text-foreground">
                   {stats.totalDurationMinutes >= 60
                     ? `${stats.totalDurationHours.toFixed(2)} ч`
                     : `${stats.totalDurationMinutes.toFixed(0)} мин`}
@@ -828,12 +826,12 @@ export default function Progress() {
 
           {stats.totalPlankSeconds > 0 && (selectedExerciseData?.type === "timed" || selectedExercise === "all") && (
             <Card>
-              <CardContent className="pt-4">
+              <CardContent className="p-3">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                  <Clock className="h-4 w-4" />
+                  <Clock className="h-3.5 w-3.5" />
                   <span className="text-xs">В планке</span>
                 </div>
-                <p className="text-2xl font-bold text-foreground">
+                <p className="text-xl font-bold text-foreground">
                   {stats.totalPlankSeconds >= 3600
                     ? `${(stats.totalPlankSeconds / 3600).toFixed(2)} ч`
                     : `${(stats.totalPlankSeconds / 60).toFixed(2)} мин`}
@@ -915,9 +913,9 @@ export default function Progress() {
       {/* Chart */}
       {selectedExercise !== "all" && chartData.length > 0 && (
         <Card>
-          <CardHeader>
+          <CardHeader className="pb-2 pt-4 px-4">
             <div className="flex items-center justify-between gap-3">
-              <CardTitle className="text-base">
+              <CardTitle className="text-sm font-semibold">
                 {selectedExerciseData?.type === "cardio"
                   ? cardioMetric === "distance"
                     ? "Дистанция (км)"
@@ -936,7 +934,7 @@ export default function Progress() {
 
               {selectedExerciseData?.type === "cardio" ? (
                 <Select value={cardioMetric} onValueChange={(v) => setCardioMetric(v as "distance" | "duration")}>
-                  <SelectTrigger className="w-[140px]">
+                  <SelectTrigger className="h-9 w-auto min-w-[100px] text-xs px-3">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -946,7 +944,7 @@ export default function Progress() {
                 </Select>
               ) : selectedExerciseData?.type === "weighted" && (
                 <Select value={metric} onValueChange={(v) => setMetric(v as "reps" | "weight")}>
-                  <SelectTrigger className="w-[140px]">
+                  <SelectTrigger className="h-9 w-auto min-w-[100px] text-xs px-3">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -957,8 +955,8 @@ export default function Progress() {
               )}
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="h-64">
+          <CardContent className="px-4 pb-4">
+            <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
                 {selectedExerciseData?.type === "cardio" ? (
                   <BarChart data={chartData}>
@@ -1083,17 +1081,17 @@ export default function Progress() {
 
       {/* Leaderboard */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
+        <CardHeader className="pb-2 pt-4 px-4">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Trophy className="h-4 w-4 text-primary" />
             ТОП-10 · {leaderboardExercise}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="px-4 pb-4 space-y-3">
           {/* Exercise selector */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="flex gap-2">
             <Select value={leaderboardExercise} onValueChange={setLeaderboardExercise}>
-              <SelectTrigger>
+              <SelectTrigger className="h-9 text-xs px-3 flex-1">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -1106,7 +1104,7 @@ export default function Progress() {
             </Select>
 
             <Select value={leaderboardPeriod} onValueChange={(v) => setLeaderboardPeriod(v as "all" | "month" | "today")}>
-              <SelectTrigger>
+              <SelectTrigger className="h-9 w-auto min-w-[100px] text-xs px-3">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -1208,18 +1206,18 @@ export default function Progress() {
       {/* Body Weight Chart */}
       {currentWeight !== null && (
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-2 pt-4 px-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Activity className="h-4 w-4 text-primary" />
                 Вес Тела
               </CardTitle>
-              <span className="text-2xl font-bold text-primary">{currentWeight} кг</span>
+              <span className="text-xl font-bold text-primary">{currentWeight} кг</span>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 pb-4">
             {bodyWeightChartData.length > 0 ? (
-              <div className="h-64">
+              <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={bodyWeightChartData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />

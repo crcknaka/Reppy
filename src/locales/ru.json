@@ -24,7 +24,8 @@
     "stop": "Стоп",
     "pause": "Пауза",
     "continue": "Продолжить",
-    "search": "Поиск..."
+    "search": "Поиск...",
+    "user": "Пользователь"
   },
   "nav": {
     "workouts": "Тренировки",
@@ -412,6 +413,44 @@
     "h": "ч",
     "reps": "повт",
     "times": "раз"
+  },
+  "pdfReport": {
+    "title": "Месячный отчёт о тренировках",
+    "exportPdf": "Экспорт в PDF",
+    "selectMonth": "Выберите месяц",
+    "generating": "Генерация...",
+    "download": "Скачать PDF",
+    "generated": "Отчёт сгенерирован!",
+    "error": "Ошибка генерации отчёта",
+    "noData": "Нет тренировок за этот месяц",
+    "exerciseBreakdown": "Разбивка по упражнениям",
+    "workoutProgress": "Подходы по дням",
+    "dailyBreakdown": "По дням",
+    "footer": "Сгенерировано FitTrack",
+    "stats": {
+      "workouts": "Тренировки",
+      "totalReps": "Всего повторений",
+      "totalSets": "Всего подходов",
+      "maxWeight": "Макс. вес",
+      "volume": "Объём",
+      "distance": "Дистанция",
+      "duration": "Время",
+      "plankTime": "Планка"
+    },
+    "table": {
+      "exercise": "Упражнение",
+      "sets": "Подходы",
+      "reps": "Повт.",
+      "maxWeight": "Макс.",
+      "volume": "Объём"
+    },
+    "daily": {
+      "sets": "подх.",
+      "reps": "повт.",
+      "weight": "вес",
+      "distance": "дист.",
+      "time": "время"
+    }
   },
   "plurals": {
     "workout": {

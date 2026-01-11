@@ -24,7 +24,8 @@
     "stop": "Arrêter",
     "pause": "Pause",
     "continue": "Continuer",
-    "search": "Rechercher..."
+    "search": "Rechercher...",
+    "user": "Utilisateur"
   },
   "nav": {
     "workouts": "Entraînements",
@@ -412,6 +413,44 @@
     "h": "h",
     "reps": "rép",
     "times": "fois"
+  },
+  "pdfReport": {
+    "title": "Rapport mensuel d'entraînement",
+    "exportPdf": "Exporter PDF",
+    "selectMonth": "Sélectionner le mois",
+    "generating": "Génération...",
+    "download": "Télécharger PDF",
+    "generated": "Rapport généré !",
+    "error": "Erreur lors de la génération du rapport",
+    "noData": "Pas d'entraînements ce mois-ci",
+    "exerciseBreakdown": "Détail par exercices",
+    "workoutProgress": "Séries par jour d'entraînement",
+    "dailyBreakdown": "Détail quotidien",
+    "footer": "Généré par FitTrack",
+    "stats": {
+      "workouts": "Entraînements",
+      "totalReps": "Répétitions totales",
+      "totalSets": "Séries totales",
+      "maxWeight": "Poids max",
+      "volume": "Volume",
+      "distance": "Distance",
+      "duration": "Durée",
+      "plankTime": "Temps de planche"
+    },
+    "table": {
+      "exercise": "Exercice",
+      "sets": "Séries",
+      "reps": "Reps",
+      "maxWeight": "Max",
+      "volume": "Volume"
+    },
+    "daily": {
+      "sets": "séries",
+      "reps": "reps",
+      "weight": "poids",
+      "distance": "dist.",
+      "time": "temps"
+    }
   },
   "plurals": {
     "workout": {

@@ -4,7 +4,8 @@ import { format, subDays, startOfMonth, endOfMonth, startOfDay, endOfDay, parseI
 import { ru, enUS, es, ptBR, de, fr } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
 import { getExerciseName } from "@/lib/i18n";
-import { Zap, Repeat, Plus, Trophy, Medal, Activity, Clock, Weight, TrendingUp, User, Dumbbell, Timer, LayoutGrid, ChevronDown, Calendar as CalendarIcon, X, Users } from "lucide-react";
+import { Zap, Repeat, Plus, Trophy, Medal, Activity, Clock, Weight, TrendingUp, User, Dumbbell, Timer, LayoutGrid, ChevronDown, Calendar as CalendarIcon, X, Users, FileText } from "lucide-react";
+import { PdfExportButton } from "@/components/PdfExportButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -563,6 +564,7 @@ export default function Progress() {
           <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">{t("progress.title")}</h1>
           <p className="text-muted-foreground text-sm">{t("progress.subtitle")}</p>
         </div>
+        <PdfExportButton />
       </div>
 
       {/* Filters */}

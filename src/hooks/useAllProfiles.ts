@@ -14,12 +14,11 @@ export function useAllProfiles() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("user_id, display_name, avatar")
+        .select("user_id, display_name, avatar, is_admin")
         .order("display_name", { ascending: true });
 
       if (error) throw error;
-      // Временно возвращаем is_admin как false, пока не применим миграцию
-      return (data || []).map(profile => ({ ...profile, is_admin: false })) as UserProfile[];
+      return data as UserProfile[];
     },
   });
 }

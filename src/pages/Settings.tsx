@@ -463,6 +463,17 @@ export default function Settings() {
                     }
                     return null;
                   })()}
+
+                  {/* Admin badge - aligned to the right */}
+                  {profile?.is_admin && (
+                    <div className="ml-auto flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20">
+                      <span className="text-2xl">👑</span>
+                      <div className="text-center">
+                        <div className="text-xs font-bold text-amber-600 dark:text-amber-400">ADMIN</div>
+                        <div className="text-[10px] text-muted-foreground">Администратор</div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Display Name and Gender */}

@@ -592,16 +592,18 @@ export default function Workouts() {
 
       {/* Calendar View */}
       {viewMode === "calendar" && (
-        <>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+          {/* Calendar */}
+          <Card className="lg:sticky lg:top-4 lg:self-start">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center justify-between mb-3">
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="h-8 w-8"
                   onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}
                 >
-                  <ChevronLeft className="h-5 w-5" />
+                  <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <span className="text-sm font-semibold capitalize">
                   {format(calendarMonth, "LLLL yyyy", { locale: ru })}
@@ -609,18 +611,19 @@ export default function Workouts() {
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="h-8 w-8"
                   onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
                 >
-                  <ChevronRight className="h-5 w-5" />
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
 
               {/* Week days header */}
-              <div className="grid grid-cols-7 gap-1 mb-2">
+              <div className="grid grid-cols-7 gap-0.5 mb-1">
                 {weekDays.map((day) => (
                   <div
                     key={day}
-                    className="text-center text-xs font-medium text-muted-foreground py-2"
+                    className="text-center text-[10px] sm:text-xs font-medium text-muted-foreground py-1"
                   >
                     {day}
                   </div>
@@ -628,7 +631,7 @@ export default function Workouts() {
               </div>
 
               {/* Calendar grid */}
-              <div className="grid grid-cols-7 gap-1">
+              <div className="grid grid-cols-7 gap-0.5">
                 {/* Empty cells for days before month start */}
                 {Array.from({ length: adjustedStartDay }).map((_, i) => (
                   <div key={`empty-${i}`} className="aspect-square" />
@@ -650,8 +653,8 @@ export default function Workouts() {
                         }
                       }}
                       className={cn(
-                        "aspect-square rounded-lg flex flex-col items-center justify-center gap-0.5 transition-all duration-200",
-                        isTodayDate && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                        "aspect-square rounded-md flex flex-col items-center justify-center gap-0.5 transition-all duration-200",
+                        isTodayDate && "ring-1 ring-primary ring-offset-1 ring-offset-background",
                         isSelected && "bg-primary/20",
                         workout && "cursor-pointer hover:bg-muted",
                         !workout && "cursor-default"
@@ -659,7 +662,7 @@ export default function Workouts() {
                     >
                       <span
                         className={cn(
-                          "text-sm",
+                          "text-xs sm:text-sm",
                           isTodayDate ? "font-bold text-primary" : "text-foreground"
                         )}
                       >
@@ -668,7 +671,7 @@ export default function Workouts() {
                       {workout && (
                         <div
                           className={cn(
-                            "w-2 h-2 rounded-full",
+                            "w-1.5 h-1.5 rounded-full",
                             intensity === 1 && "bg-primary/30",
                             intensity === 2 && "bg-primary/50",
                             intensity === 3 && "bg-primary/75",
@@ -682,13 +685,13 @@ export default function Workouts() {
               </div>
 
               {/* Intensity legend */}
-              <div className="flex items-center justify-center gap-2 mt-4 text-xs text-muted-foreground">
+              <div className="flex items-center justify-center gap-2 mt-3 text-[10px] sm:text-xs text-muted-foreground">
                 <span>Меньше</span>
-                <div className="flex gap-1">
-                  <div className="w-3 h-3 rounded bg-primary/30" />
-                  <div className="w-3 h-3 rounded bg-primary/50" />
-                  <div className="w-3 h-3 rounded bg-primary/75" />
-                  <div className="w-3 h-3 rounded bg-primary" />
+                <div className="flex gap-0.5">
+                  <div className="w-2.5 h-2.5 rounded bg-primary/30" />
+                  <div className="w-2.5 h-2.5 rounded bg-primary/50" />
+                  <div className="w-2.5 h-2.5 rounded bg-primary/75" />
+                  <div className="w-2.5 h-2.5 rounded bg-primary" />
                 </div>
                 <span>Больше</span>
               </div>
@@ -696,108 +699,119 @@ export default function Workouts() {
           </Card>
 
           {/* Selected workout details */}
-          {selectedWorkout && (
-            <Card className="animate-scale-in">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-semibold">{format(new Date(selectedWorkout.date), "d MMMM", { locale: ru })}</span>
-                  <Button size="sm" onClick={() => navigate(`/workout/${selectedWorkout.id}`)}>
-                    Открыть
-                  </Button>
-                </div>
-                {selectedWorkout.workout_sets && selectedWorkout.workout_sets.length > 0 ? (
-                  <div className="space-y-2">
-                    {Object.values(
-                      selectedWorkout.workout_sets.reduce((acc, set) => {
-                        const exerciseId = set.exercise_id;
-                        if (!acc[exerciseId]) {
-                          acc[exerciseId] = {
-                            name: set.exercise?.name || "Упражнение",
-                            type: set.exercise?.type || "weighted",
-                            sets: 0,
-                            totalReps: 0,
-                            maxWeight: 0,
-                            totalDistance: 0,
-                            totalDuration: 0,
-                            totalPlankSeconds: 0,
-                          };
-                        }
-                        acc[exerciseId].sets++;
-                        acc[exerciseId].totalReps += set.reps || 0;
-                        if (set.weight && set.weight > acc[exerciseId].maxWeight) {
-                          acc[exerciseId].maxWeight = set.weight;
-                        }
-                        acc[exerciseId].totalDistance += set.distance_km || 0;
-                        acc[exerciseId].totalDuration += set.duration_minutes || 0;
-                        acc[exerciseId].totalPlankSeconds += set.plank_seconds || 0;
-                        return acc;
-                      }, {} as Record<string, {
-                        name: string;
-                        type: string;
-                        sets: number;
-                        totalReps: number;
-                        maxWeight: number;
-                        totalDistance: number;
-                        totalDuration: number;
-                        totalPlankSeconds: number;
-                      }>)
-                    ).map((exercise, i) => (
-                      <div key={i} className="p-2.5 bg-muted/50 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          {exercise.type === "cardio" ? (
-                            <Activity className="h-4 w-4 text-primary flex-shrink-0" />
-                          ) : exercise.type === "weighted" ? (
-                            <Dumbbell className="h-4 w-4 text-primary flex-shrink-0" />
-                          ) : exercise.type === "timed" ? (
-                            <Timer className="h-4 w-4 text-primary flex-shrink-0" />
-                          ) : (
-                            <User className="h-4 w-4 text-primary flex-shrink-0" />
-                          )}
-                          <span className="font-medium text-sm truncate">{exercise.name}</span>
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1 ml-6">
-                          {exercise.type === "cardio" ? (
-                            <>{exercise.sets} подх · {exercise.totalDistance.toFixed(1)} км · {exercise.totalDuration} мин</>
-                          ) : exercise.type === "timed" ? (
-                            <>{exercise.sets} подх · {exercise.totalPlankSeconds} сек</>
-                          ) : exercise.type === "bodyweight" ? (
-                            <>{exercise.sets} подх · {exercise.totalReps} повт</>
-                          ) : (
-                            <>{exercise.sets} подх · {exercise.totalReps} повт{exercise.maxWeight > 0 && ` · ${exercise.maxWeight} кг`}</>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-
-                    {/* Workout notes */}
-                    {selectedWorkout.notes && (
-                      <div className="flex items-start gap-2 p-2.5 bg-muted/30 rounded-lg mt-2">
-                        <MessageSquare className="h-3.5 w-3.5 text-primary flex-shrink-0 mt-0.5" />
-                        <p className="text-xs text-muted-foreground line-clamp-2">{selectedWorkout.notes}</p>
-                      </div>
-                    )}
-
-                    {/* Photo */}
-                    {selectedWorkout.photo_url && (
-                      <div className="mt-3">
-                        <img
-                          src={selectedWorkout.photo_url}
-                          alt=""
-                          className="w-full h-32 rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() => navigate(`/workout/${selectedWorkout.id}`)}
-                        />
-                      </div>
-                    )}
+          <div className="space-y-4">
+            {selectedWorkout ? (
+              <Card className="animate-scale-in">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-semibold">{format(new Date(selectedWorkout.date), "d MMMM", { locale: ru })}</span>
+                    <Button size="sm" onClick={() => navigate(`/workout/${selectedWorkout.id}`)}>
+                      Открыть
+                    </Button>
                   </div>
-                ) : (
-                  <p className="text-muted-foreground text-sm text-center py-4">
-                    Нет записей
+                  {selectedWorkout.workout_sets && selectedWorkout.workout_sets.length > 0 ? (
+                    <div className="space-y-2">
+                      {Object.values(
+                        selectedWorkout.workout_sets.reduce((acc, set) => {
+                          const exerciseId = set.exercise_id;
+                          if (!acc[exerciseId]) {
+                            acc[exerciseId] = {
+                              name: set.exercise?.name || "Упражнение",
+                              type: set.exercise?.type || "weighted",
+                              sets: 0,
+                              totalReps: 0,
+                              maxWeight: 0,
+                              totalDistance: 0,
+                              totalDuration: 0,
+                              totalPlankSeconds: 0,
+                            };
+                          }
+                          acc[exerciseId].sets++;
+                          acc[exerciseId].totalReps += set.reps || 0;
+                          if (set.weight && set.weight > acc[exerciseId].maxWeight) {
+                            acc[exerciseId].maxWeight = set.weight;
+                          }
+                          acc[exerciseId].totalDistance += set.distance_km || 0;
+                          acc[exerciseId].totalDuration += set.duration_minutes || 0;
+                          acc[exerciseId].totalPlankSeconds += set.plank_seconds || 0;
+                          return acc;
+                        }, {} as Record<string, {
+                          name: string;
+                          type: string;
+                          sets: number;
+                          totalReps: number;
+                          maxWeight: number;
+                          totalDistance: number;
+                          totalDuration: number;
+                          totalPlankSeconds: number;
+                        }>)
+                      ).map((exercise, i) => (
+                        <div key={i} className="p-2.5 bg-muted/50 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            {exercise.type === "cardio" ? (
+                              <Activity className="h-4 w-4 text-primary flex-shrink-0" />
+                            ) : exercise.type === "weighted" ? (
+                              <Dumbbell className="h-4 w-4 text-primary flex-shrink-0" />
+                            ) : exercise.type === "timed" ? (
+                              <Timer className="h-4 w-4 text-primary flex-shrink-0" />
+                            ) : (
+                              <User className="h-4 w-4 text-primary flex-shrink-0" />
+                            )}
+                            <span className="font-medium text-sm truncate">{exercise.name}</span>
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1 ml-6">
+                            {exercise.type === "cardio" ? (
+                              <>{exercise.sets} подх · {exercise.totalDistance.toFixed(1)} км · {exercise.totalDuration} мин</>
+                            ) : exercise.type === "timed" ? (
+                              <>{exercise.sets} подх · {exercise.totalPlankSeconds} сек</>
+                            ) : exercise.type === "bodyweight" ? (
+                              <>{exercise.sets} подх · {exercise.totalReps} повт</>
+                            ) : (
+                              <>{exercise.sets} подх · {exercise.totalReps} повт{exercise.maxWeight > 0 && ` · ${exercise.maxWeight} кг`}</>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Workout notes */}
+                      {selectedWorkout.notes && (
+                        <div className="flex items-start gap-2 p-2.5 bg-muted/30 rounded-lg mt-2">
+                          <MessageSquare className="h-3.5 w-3.5 text-primary flex-shrink-0 mt-0.5" />
+                          <p className="text-xs text-muted-foreground line-clamp-2">{selectedWorkout.notes}</p>
+                        </div>
+                      )}
+
+                      {/* Photo */}
+                      {selectedWorkout.photo_url && (
+                        <div className="mt-3">
+                          <img
+                            src={selectedWorkout.photo_url}
+                            alt=""
+                            className="w-full h-32 lg:h-48 rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => navigate(`/workout/${selectedWorkout.id}`)}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-sm text-center py-4">
+                      Нет записей
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="hidden lg:block">
+                <CardContent className="p-8 text-center">
+                  <CalendarIcon className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-muted-foreground text-sm">
+                    Выберите день с тренировкой на календаре
                   </p>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Delete Confirmation Dialog */}

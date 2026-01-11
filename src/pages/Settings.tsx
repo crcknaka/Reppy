@@ -18,6 +18,7 @@ import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { useAccentColor, ACCENT_COLORS } from "@/hooks/useAccentColor";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { pluralizeWithCount } from "@/lib/pluralize";
 
 const AVATAR_CATEGORIES = [
   {
@@ -774,7 +775,7 @@ export default function Settings() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-muted-foreground">
-                    {workouts?.length || 0} тренировок
+                    {pluralizeWithCount(workouts?.length || 0, "тренировка", "тренировки", "тренировок")}
                   </span>
                   <ChevronDown className={cn(
                     "h-4 w-4 text-muted-foreground transition-transform duration-200",

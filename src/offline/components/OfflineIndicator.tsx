@@ -27,8 +27,9 @@ export function OfflineIndicator() {
   return (
     <div
       className={cn(
-        "fixed top-0 left-0 right-0 z-[100] py-2 px-4 text-center text-sm font-medium transition-all duration-300",
-        "md:left-64", // Account for desktop sidebar
+        "fixed left-0 right-0 z-[60] py-2 px-4 text-center text-sm font-medium transition-all duration-300",
+        // Position above mobile nav (~60px + safe area) on mobile, at bottom on desktop
+        "bottom-[calc(60px+env(safe-area-inset-bottom,0px))] md:bottom-0 md:left-64",
         !isOnline
           ? "bg-destructive/95 text-destructive-foreground"
           : isSyncing

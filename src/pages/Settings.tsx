@@ -137,6 +137,57 @@ export default function Settings() {
     }
   }, [profile, convertHeight, convertWeight]);
 
+  // Track previous unit system to detect changes
+  const prevUnitSystemRef = useRef(unitSystem);
+
+  // Store current values in refs for conversion
+  const heightRef = useRef(height);
+  const currentWeightRef = useRef(currentWeight);
+  heightRef.current = height;
+  currentWeightRef.current = currentWeight;
+
+  // Convert height/weight when unit system changes
+  useEffect(() => {
+    // Skip on initial render or if unit system hasn't changed
+    if (prevUnitSystemRef.current === unitSystem) return;
+
+    const prevSystem = prevUnitSystemRef.current;
+    prevUnitSystemRef.current = unitSystem;
+
+    // Convert height
+    if (heightRef.current) {
+      const heightNum = parseFloat(heightRef.current);
+      if (!isNaN(heightNum)) {
+        if (prevSystem === "metric" && unitSystem === "imperial") {
+          // cm -> ft (approximate, just feet)
+          const totalInches = heightNum * 0.393701;
+          const feet = Math.round(totalInches / 12 * 10) / 10;
+          setHeight(feet.toString());
+        } else if (prevSystem === "imperial" && unitSystem === "metric") {
+          // ft -> cm
+          const cm = Math.round(heightNum * 12 / 0.393701);
+          setHeight(cm.toString());
+        }
+      }
+    }
+
+    // Convert weight
+    if (currentWeightRef.current) {
+      const weightNum = parseFloat(currentWeightRef.current);
+      if (!isNaN(weightNum)) {
+        if (prevSystem === "metric" && unitSystem === "imperial") {
+          // kg -> lb
+          const lb = Math.round(weightNum * 2.20462 * 10) / 10;
+          setCurrentWeight(lb.toString());
+        } else if (prevSystem === "imperial" && unitSystem === "metric") {
+          // lb -> kg
+          const kg = Math.round(weightNum / 2.20462 * 10) / 10;
+          setCurrentWeight(kg.toString());
+        }
+      }
+    }
+  }, [unitSystem]);
+
   // Create a stable string representation of profile data for debouncing
   const profileDataString = useMemo(() =>
     JSON.stringify({ displayName, gender, dateOfBirth, height, currentWeight, avatar, skufLevel }),

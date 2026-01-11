@@ -263,7 +263,7 @@
     "viewingWorkouts": "Viewing workouts",
     "myWorkouts": "My workouts",
     "notFound": "Workout not found",
-    "linkDeactivated": "This link is invalid or has been deactivated"
+    "linkInvalidOrDeactivated": "This link is invalid or has been deactivated"
   },
   "timer": {
     "result": "Result",

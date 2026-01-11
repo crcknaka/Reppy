@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { format, isWithinInterval, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, subMonths, parseISO, isToday, eachDayOfInterval, isSameDay, addMonths } from "date-fns";
 import { ru, enUS, es, ptBR, de, fr, Locale } from "date-fns/locale";
-import { Plus, Calendar as CalendarIcon, Trash2, Filter, X, Dumbbell, MessageSquare, Lock, Unlock, List, ChevronLeft, ChevronRight, Activity, Timer, User } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, Trash2, Filter, X, Dumbbell, MessageSquare, List, ChevronLeft, ChevronRight, Activity, Timer, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getExerciseName } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useUserWorkouts, useLockWorkout, useUnlockWorkout } from "@/hooks/useWorkouts";
+import { useUserWorkouts } from "@/hooks/useWorkouts";
 import { useOfflineWorkouts, useOfflineCreateWorkout, useOfflineDeleteWorkout } from "@/offline";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -68,14 +68,11 @@ export default function Workouts() {
 
   const createWorkout = useOfflineCreateWorkout();
   const deleteWorkout = useOfflineDeleteWorkout();
-  const lockWorkout = useLockWorkout();
-  const unlockWorkout = useUnlockWorkout();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [open, setOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [workoutToDelete, setWorkoutToDelete] = useState<string | null>(null);
-  const [workoutToUnlock, setWorkoutToUnlock] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null);
@@ -133,35 +130,6 @@ export default function Workouts() {
       setWorkoutToDelete(null);
     } catch (error) {
       toast.error(t("workouts.deleteError"));
-    }
-  };
-
-  const handleToggleLock = async (workoutId: string, isLocked: boolean, e: React.MouseEvent) => {
-    e.stopPropagation();
-
-    if (isLocked) {
-      // Show confirmation dialog for unlocking
-      setWorkoutToUnlock(workoutId);
-    } else {
-      // Lock without confirmation
-      try {
-        await lockWorkout.mutateAsync(workoutId);
-        toast.success(t("workouts.workoutLocked"));
-      } catch (error) {
-        toast.error(t("workouts.lockError"));
-      }
-    }
-  };
-
-  const confirmUnlock = async () => {
-    if (!workoutToUnlock) return;
-
-    try {
-      await unlockWorkout.mutateAsync(workoutToUnlock);
-      toast.success(t("workouts.workoutUnlocked"));
-      setWorkoutToUnlock(null);
-    } catch (error) {
-      toast.error(t("workouts.unlockError"));
     }
   };
 
@@ -612,31 +580,15 @@ export default function Workouts() {
                   )}
                 </div>
 
-                {!isViewingOther && (
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-muted-foreground hover:text-foreground flex-shrink-0"
-                      onClick={(e) => handleToggleLock(workout.id, workout.is_locked, e)}
-                    >
-                      {workout.is_locked ? (
-                        <Lock className="h-4 w-4" />
-                      ) : (
-                        <Unlock className="h-4 w-4" />
-                      )}
-                    </Button>
-                    {!workout.is_locked && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-muted-foreground hover:text-red-500 flex-shrink-0"
-                        onClick={(e) => handleDeleteWorkout(workout.id, e)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
+                {!isViewingOther && !workout.is_locked && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-red-500 flex-shrink-0"
+                    onClick={(e) => handleDeleteWorkout(workout.id, e)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 )}
               </CardContent>
             </Card>
@@ -885,24 +837,6 @@ export default function Workouts() {
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               {t("common.delete")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Unlock Confirmation Dialog */}
-      <AlertDialog open={!!workoutToUnlock} onOpenChange={(open) => !open && setWorkoutToUnlock(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("workouts.unlockWorkout")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("workouts.unlockWorkoutConfirm")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmUnlock}>
-              {t("common.unlock")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

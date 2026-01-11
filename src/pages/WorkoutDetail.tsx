@@ -65,7 +65,7 @@ export default function WorkoutDetail() {
   const { user } = useAuth();
   const { isOnline } = useOffline();
   // Use offline-first hooks for data
-  const { data: workout, isLoading: isWorkoutLoading } = useOfflineSingleWorkout(id);
+  const { data: workout, isLoading: isWorkoutLoading, isFetching, isError } = useOfflineSingleWorkout(id);
   const { data: exercises } = useOfflineExercises();
   const { data: favoriteExercises } = useOfflineFavoriteExercises();
   const toggleFavorite = useOfflineToggleFavoriteExercise();
@@ -252,7 +252,8 @@ export default function WorkoutDetail() {
     return filtered;
   }, [exercises, exerciseTab, favoriteExercises, exerciseTypeFilter, exerciseSearchQuery]);
 
-  if (isWorkoutLoading) {
+  // Show loader while loading or fetching (includes retries)
+  if (isWorkoutLoading || (isFetching && !workout)) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -260,10 +261,20 @@ export default function WorkoutDetail() {
     );
   }
 
-  if (!workout) {
+  // Only show "not found" if we're done fetching and truly have no data
+  if (!workout && !isFetching) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <p className="text-muted-foreground">{t("workout.notFound")}</p>
+      </div>
+    );
+  }
+
+  // Safety check - should not happen but prevents crashes
+  if (!workout) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }

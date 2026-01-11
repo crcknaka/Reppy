@@ -9,13 +9,135 @@ import type { Workout, WorkoutSet } from "@/hooks/useWorkouts";
 // Offline-first useWorkouts hook
 export function useOfflineWorkouts() {
   const { user } = useAuth();
-  const { isOnline, isInitialized } = useOffline();
+  const { isInitialized } = useOffline();
 
   return useQuery({
     queryKey: ["workouts", user?.id],
     queryFn: async () => {
-      // Try online first if available
-      if (isOnline) {
+      // Helper to get workouts from IndexedDB
+      const getFromCache = async (): Promise<Workout[] | null> => {
+        const workouts = await offlineDb.workouts
+          .where("user_id")
+          .equals(user!.id)
+          .reverse()
+          .sortBy("date");
+
+        if (workouts.length === 0) return null;
+
+        // Load workout sets with exercises for each workout
+        const workoutsWithSets: Workout[] = await Promise.all(
+          workouts.map(async (workout) => {
+            const sets = await offlineDb.workoutSets
+              .where("workout_id")
+              .equals(workout.id)
+              .toArray();
+
+            const setsWithExercises: WorkoutSet[] = await Promise.all(
+              sets.map(async (set) => {
+                const exercise = await offlineDb.exercises.get(set.exercise_id);
+                return {
+                  id: set.id,
+                  workout_id: set.workout_id,
+                  exercise_id: set.exercise_id,
+                  set_number: set.set_number,
+                  reps: set.reps,
+                  weight: set.weight,
+                  distance_km: set.distance_km,
+                  duration_minutes: set.duration_minutes,
+                  plank_seconds: set.plank_seconds,
+                  created_at: set.created_at,
+                  exercise: exercise
+                    ? {
+                        id: exercise.id,
+                        name: exercise.name,
+                        type: exercise.type,
+                        image_url: exercise.image_url,
+                        is_preset: exercise.is_preset,
+                        name_translations: exercise.name_translations,
+                      }
+                    : undefined,
+                };
+              })
+            );
+
+            return {
+              id: workout.id,
+              user_id: workout.user_id,
+              date: workout.date,
+              notes: workout.notes,
+              photo_url: workout.photo_url,
+              created_at: workout.created_at,
+              updated_at: workout.updated_at,
+              is_locked: workout.is_locked,
+              workout_sets: setsWithExercises,
+            } as Workout;
+          })
+        );
+
+        return workoutsWithSets;
+      };
+
+      // ALWAYS try cache first - prevents errors on offline transition
+      const cachedData = await getFromCache();
+      if (cachedData && cachedData.length > 0) {
+        // If online, refresh in background but return cached immediately
+        if (navigator.onLine) {
+          // Fire and forget - update cache in background
+          supabase
+            .from("workouts")
+            .select(`
+              *,
+              workout_sets (
+                id, workout_id, exercise_id, set_number, reps, weight,
+                distance_km, duration_minutes, plank_seconds, created_at,
+                exercise:exercises (id, name, type, image_url, is_preset, name_translations)
+              )
+            `)
+            .eq("user_id", user!.id)
+            .order("date", { ascending: false })
+            .then(async ({ data, error }) => {
+              if (!error && data) {
+                // Update IndexedDB cache silently
+                for (const workout of data) {
+                  await offlineDb.workouts.put({
+                    id: workout.id,
+                    user_id: workout.user_id,
+                    date: workout.date,
+                    notes: workout.notes,
+                    photo_url: workout.photo_url,
+                    created_at: workout.created_at,
+                    updated_at: workout.updated_at,
+                    is_locked: workout.is_locked,
+                    _synced: true,
+                    _lastModified: Date.now(),
+                  });
+                  if (workout.workout_sets) {
+                    for (const set of workout.workout_sets) {
+                      await offlineDb.workoutSets.put({
+                        id: set.id,
+                        workout_id: set.workout_id,
+                        exercise_id: set.exercise_id,
+                        set_number: set.set_number,
+                        reps: set.reps,
+                        weight: set.weight,
+                        distance_km: set.distance_km,
+                        duration_minutes: set.duration_minutes,
+                        plank_seconds: set.plank_seconds,
+                        created_at: set.created_at,
+                        _synced: true,
+                        _lastModified: Date.now(),
+                      });
+                    }
+                  }
+                }
+              }
+            });
+        }
+        return cachedData;
+      }
+
+      // No cache - try online fetch
+      if (navigator.onLine) {
         try {
           const { data, error } = await supabase
             .from("workouts")
@@ -69,68 +191,13 @@ export function useOfflineWorkouts() {
             return data as unknown as Workout[];
           }
         } catch {
-          // Fall through to offline data
+          // Fall through to retry cache
         }
       }
 
-      // Use offline data
-      const workouts = await offlineDb.workouts
-        .where("user_id")
-        .equals(user!.id)
-        .reverse()
-        .sortBy("date");
-
-      // Load workout sets with exercises for each workout
-      const workoutsWithSets: Workout[] = await Promise.all(
-        workouts.map(async (workout) => {
-          const sets = await offlineDb.workoutSets
-            .where("workout_id")
-            .equals(workout.id)
-            .toArray();
-
-          const setsWithExercises: WorkoutSet[] = await Promise.all(
-            sets.map(async (set) => {
-              const exercise = await offlineDb.exercises.get(set.exercise_id);
-              return {
-                id: set.id,
-                workout_id: set.workout_id,
-                exercise_id: set.exercise_id,
-                set_number: set.set_number,
-                reps: set.reps,
-                weight: set.weight,
-                distance_km: set.distance_km,
-                duration_minutes: set.duration_minutes,
-                plank_seconds: set.plank_seconds,
-                created_at: set.created_at,
-                exercise: exercise
-                  ? {
-                      id: exercise.id,
-                      name: exercise.name,
-                      type: exercise.type,
-                      image_url: exercise.image_url,
-                      is_preset: exercise.is_preset,
-                      name_translations: exercise.name_translations,
-                    }
-                  : undefined,
-              };
-            })
-          );
-
-          return {
-            id: workout.id,
-            user_id: workout.user_id,
-            date: workout.date,
-            notes: workout.notes,
-            photo_url: workout.photo_url,
-            created_at: workout.created_at,
-            updated_at: workout.updated_at,
-            is_locked: workout.is_locked,
-            workout_sets: setsWithExercises,
-          };
-        })
-      );
-
-      return workoutsWithSets;
+      // Last resort - return empty array or retry cache
+      const retryData = await getFromCache();
+      return retryData || [];
     },
     enabled: !!user && isInitialized,
     staleTime: 1000 * 60 * 5, // 5 minutes - don't refetch too often

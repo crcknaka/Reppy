@@ -263,7 +263,8 @@
     "viewingWorkouts": "Viendo entrenamientos",
     "myWorkouts": "Mis entrenamientos",
     "notFound": "Entrenamiento no encontrado",
-    "linkDeactivated": "Este enlace no es válido o ha sido desactivado"
+    "linkDeactivated": "Este enlace no es válido o ha sido desactivado",
+    "createdAt": "Hora"
   },
   "timer": {
     "result": "Resultado",
@@ -465,18 +466,12 @@
     }
   },
   "plurals": {
-    "workout": {
-      "one": "entrenamiento",
-      "other": "entrenamientos"
-    },
-    "year": {
-      "one": "año",
-      "other": "años"
-    },
-    "friend": {
-      "one": "amigo",
-      "other": "amigos"
-    }
+    "workout_one": "entrenamiento",
+    "workout_other": "entrenamientos",
+    "year_one": "año",
+    "year_other": "años",
+    "friend_one": "amigo",
+    "friend_other": "amigos"
   },
   "offline": {
     "youAreOffline": "Estás sin conexión",

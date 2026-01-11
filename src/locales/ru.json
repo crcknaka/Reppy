@@ -309,7 +309,8 @@
     "viewingWorkouts": "Просмотр тренировок",
     "myWorkouts": "Мои тренировки",
     "notFound": "Тренировка не найдена",
-    "linkDeactivated": "Эта ссылка недействительна или была деактивирована"
+    "linkDeactivated": "Эта ссылка недействительна или была деактивирована",
+    "createdAt": "Время"
   },
   "timer": {
     "result": "Результат",
@@ -464,21 +465,15 @@
     }
   },
   "plurals": {
-    "workout": {
-      "one": "тренировка",
-      "few": "тренировки",
-      "many": "тренировок"
-    },
-    "year": {
-      "one": "год",
-      "few": "года",
-      "many": "лет"
-    },
-    "friend": {
-      "one": "друг",
-      "few": "друга",
-      "many": "друзей"
-    }
+    "workout_one": "тренировка",
+    "workout_few": "тренировки",
+    "workout_many": "тренировок",
+    "year_one": "год",
+    "year_few": "года",
+    "year_many": "лет",
+    "friend_one": "друг",
+    "friend_few": "друга",
+    "friend_many": "друзей"
   },
   "offline": {
     "youAreOffline": "Вы офлайн",

@@ -467,11 +467,12 @@ export default function Settings() {
                       age--;
                     }
                     if (age >= 0 && age < 150) {
-                      const suffix = age === 1 ? t("plurals.year.one") : t("plurals.year.other");
                       return (
                         <div className="text-center">
                           <div className="text-3xl font-bold text-primary">{age}</div>
-                          <div className="text-sm text-muted-foreground">{suffix}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {t("plurals.year", { count: age })}
+                          </div>
                         </div>
                       );
                     }
@@ -833,7 +834,7 @@ export default function Settings() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-muted-foreground">
-                    {workouts?.length || 0} {t("plurals.workout.other")}
+                    {workouts?.length || 0} {t("plurals.workout", { count: workouts?.length || 0 })}
                   </span>
                   <ChevronDown className={cn(
                     "h-4 w-4 text-muted-foreground transition-transform duration-200",

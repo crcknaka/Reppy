@@ -263,7 +263,8 @@
     "viewingWorkouts": "Viewing workouts",
     "myWorkouts": "My workouts",
     "notFound": "Workout not found",
-    "linkInvalidOrDeactivated": "This link is invalid or has been deactivated"
+    "linkInvalidOrDeactivated": "This link is invalid or has been deactivated",
+    "createdAt": "Time"
   },
   "timer": {
     "result": "Result",
@@ -316,6 +317,7 @@
     "weightSaved": "Weight saved",
     "invalidWeight": "Enter valid weight",
     "weightSaveError": "Failed to save weight",
+    "weight": "Weight",
     "weightTotal": "Weight",
     "heightLabel": "Height",
     "totalLabel": "Total",
@@ -465,18 +467,12 @@
     }
   },
   "plurals": {
-    "workout": {
-      "one": "workout",
-      "other": "workouts"
-    },
-    "year": {
-      "one": "year",
-      "other": "years"
-    },
-    "friend": {
-      "one": "friend",
-      "other": "friends"
-    }
+    "workout_one": "workout",
+    "workout_other": "workouts",
+    "year_one": "year",
+    "year_other": "years",
+    "friend_one": "friend",
+    "friend_other": "friends"
   },
   "offline": {
     "youAreOffline": "You're offline",

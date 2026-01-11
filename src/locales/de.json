@@ -263,7 +263,8 @@
     "viewingWorkouts": "Trainings ansehen",
     "myWorkouts": "Meine Trainings",
     "notFound": "Training nicht gefunden",
-    "linkDeactivated": "Dieser Link ist ungültig oder wurde deaktiviert"
+    "linkDeactivated": "Dieser Link ist ungültig oder wurde deaktiviert",
+    "createdAt": "Zeit"
   },
   "timer": {
     "result": "Ergebnis",
@@ -316,6 +317,7 @@
     "weightSaved": "Gewicht gespeichert",
     "invalidWeight": "Gib ein gültiges Gewicht ein",
     "weightSaveError": "Fehler beim Speichern des Gewichts",
+    "weight": "Gewicht",
     "weightTotal": "Gewicht",
     "heightLabel": "Größe",
     "totalLabel": "Gesamt",
@@ -465,18 +467,12 @@
     }
   },
   "plurals": {
-    "workout": {
-      "one": "Training",
-      "other": "Trainings"
-    },
-    "year": {
-      "one": "Jahr",
-      "other": "Jahre"
-    },
-    "friend": {
-      "one": "Freund",
-      "other": "Freunde"
-    }
+    "workout_one": "Training",
+    "workout_other": "Trainings",
+    "year_one": "Jahr",
+    "year_other": "Jahre",
+    "friend_one": "Freund",
+    "friend_other": "Freunde"
   },
   "offline": {
     "youAreOffline": "Sie sind offline",

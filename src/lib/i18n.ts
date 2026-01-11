@@ -42,6 +42,8 @@ i18n
     interpolation: {
       escapeValue: false,
     },
+    // Use v4 plural rules (supports one/few/many for Russian, Polish, etc.)
+    compatibilityJSON: 'v4',
   });
 
 export type ExerciseTranslations = {

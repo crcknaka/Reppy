@@ -1302,7 +1302,7 @@ export default function WorkoutDetail() {
                       </div>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Время: {format(new Date(set.created_at), "HH:mm", { locale: ru })}</p>
+                      <p>{t("workout.createdAt")}: {format(new Date(set.created_at), "HH:mm", { locale: dateLocale })}</p>
                     </TooltipContent>
                   </Tooltip>
                 ))}

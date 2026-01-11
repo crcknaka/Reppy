@@ -179,7 +179,7 @@ export default function SharedWorkout() {
                 {ownerAge && (
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Calendar className="h-3.5 w-3.5" />
-                    <span>{ownerAge} {t("plurals.year.other")}</span>
+                    <span>{ownerAge} {t("plurals.year", { count: ownerAge })}</span>
                   </div>
                 )}
                 {ownerProfile?.current_weight && (

@@ -725,11 +725,12 @@ export default function Settings() {
                               <span>{t(`zodiac.${zodiac.key}`)}</span>
                             </button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-64 p-3">
-                            <div className="flex items-start gap-2">
-                              <span className="text-2xl">{zodiac.sign}</span>
+                          <PopoverContent className="w-72 p-3">
+                            <div className="flex items-start gap-3">
+                              <span className="text-3xl flex-shrink-0">{zodiac.sign}</span>
                               <div>
-                                <p className="font-medium">{t(`zodiac.${zodiac.key}`)}</p>
+                                <p className="font-medium text-sm mb-1">{t(`zodiac.${zodiac.key}`)}</p>
+                                <p className="text-xs text-muted-foreground leading-relaxed">{t(`zodiac.desc.${zodiac.key}`)}</p>
                               </div>
                             </div>
                           </PopoverContent>

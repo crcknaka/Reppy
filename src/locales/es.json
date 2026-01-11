@@ -414,7 +414,21 @@
     "virgo": "Virgo",
     "libra": "Libra",
     "scorpio": "Escorpio",
-    "sagittarius": "Sagitario"
+    "sagittarius": "Sagitario",
+    "desc": {
+      "capricorn": "Terco como una cabra. Entrena hasta que cierra el gym, luego hace 10 series más en casa.",
+      "aquarius": "El signo más impredecible. Viene a entrenar piernas, sale habiendo entrenado solo bíceps. ¡Y funciona!",
+      "pisces": "Fluye entre máquinas como agua. Nunca termina un programa, pero tiene forma perfecta.",
+      "aries": "Primero en la fila cuando abre el gym, discute sobre profundidad de sentadillas. El PR es más importante que las relaciones.",
+      "taurus": "Lento pero imparable. Lleva 5 años con el mismo programa. Si funciona, ¿para qué cambiar?",
+      "gemini": "Tiene dos personalidades de entrenamiento: 'Modo Bestia' y 'Quizás mañana'. Da consejos no solicitados.",
+      "cancer": "Trae barritas de proteína caseras para todos. Llora con videos motivacionales. Cuida a desconocidos como familia.",
+      "leo": "El espejo es su máquina favorita. Gruñe más de lo necesario. Post de Instagram antes de empezar a entrenar.",
+      "virgo": "Hoja de cálculo para cada repetición. Limpia las máquinas antes Y después. Juzga tu forma en silencio pero intensamente.",
+      "libra": "No puede decidir entre cardio y pesas, no hace ninguno bien. Se ve bien sin hacer nada.",
+      "scorpio": "Entrena en la esquina, observando a todos. Sabe tu máximo sin preguntar. Contacto visual intenso.",
+      "sagittarius": "Prueba cada nueva tendencia de fitness. Lesionado por algo experimental. Aún cree que el yoga ecuestre es el futuro."
+    }
   },
   "units": {
     "kg": "kg",

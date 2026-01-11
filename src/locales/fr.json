@@ -414,7 +414,21 @@
     "virgo": "Vierge",
     "libra": "Balance",
     "scorpio": "Scorpion",
-    "sagittarius": "Sagittaire"
+    "sagittarius": "Sagittaire",
+    "desc": {
+      "capricorn": "Têtu comme une chèvre. S'entraîne jusqu'à la fermeture, puis fait 10 séries de plus à la maison.",
+      "aquarius": "Le signe le plus imprévisible. Vient pour les jambes, repart en n'ayant fait que les biceps. Et ça marche!",
+      "pisces": "Nage entre les machines comme de l'eau. Ne finit jamais un programme, mais a une forme parfaite.",
+      "aries": "Premier dans la file à l'ouverture, débat sur la profondeur des squats. Le record perso avant les relations.",
+      "taurus": "Lent mais inarrêtable. Le même programme depuis 5 ans. Si ça marche, pourquoi changer?",
+      "gemini": "Deux personnalités: 'Mode Bête' et 'Peut-être demain'. Donne des conseils non sollicités, la moitié sont bons.",
+      "cancer": "Apporte des barres protéinées maison pour tout le monde. Pleure devant les vidéos de motivation.",
+      "leo": "Le miroir est sa machine préférée. Grogne plus fort que nécessaire. Post Instagram avant même de commencer.",
+      "virgo": "Tableur pour chaque répétition. Nettoie les machines avant ET après. Juge ta forme silencieusement mais intensément.",
+      "libra": "Ne peut pas choisir entre cardio et musculation, ne fait ni l'un ni l'autre correctement. A l'air bien quand même.",
+      "scorpio": "S'entraîne dans un coin, observe tout le monde. Connaît ton max sans demander. Contact visuel intense.",
+      "sagittarius": "Essaie chaque nouvelle tendance fitness. Blessé par quelque chose d'expérimental. Croit encore au yoga équestre."
+    }
   },
   "units": {
     "kg": "kg",

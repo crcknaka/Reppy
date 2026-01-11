@@ -415,7 +415,21 @@
     "virgo": "Jungfrau",
     "libra": "Waage",
     "scorpio": "Skorpion",
-    "sagittarius": "Schütze"
+    "sagittarius": "Schütze",
+    "desc": {
+      "capricorn": "Stur wie ein Bock, trainiert bis das Fitnessstudio schließt, macht dann noch 10 Sätze zu Hause.",
+      "aquarius": "Das unberechenbarste Zeichen. Kommt für Beine, trainiert nur Bizeps. Funktioniert trotzdem irgendwie!",
+      "pisces": "Schwimmt zwischen den Geräten wie Wasser. Beendet nie ein Programm, hat aber perfekte Form.",
+      "aries": "Erster in der Schlange wenn das Gym öffnet, diskutiert über Kniebeugentiefe. PR wichtiger als Beziehungen.",
+      "taurus": "Langsam aber unaufhaltsam. Seit 5 Jahren dasselbe Programm. Wenn es funktioniert, warum ändern?",
+      "gemini": "Hat zwei Trainings-Persönlichkeiten: 'Beast Mode' und 'Vielleicht morgen'. Gibt ungebetene Ratschläge.",
+      "cancer": "Bringt selbstgemachte Proteinriegel für alle mit. Weint bei Motivationsvideos. Spottet Fremde wie Familie.",
+      "leo": "Spiegel ist das Lieblingsgerät. Grunzt lauter als nötig. Instagram-Post bevor das Training überhaupt beginnt.",
+      "virgo": "Tabelle für jede Wiederholung. Wischt Geräte vorher UND nachher ab. Beurteilt deine Form still aber intensiv.",
+      "libra": "Kann sich nicht zwischen Cardio und Gewichten entscheiden, macht beides nicht richtig. Sieht dabei gut aus.",
+      "scorpio": "Trainiert in der Ecke und beobachtet alle. Kennt dein Maximum ohne zu fragen. Intensiver Blickkontakt.",
+      "sagittarius": "Probiert jeden neuen Fitnesstrend. Verletzt von etwas Experimentellem. Glaubt immer noch an Pferde-Yoga."
+    }
   },
   "units": {
     "kg": "kg",

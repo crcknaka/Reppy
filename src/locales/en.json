@@ -415,7 +415,21 @@
     "virgo": "Virgo",
     "libra": "Libra",
     "scorpio": "Scorpio",
-    "sagittarius": "Sagittarius"
+    "sagittarius": "Sagittarius",
+    "desc": {
+      "capricorn": "Stubborn as a ram, but pretends to be a goat. Trains until the gym closes, then does 10 more sets at home.",
+      "aquarius": "The most unpredictable sign. Comes to the gym to do legs, leaves having trained only biceps. And somehow it works!",
+      "pisces": "Floats between machines like water. Never finishes a program, but has perfect form. Spiritual gains only.",
+      "aries": "First in line when gym opens, argues about squat depth. Personal record is more important than personal relationships.",
+      "taurus": "Slow but unstoppable. Been on the same program for 5 years. If it works, why change? Owns the squat rack.",
+      "gemini": "Has two workout personalities: 'Beast Mode' and 'Maybe Tomorrow'. Gives unsolicited advice, half of it actually good.",
+      "cancer": "Brings homemade protein bars for everyone. Cries during motivational videos. Spots strangers like they're family.",
+      "leo": "Mirror is the favorite machine. Grunts louder than necessary. Instagram post before the workout even starts.",
+      "virgo": "Spreadsheet for every rep. Wipes machines before AND after. Judges your form silently but intensely.",
+      "libra": "Can't decide between cardio and weights, does neither properly. Looks good doing nothing. Natural peacekeeper of the gym.",
+      "scorpio": "Trains in the corner, watching everyone. Knows your max without asking. Intense eye contact during heavy lifts.",
+      "sagittarius": "Tries every new workout trend. Injured from something experimental. Still convinced that horse yoga is the future."
+    }
   },
   "units": {
     "kg": "kg",

@@ -18,8 +18,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useExercises, useCreateExercise, useDeleteExercise } from "@/hooks/useExercises";
-import { useWorkouts, useCreateWorkout } from "@/hooks/useWorkouts";
+import { useCreateExercise, useDeleteExercise } from "@/hooks/useExercises";
+import { useOfflineExercises, useOfflineWorkouts, useOfflineCreateWorkout } from "@/offline";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -28,11 +28,14 @@ import { cn } from "@/lib/utils";
 export default function Exercises() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data: exercises, isLoading } = useExercises();
-  const { data: workouts } = useWorkouts();
+  // Use offline hooks for exercises and workouts (read from cache)
+  const { data: exercises, isLoading } = useOfflineExercises();
+  const { data: workouts } = useOfflineWorkouts();
+  // Create exercise still requires internet (rare action)
   const createExercise = useCreateExercise();
   const deleteExercise = useDeleteExercise();
-  const createWorkout = useCreateWorkout();
+  // Create workout uses offline hook
+  const createWorkout = useOfflineCreateWorkout();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [name, setName] = useState("");

@@ -19,7 +19,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useWorkouts, useCreateWorkout, useDeleteWorkout, useUserWorkouts, useLockWorkout, useUnlockWorkout } from "@/hooks/useWorkouts";
+import { useUserWorkouts, useLockWorkout, useUnlockWorkout } from "@/hooks/useWorkouts";
+import { useOfflineWorkouts, useOfflineCreateWorkout, useOfflineDeleteWorkout } from "@/offline";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -55,9 +56,15 @@ export default function Workouts() {
   const { data: allProfiles } = useAllProfiles();
   const { data: friends } = useFriends();
 
-  const { data: workouts, isLoading } = useUserWorkouts(targetUserId);
-  const createWorkout = useCreateWorkout();
-  const deleteWorkout = useDeleteWorkout();
+  // Use offline hooks for own workouts, online-only for others
+  const { data: ownWorkouts, isLoading: ownLoading } = useOfflineWorkouts();
+  const { data: otherWorkouts, isLoading: otherLoading } = useUserWorkouts(isViewingOther ? viewingUserId : null);
+
+  const workouts = isViewingOther ? otherWorkouts : ownWorkouts;
+  const isLoading = isViewingOther ? otherLoading : ownLoading;
+
+  const createWorkout = useOfflineCreateWorkout();
+  const deleteWorkout = useOfflineDeleteWorkout();
   const lockWorkout = useLockWorkout();
   const unlockWorkout = useUnlockWorkout();
   const [date, setDate] = useState<Date | undefined>(new Date());

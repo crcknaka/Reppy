@@ -17,8 +17,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { DateRange } from "react-day-picker";
-import { useWorkouts } from "@/hooks/useWorkouts";
-import { useExercises } from "@/hooks/useExercises";
+import { useOfflineWorkouts, useOfflineExercises } from "@/offline";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,8 +41,9 @@ export default function Progress() {
   const { t, i18n } = useTranslation();
   const dateLocale = DATE_LOCALES[i18n.language] || enUS;
   const navigate = useNavigate();
-  const { data: workouts } = useWorkouts();
-  const { data: exercises } = useExercises();
+  // Use offline hooks for workouts and exercises (can view progress offline)
+  const { data: workouts } = useOfflineWorkouts();
+  const { data: exercises } = useOfflineExercises();
   const { user } = useAuth();
   const { toast } = useToast();
   const { units, convertWeight, convertDistance, toMetricWeight } = useUnits();

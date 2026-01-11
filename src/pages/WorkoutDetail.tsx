@@ -24,10 +24,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useSingleWorkout, useAddSet, useDeleteSet, useUpdateSet, useUpdateWorkout, useUserAllTimeBests, useLockWorkout, useUnlockWorkout } from "@/hooks/useWorkouts";
+import { useSingleWorkout, useUserAllTimeBests, useLockWorkout, useUnlockWorkout } from "@/hooks/useWorkouts";
 import { useExercises, Exercise } from "@/hooks/useExercises";
 import { useWorkoutShare, useCreateWorkoutShare, useDeactivateWorkoutShare } from "@/hooks/useWorkoutShare";
 import { useFavoriteExercises, useToggleFavoriteExercise } from "@/hooks/useFavoriteExercises";
+import { useOfflineAddSet, useOfflineDeleteSet, useOfflineUpdateSet, useOfflineUpdateWorkout } from "@/offline";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -57,10 +58,11 @@ export default function WorkoutDetail() {
   const { data: exercises } = useExercises();
   const { data: favoriteExercises } = useFavoriteExercises();
   const toggleFavorite = useToggleFavoriteExercise();
-  const addSet = useAddSet();
-  const deleteSet = useDeleteSet();
-  const updateSet = useUpdateSet();
-  const updateWorkout = useUpdateWorkout();
+  // Use offline hooks for set and workout operations
+  const addSet = useOfflineAddSet();
+  const deleteSet = useOfflineDeleteSet();
+  const updateSet = useOfflineUpdateSet();
+  const updateWorkout = useOfflineUpdateWorkout();
   const { data: allTimeBests } = useUserAllTimeBests(user?.id);
 
   // Check if current user is the owner

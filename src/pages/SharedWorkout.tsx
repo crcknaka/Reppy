@@ -161,7 +161,7 @@ export default function SharedWorkout() {
             )}
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">Тренировка пользователя</p>
-              <p className="font-bold text-lg text-foreground">{ownerProfile?.display_name || "Пользователь"}</p>
+              <p className="font-bold text-base text-foreground">{ownerProfile?.display_name || "Пользователь"}</p>
               <div className="flex items-center gap-3 mt-1 flex-wrap">
                 {ownerAge && (
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -194,7 +194,7 @@ export default function SharedWorkout() {
       <div className="max-w-4xl mx-auto p-4 space-y-6 pb-32">
         {/* Date Header */}
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
             {format(new Date(workout.date), "d MMMM yyyy", { locale: ru })}
           </h1>
           <div className="flex items-center gap-2">
@@ -231,22 +231,22 @@ export default function SharedWorkout() {
           <div className="space-y-4">
             {Object.entries(setsByExercise).map(([exerciseId, { exercise, sets }]) => (
               <Card key={exerciseId}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <CardTitle className="flex items-center gap-2 text-lg">
+                <CardHeader className="pb-2 pt-4 px-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="flex items-center gap-2 text-base">
                       {exercise?.type === "weighted" ? (
-                        <Dumbbell className="h-5 w-5 text-primary" />
+                        <Dumbbell className="h-4 w-4 text-primary" />
                       ) : exercise?.type === "cardio" ? (
-                        <Activity className="h-5 w-5 text-primary" />
+                        <Activity className="h-4 w-4 text-primary" />
                       ) : exercise?.type === "timed" ? (
-                        <Timer className="h-5 w-5 text-primary" />
+                        <Timer className="h-4 w-4 text-primary" />
                       ) : (
-                        <User className="h-5 w-5 text-primary" />
+                        <User className="h-4 w-4 text-primary" />
                       )}
                       {exercise?.name}
                     </CardTitle>
                     {exercise?.image_url && (
-                      <div className="w-24 h-24 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                         <img
                           src={exercise.image_url}
                           alt={exercise.name}
@@ -256,19 +256,19 @@ export default function SharedWorkout() {
                     )}
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-1 px-4 pb-4">
                   {/* Table Header */}
                   <div className={cn(
-                    "grid gap-2 px-3 py-2 text-xs font-semibold text-muted-foreground uppercase",
+                    "grid gap-1 px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide",
                     exercise?.type === "bodyweight" || exercise?.type === "timed"
-                      ? "grid-cols-[60px_1fr]"
-                      : "grid-cols-[60px_1fr_1fr]"
+                      ? "grid-cols-[44px_1fr]"
+                      : "grid-cols-[44px_1fr_1fr]"
                   )}>
-                    <div className="text-center">Подход</div>
+                    <div className="text-center">#</div>
                     <div className="text-center">
-                      {exercise?.type === "cardio" ? "Дистанция" :
+                      {exercise?.type === "cardio" ? "Дист." :
                        exercise?.type === "timed" ? "Время" :
-                       "Повторений"}
+                       "Повт."}
                     </div>
                     {exercise?.type !== "bodyweight" && exercise?.type !== "timed" && (
                       <div className="text-center">
@@ -282,44 +282,44 @@ export default function SharedWorkout() {
                     <div
                       key={set.id}
                       className={cn(
-                        "relative grid gap-2 items-center p-3 rounded-lg",
+                        "relative grid gap-1 items-center py-2 px-2 rounded-md",
                         exercise?.type === "bodyweight" || exercise?.type === "timed"
-                          ? "grid-cols-[60px_1fr]"
-                          : "grid-cols-[60px_1fr_1fr]",
+                          ? "grid-cols-[44px_1fr]"
+                          : "grid-cols-[44px_1fr_1fr]",
                         recordSetIds.has(set.id)
                           ? "bg-yellow-100 dark:bg-yellow-900/30"
-                          : "bg-muted/50"
+                          : "bg-muted/30"
                       )}
                     >
                       {recordSetIds.has(set.id) && (
-                        <Trophy className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-yellow-500" />
+                        <Trophy className="absolute left-1.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-yellow-500" />
                       )}
-                      <div className="text-center font-bold text-foreground">
+                      <div className="text-center text-sm font-medium text-muted-foreground">
                         {set.set_number}
                       </div>
                       {exercise?.type === "cardio" ? (
                         <>
-                          <div className="text-center font-semibold text-foreground">
+                          <div className="text-center text-sm font-semibold text-foreground">
                             {set.distance_km ? `${set.distance_km} км` : '—'}
                           </div>
-                          <div className="text-center font-medium text-primary">
+                          <div className="text-center text-sm font-medium text-primary">
                             {set.duration_minutes ? `${set.duration_minutes} мин` : '—'}
                           </div>
                         </>
                       ) : exercise?.type === "timed" ? (
-                        <div className="text-center font-semibold text-primary">
+                        <div className="text-center text-sm font-semibold text-primary">
                           {set.plank_seconds ? `${set.plank_seconds} сек` : '—'}
                         </div>
                       ) : exercise?.type === "bodyweight" ? (
-                        <div className="text-center font-semibold text-foreground">
+                        <div className="text-center text-sm font-semibold text-foreground">
                           {set.reps || '—'}
                         </div>
                       ) : (
                         <>
-                          <div className="text-center font-semibold text-foreground">
+                          <div className="text-center text-sm font-semibold text-foreground">
                             {set.reps || '—'}
                           </div>
-                          <div className="text-center font-medium text-primary">
+                          <div className="text-center text-sm font-medium text-primary">
                             {set.weight ? `${set.weight} кг` : '—'}
                           </div>
                         </>
@@ -335,14 +335,14 @@ export default function SharedWorkout() {
         {/* Notes Card */}
         {workout.notes && (
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-primary" />
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-primary" />
                 Комментарий
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-foreground whitespace-pre-wrap">
+            <CardContent className="px-4 pb-4">
+              <div className="text-sm text-foreground whitespace-pre-wrap">
                 {workout.notes}
               </div>
             </CardContent>
@@ -352,17 +352,17 @@ export default function SharedWorkout() {
         {/* Photo Card */}
         {workout.photo_url && (
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <ImageIcon className="h-5 w-5 text-primary" />
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-primary" />
                 Фото
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 pb-4">
               <img
                 src={workout.photo_url}
                 alt="Фото тренировки"
-                className="w-full rounded-lg object-cover max-h-96"
+                className="w-full rounded-lg object-cover max-h-80"
               />
             </CardContent>
           </Card>

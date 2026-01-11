@@ -101,46 +101,45 @@ export default function Exercises() {
   const customExercises = filteredExercises?.filter((e) => !e.is_preset);
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       {/* Modern Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
             Упражнения
           </h1>
-          <p className="text-muted-foreground text-base">Библиотека упражнений</p>
+          <p className="text-muted-foreground text-sm">Библиотека упражнений</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 bg-gradient-to-r from-primary to-primary/90 h-11 px-5">
-              <Plus className="h-5 w-5" />
-              <span className="hidden sm:inline font-semibold">Добавить</span>
+            <Button className="gap-2 shadow-lg">
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Добавить</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="border-border/50 shadow-2xl" aria-describedby="exercise-form-description">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-bold">Новое упражнение</DialogTitle>
+              <DialogTitle className="text-lg font-bold">Новое упражнение</DialogTitle>
               <p id="exercise-form-description" className="sr-only">
                 Форма для создания нового упражнения
               </p>
             </DialogHeader>
-            <div className="space-y-5 mt-4">
+            <div className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label className="text-sm font-semibold">Название</Label>
+                <Label className="text-sm font-medium">Название</Label>
                 <Input
                   placeholder="Например: Французский жим"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="h-11 transition-all duration-300 focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm font-semibold">Тип</Label>
+                <Label className="text-sm font-medium">Тип</Label>
                 <Select
                   value={type}
                   onValueChange={(v) => setType(v as "bodyweight" | "weighted" | "cardio")}
                 >
-                  <SelectTrigger className="h-11">
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -172,7 +171,7 @@ export default function Exercises() {
                 </Select>
               </div>
               <Button
-                className="w-full h-11 font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 bg-gradient-to-r from-primary to-primary/90"
+                className="w-full"
                 onClick={handleCreate}
                 disabled={createExercise.isPending}
               >
@@ -186,16 +185,16 @@ export default function Exercises() {
       {/* Search and Filter */}
       <div className="flex gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск упражнений..."
+            placeholder="Поиск..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-12 h-12 text-base transition-all duration-300 focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm"
+            className="pl-9"
           />
         </div>
         <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as "all" | "bodyweight" | "weighted" | "cardio")}>
-          <SelectTrigger className="w-[180px] h-12">
+          <SelectTrigger className="w-[160px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -234,36 +233,36 @@ export default function Exercises() {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="animate-pulse elevation-md">
-              <CardContent className="p-4">
-                <div className="aspect-[4/3] bg-muted rounded-xl mb-3" />
-                <div className="h-4 bg-muted rounded-lg w-2/3 mx-auto" />
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-3">
+                <div className="aspect-[4/3] bg-muted rounded-lg mb-2" />
+                <div className="h-3 bg-muted rounded w-2/3 mx-auto" />
               </CardContent>
             </Card>
           ))}
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-6">
           {/* Custom exercises */}
           {customExercises && customExercises.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-base font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                <div className="h-6 w-1 bg-primary rounded-full"></div>
+            <div className="space-y-3">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <div className="h-4 w-0.5 bg-primary rounded-full"></div>
                 Мои упражнения
               </h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 {customExercises.map((exercise, index) => (
                   <Card
                     key={exercise.id}
-                    className="animate-fade-in relative group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden elevation-md bg-gradient-card border-border/50 cursor-pointer"
+                    className="animate-fade-in relative group hover:shadow-lg transition-all duration-200 overflow-hidden cursor-pointer"
                     style={{ animationDelay: `${index * 30}ms` }}
                     onClick={() => handleExerciseClick(exercise.id)}
                   >
-                    <CardContent className="p-4 flex flex-col gap-3">
+                    <CardContent className="p-3 flex flex-col gap-2">
                       {exercise.image_url ? (
-                        <div className="w-full aspect-[4/3] rounded-xl overflow-hidden bg-primary/10 group-hover:scale-105 transition-transform duration-300">
+                        <div className="w-full aspect-[4/3] rounded-lg overflow-hidden bg-primary/10">
                           <img
                             src={exercise.image_url}
                             alt={exercise.name}
@@ -271,34 +270,34 @@ export default function Exercises() {
                           />
                         </div>
                       ) : (
-                        <div className="w-full aspect-[4/3] rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                        <div className="w-full aspect-[4/3] rounded-lg bg-primary/10 flex items-center justify-center">
                           {exercise.type === "weighted" ? (
-                            <Dumbbell className="h-14 w-14 text-primary" />
+                            <Dumbbell className="h-10 w-10 text-primary" />
                           ) : exercise.type === "cardio" ? (
-                            <Activity className="h-14 w-14 text-primary" />
+                            <Activity className="h-10 w-10 text-primary" />
                           ) : exercise.type === "timed" ? (
-                            <Timer className="h-14 w-14 text-primary" />
+                            <Timer className="h-10 w-10 text-primary" />
                           ) : (
-                            <User className="h-14 w-14 text-primary" />
+                            <User className="h-10 w-10 text-primary" />
                           )}
                         </div>
                       )}
                       <div className="text-center">
-                        <p className="font-bold text-foreground mb-1">{exercise.name}</p>
-                        <p className="text-xs text-muted-foreground font-semibold">
+                        <p className="text-sm font-semibold text-foreground">{exercise.name}</p>
+                        <p className="text-xs text-muted-foreground">
                           {exercise.type === "weighted" ? "С отягощением" : exercise.type === "cardio" ? "Кардио" : exercise.type === "timed" ? "На время" : "Собственный вес"}
                         </p>
                       </div>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="absolute top-3 right-3 h-9 w-9 bg-background/90 backdrop-blur-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-xl shadow-md opacity-0 group-hover:opacity-100 transition-all duration-300"
+                        className="absolute top-2 right-2 h-7 w-7 bg-background/90 backdrop-blur-sm text-muted-foreground hover:text-foreground rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDelete(exercise.id);
                         }}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </CardContent>
                   </Card>
@@ -309,22 +308,22 @@ export default function Exercises() {
 
           {/* Preset exercises */}
           {presetExercises && presetExercises.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-base font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                <div className="h-6 w-1 bg-primary rounded-full"></div>
+            <div className="space-y-3">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <div className="h-4 w-0.5 bg-primary rounded-full"></div>
                 Базовые упражнения
               </h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 {presetExercises.map((exercise, index) => (
                   <Card
                     key={exercise.id}
-                    className="animate-fade-in group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 elevation-md bg-gradient-card border-border/50 cursor-pointer"
+                    className="animate-fade-in group hover:shadow-lg transition-all duration-200 cursor-pointer"
                     style={{ animationDelay: `${(customExercises?.length || 0) * 30 + index * 30}ms` }}
                     onClick={() => handleExerciseClick(exercise.id)}
                   >
-                    <CardContent className="p-4 flex flex-col gap-3">
+                    <CardContent className="p-3 flex flex-col gap-2">
                       {exercise.image_url ? (
-                        <div className="w-full aspect-[4/3] rounded-xl overflow-hidden bg-muted group-hover:scale-105 transition-transform duration-300">
+                        <div className="w-full aspect-[4/3] rounded-lg overflow-hidden bg-muted">
                           <img
                             src={exercise.image_url}
                             alt={exercise.name}
@@ -336,21 +335,21 @@ export default function Exercises() {
                           />
                         </div>
                       ) : (
-                        <div className="w-full aspect-[4/3] rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
+                        <div className="w-full aspect-[4/3] rounded-lg bg-muted flex items-center justify-center">
                           {exercise.type === "weighted" ? (
-                            <Dumbbell className="h-14 w-14 text-muted-foreground" />
+                            <Dumbbell className="h-10 w-10 text-muted-foreground" />
                           ) : exercise.type === "cardio" ? (
-                            <Activity className="h-14 w-14 text-muted-foreground" />
+                            <Activity className="h-10 w-10 text-muted-foreground" />
                           ) : exercise.type === "timed" ? (
-                            <Timer className="h-14 w-14 text-muted-foreground" />
+                            <Timer className="h-10 w-10 text-muted-foreground" />
                           ) : (
-                            <User className="h-14 w-14 text-muted-foreground" />
+                            <User className="h-10 w-10 text-muted-foreground" />
                           )}
                         </div>
                       )}
                       <div className="text-center">
-                        <p className="font-bold text-foreground mb-1">{exercise.name}</p>
-                        <p className="text-xs text-muted-foreground font-semibold">
+                        <p className="text-sm font-semibold text-foreground">{exercise.name}</p>
+                        <p className="text-xs text-muted-foreground">
                           {exercise.type === "weighted" ? "С отягощением" : exercise.type === "cardio" ? "Кардио" : exercise.type === "timed" ? "На время" : "Собственный вес"}
                         </p>
                       </div>
@@ -362,15 +361,12 @@ export default function Exercises() {
           )}
 
           {filteredExercises?.length === 0 && (
-            <Card className="border-dashed border-2 border-primary/20 elevation-md">
-              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="relative mb-6">
-                  <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl"></div>
-                  <div className="relative p-6 bg-primary/10 rounded-2xl">
-                    <Dumbbell className="h-10 w-10 text-primary" />
-                  </div>
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="p-4 bg-muted rounded-full mb-4">
+                  <Dumbbell className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <p className="text-muted-foreground text-base font-semibold">
+                <p className="text-sm text-muted-foreground">
                   {searchQuery ? "Ничего не найдено" : "Нет упражнений"}
                 </p>
               </CardContent>

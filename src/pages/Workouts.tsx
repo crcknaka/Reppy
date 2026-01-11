@@ -203,12 +203,12 @@ export default function Workouts() {
     <div className="space-y-6 animate-fade-in">
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Тренировки</h1>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Тренировки</h1>
           {!isViewingOther && (
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
-                <Button className="gap-2 shadow-lg">
-                  <Plus className="h-4 w-4" />
+                <Button className="gap-2 shadow-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-semibold transition-all hover:shadow-xl hover:scale-105 active:scale-95">
+                  <Plus className="h-5 w-5 sm:h-4 sm:w-4" />
                   <span className="hidden sm:inline">Новая</span>
                 </Button>
               </PopoverTrigger>
@@ -222,7 +222,7 @@ export default function Workouts() {
                 />
                 <div className="p-3 border-t border-border">
                   <Button
-                    className="w-full"
+                    className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 font-semibold"
                     onClick={handleCreateWorkout}
                     disabled={createWorkout.isPending}
                   >
@@ -270,143 +270,124 @@ export default function Workouts() {
       )}
 
       {/* Date Filter */}
-      <div className="space-y-3">
-        {/* Quick filter buttons */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleQuickFilter(7)}
-            className={cn(
-              "text-xs",
-              dateRange?.from &&
-                dateRange?.to &&
-                format(dateRange.from, "yyyy-MM-dd") === format(subDays(new Date(), 6), "yyyy-MM-dd") &&
-                format(dateRange.to, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd") &&
-                "bg-primary text-primary-foreground hover:bg-primary/90"
-            )}
-          >
-            7 дней
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleQuickFilter(30)}
-            className={cn(
-              "text-xs",
-              dateRange?.from &&
-                dateRange?.to &&
-                format(dateRange.from, "yyyy-MM-dd") === format(subDays(new Date(), 29), "yyyy-MM-dd") &&
-                format(dateRange.to, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd") &&
-                "bg-primary text-primary-foreground hover:bg-primary/90"
-            )}
-          >
-            30 дней
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleQuickFilter("current-month")}
-            className={cn(
-              "text-xs",
-              dateRange?.from &&
-                dateRange?.to &&
-                format(dateRange.from, "yyyy-MM-dd") === format(startOfMonth(new Date()), "yyyy-MM-dd") &&
-                format(dateRange.to, "yyyy-MM-dd") === format(endOfMonth(new Date()), "yyyy-MM-dd") &&
-                "bg-primary text-primary-foreground hover:bg-primary/90"
-            )}
-          >
-            Этот месяц
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleQuickFilter("last-month")}
-            className={cn(
-              "text-xs",
-              dateRange?.from &&
-                dateRange?.to &&
-                format(dateRange.from, "yyyy-MM-dd") === format(startOfMonth(subMonths(new Date(), 1)), "yyyy-MM-dd") &&
-                format(dateRange.to, "yyyy-MM-dd") === format(endOfMonth(subMonths(new Date(), 1)), "yyyy-MM-dd") &&
-                "bg-primary text-primary-foreground hover:bg-primary/90"
-            )}
-          >
-            Прошлый месяц
-          </Button>
+      <div className="flex items-center gap-2">
+        <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 text-xs"
+            >
+              <Filter className="h-3.5 w-3.5" />
+              {dateRange?.from ? (
+                dateRange.to ? (
+                  <>
+                    {format(dateRange.from, "d MMM", { locale: ru })} – {format(dateRange.to, "d MMM", { locale: ru })}
+                  </>
+                ) : (
+                  <>С {format(dateRange.from, "d MMM", { locale: ru })}</>
+                )
+              ) : (
+                "Все"
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-2" align="start">
+            <div className="space-y-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start text-xs h-8"
+                onClick={() => {
+                  setDateRange(undefined);
+                  setFilterOpen(false);
+                }}
+              >
+                Все тренировки
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start text-xs h-8"
+                onClick={() => handleQuickFilter(7)}
+              >
+                Последние 7 дней
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start text-xs h-8"
+                onClick={() => handleQuickFilter(30)}
+              >
+                Последние 30 дней
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start text-xs h-8"
+                onClick={() => handleQuickFilter("current-month")}
+              >
+                Этот месяц
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start text-xs h-8"
+                onClick={() => handleQuickFilter("last-month")}
+              >
+                Прошлый месяц
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
 
-          <Popover open={filterOpen} onOpenChange={setFilterOpen}>
-            <PopoverTrigger asChild>
+        {/* Custom date range picker */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9"
+            >
+              <CalendarIcon className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="range"
+              selected={dateRange}
+              onSelect={setDateRange}
+              locale={ru}
+              className="rounded-md border-0"
+              numberOfMonths={1}
+            />
+            <div className="p-2 border-t border-border flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 text-xs"
+                className="flex-1"
+                onClick={() => setDateRange(undefined)}
               >
-                <CalendarIcon className="h-3.5 w-3.5" />
-                Период
+                Сбросить
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                onSelect={setDateRange}
-                locale={ru}
-                className="rounded-md border-0"
-                numberOfMonths={1}
-              />
-              <div className="p-3 border-t border-border flex gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => {
-                    setDateRange(undefined);
-                    setFilterOpen(false);
-                  }}
-                >
-                  Сбросить
-                </Button>
-                <Button
-                  className="flex-1"
-                  onClick={() => setFilterOpen(false)}
-                  disabled={!dateRange?.from}
-                >
-                  Применить
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+            </div>
+          </PopoverContent>
+        </Popover>
 
-          {dateRange?.from && (
+        {dateRange?.from && (
+          <>
+            <span className="text-xs text-muted-foreground">
+              {pluralizeWithCount(filteredWorkouts.length, "тренировка", "тренировки", "тренировок")}
+            </span>
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
               onClick={handleClearFilter}
-              className="h-8 gap-1 text-xs"
             >
               <X className="h-3.5 w-3.5" />
-              Сбросить
             </Button>
-          )}
-        </div>
-
-        {/* Active filter info */}
-        {dateRange?.from && (
-          <div className="flex items-center gap-2 text-sm">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">
-              {dateRange.to ? (
-                <>
-                  {format(dateRange.from, "d MMM", { locale: ru })} - {format(dateRange.to, "d MMM", { locale: ru })}
-                </>
-              ) : (
-                <>С {format(dateRange.from, "d MMM", { locale: ru })}</>
-              )}
-              {" · "}
-              <span className="font-medium text-foreground">
-                {pluralizeWithCount(filteredWorkouts.length, "тренировка", "тренировки", "тренировок")}
-              </span>
-            </span>
-          </div>
+          </>
         )}
       </div>
 
@@ -514,10 +495,10 @@ export default function Workouts() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-muted-foreground hover:text-foreground flex-shrink-0"
+                        className="h-7 w-7 text-muted-foreground hover:text-red-500 flex-shrink-0"
                         onClick={(e) => handleDeleteWorkout(workout.id, e)}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
                   </div>

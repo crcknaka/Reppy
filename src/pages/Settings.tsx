@@ -339,10 +339,10 @@ export default function Settings() {
     return (
       <div className="space-y-6 animate-fade-in">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
             Настройки
           </h1>
-          <p className="text-muted-foreground text-base">Загрузка...</p>
+          <p className="text-muted-foreground text-sm">Загрузка...</p>
         </div>
       </div>
     );
@@ -353,7 +353,7 @@ export default function Settings() {
       <div className="flex items-center gap-4">
         {/* Title and subtitle */}
         <div className="flex-1 space-y-1">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
             Настройки
           </h1>
         </div>
@@ -376,7 +376,7 @@ export default function Settings() {
         <Card>
           <CollapsibleTrigger asChild>
             <CardHeader className="pb-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
-              <CardTitle className="text-lg flex items-center justify-between">
+              <CardTitle className="text-base flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <User className="h-5 w-5 text-primary" />
                   Профиль
@@ -666,7 +666,7 @@ export default function Settings() {
         <Card>
           <CollapsibleTrigger asChild>
             <CardHeader className="pb-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
-              <CardTitle className="text-lg flex items-center justify-between">
+              <CardTitle className="text-base flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {theme === "dark" ? <Moon className="h-5 w-5 text-primary" /> :
                    theme === "light" ? <Sun className="h-5 w-5 text-primary" /> :
@@ -762,7 +762,7 @@ export default function Settings() {
         <Card>
           <CollapsibleTrigger asChild>
             <CardHeader className="pb-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
-              <CardTitle className="text-lg flex items-center justify-between">
+              <CardTitle className="text-base flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Download className="h-5 w-5 text-primary" />
                   Данные
@@ -825,7 +825,7 @@ export default function Settings() {
         <Card>
           <CollapsibleTrigger asChild>
             <CardHeader className="pb-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
-              <CardTitle className="text-lg flex items-center justify-between">
+              <CardTitle className="text-base flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Lock className="h-5 w-5 text-primary" />
                   Смена пароля

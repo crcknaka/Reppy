@@ -40,10 +40,7 @@ export default function Progress() {
   const [weightDate, setWeightDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [bodyWeightHistory, setBodyWeightHistory] = useState<Array<{ date: string; weight: number }>>([]);
   const [currentWeight, setCurrentWeight] = useState<number | null>(null);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: subDays(new Date(), 29),
-    to: new Date(),
-  });
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [filterOpen, setFilterOpen] = useState(false);
   const [leaderboardExercise, setLeaderboardExercise] = useState<string>("Штанга лёжа");
   const [leaderboardPeriod, setLeaderboardPeriod] = useState<"all" | "month" | "today">("all");
@@ -540,8 +537,8 @@ export default function Progress() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Прогресс</h1>
-          <p className="text-muted-foreground text-base">Отслеживай достижения</p>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Прогресс</h1>
+          <p className="text-muted-foreground text-sm">Отслеживай достижения</p>
         </div>
       </div>
 
@@ -609,41 +606,8 @@ export default function Progress() {
           </Select>
         </div>
 
-        {/* Time filter buttons */}
-        <div className="flex gap-2 flex-wrap">
-          <Button
-            variant={isFilterActive(7) ? "default" : "outline"}
-            size="sm"
-            onClick={() => handleQuickFilter(7)}
-            className="text-xs"
-          >
-            7 дней
-          </Button>
-          <Button
-            variant={isFilterActive(30) ? "default" : "outline"}
-            size="sm"
-            onClick={() => handleQuickFilter(30)}
-            className="text-xs"
-          >
-            30 дней
-          </Button>
-          <Button
-            variant={isFilterActive("current-month") ? "default" : "outline"}
-            size="sm"
-            onClick={() => handleQuickFilter("current-month")}
-            className="text-xs"
-          >
-            Этот месяц
-          </Button>
-          <Button
-            variant={isFilterActive("last-month") ? "default" : "outline"}
-            size="sm"
-            onClick={() => handleQuickFilter("last-month")}
-            className="text-xs"
-          >
-            Прошлый месяц
-          </Button>
-
+        {/* Time filter */}
+        <div className="flex items-center gap-2">
           <Popover open={filterOpen} onOpenChange={setFilterOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -651,8 +615,75 @@ export default function Progress() {
                 size="sm"
                 className="gap-2 text-xs"
               >
-                <CalendarIcon className="h-3.5 w-3.5" />
-                Период
+                <TrendingUp className="h-3.5 w-3.5" />
+                {dateRange?.from ? (
+                  isSingleDaySelected ? (
+                    format(dateRange.from, "d MMM", { locale: ru })
+                  ) : dateRange.to ? (
+                    `${format(dateRange.from, "d MMM", { locale: ru })} – ${format(dateRange.to, "d MMM", { locale: ru })}`
+                  ) : (
+                    `С ${format(dateRange.from, "d MMM", { locale: ru })}`
+                  )
+                ) : (
+                  "Всё время"
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-2" align="start">
+              <div className="space-y-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-xs h-8"
+                  onClick={() => handleQuickFilter("all")}
+                >
+                  Всё время
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-xs h-8"
+                  onClick={() => handleQuickFilter(7)}
+                >
+                  Последние 7 дней
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-xs h-8"
+                  onClick={() => handleQuickFilter(30)}
+                >
+                  Последние 30 дней
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-xs h-8"
+                  onClick={() => handleQuickFilter("current-month")}
+                >
+                  Этот месяц
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-xs h-8"
+                  onClick={() => handleQuickFilter("last-month")}
+                >
+                  Прошлый месяц
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Custom date range picker */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-9 w-9"
+              >
+                <CalendarIcon className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -664,61 +695,30 @@ export default function Progress() {
                 className="rounded-md border-0"
                 numberOfMonths={1}
               />
-              <div className="p-3 border-t border-border flex gap-2">
+              <div className="p-2 border-t border-border flex gap-2">
                 <Button
                   variant="outline"
+                  size="sm"
                   className="flex-1"
-                  onClick={() => {
-                    setDateRange(undefined);
-                    setFilterOpen(false);
-                  }}
+                  onClick={() => setDateRange(undefined)}
                 >
                   Сбросить
-                </Button>
-                <Button
-                  className="flex-1"
-                  onClick={() => setFilterOpen(false)}
-                  disabled={!dateRange?.from}
-                >
-                  Применить
                 </Button>
               </div>
             </PopoverContent>
           </Popover>
 
-          <Button
-            variant={isFilterActive("all") ? "default" : "outline"}
-            size="sm"
-            onClick={() => handleQuickFilter("all")}
-            className="text-xs"
-          >
-            Всё время
-          </Button>
-        </div>
-
-        {/* Current filter indicator */}
-        {dateRange?.from && (
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Фильтр:</span>
-            <span className={cn(
-              "font-medium px-2 py-0.5 rounded",
-              isSingleDaySelected
-                ? "bg-primary/10 text-primary"
-                : "bg-muted text-foreground"
-            )}>
-              {getFilterText()}
-            </span>
+          {dateRange?.from && (
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
               onClick={() => setDateRange(undefined)}
-              className="h-6 px-2 text-xs gap-1"
             >
-              <X className="h-3 w-3" />
-              Сбросить
+              <X className="h-3.5 w-3.5" />
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* No data message */}
@@ -917,7 +917,7 @@ export default function Progress() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-3">
-              <CardTitle className="text-lg">
+              <CardTitle className="text-base">
                 {selectedExerciseData?.type === "cardio"
                   ? cardioMetric === "distance"
                     ? "Дистанция (км)"
@@ -1084,8 +1084,8 @@ export default function Progress() {
       {/* Leaderboard */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-primary" />
+          <CardTitle className="text-base flex items-center gap-2">
+            <Trophy className="h-4 w-4 text-primary" />
             ТОП-10 · {leaderboardExercise}
           </CardTitle>
         </CardHeader>
@@ -1210,8 +1210,8 @@ export default function Progress() {
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Activity className="h-5 w-5 text-primary" />
+              <CardTitle className="text-base flex items-center gap-2">
+                <Activity className="h-4 w-4 text-primary" />
                 Вес Тела
               </CardTitle>
               <span className="text-2xl font-bold text-primary">{currentWeight} кг</span>

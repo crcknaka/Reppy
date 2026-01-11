@@ -46,8 +46,8 @@ export default function CalendarPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="space-y-1">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Календарь</h1>
-        <p className="text-muted-foreground text-base">Обзор твоих тренировок</p>
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Календарь</h1>
+        <p className="text-muted-foreground text-sm">Обзор твоих тренировок</p>
       </div>
 
       <Card>
@@ -60,7 +60,7 @@ export default function CalendarPage() {
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
-            <CardTitle className="text-lg capitalize">
+            <CardTitle className="text-base capitalize">
               {format(currentMonth, "LLLL yyyy", { locale: ru })}
             </CardTitle>
             <Button

@@ -135,6 +135,60 @@ textarea,
     --chart-1: 175 70% 45%;
   }
 
+  :root[data-accent="amber"] {
+    --primary: 38 92% 50%;
+    --accent: 38 92% 50%;
+    --ring: 38 92% 50%;
+    --sidebar-primary: 38 92% 50%;
+    --sidebar-ring: 38 92% 50%;
+    --chart-1: 38 92% 50%;
+  }
+
+  :root[data-accent="indigo"] {
+    --primary: 239 84% 67%;
+    --accent: 239 84% 67%;
+    --ring: 239 84% 67%;
+    --sidebar-primary: 239 84% 67%;
+    --sidebar-ring: 239 84% 67%;
+    --chart-1: 239 84% 67%;
+  }
+
+  :root[data-accent="cyan"] {
+    --primary: 192 91% 50%;
+    --accent: 192 91% 50%;
+    --ring: 192 91% 50%;
+    --sidebar-primary: 192 91% 50%;
+    --sidebar-ring: 192 91% 50%;
+    --chart-1: 192 91% 50%;
+  }
+
+  :root[data-accent="lime"] {
+    --primary: 84 85% 45%;
+    --accent: 84 85% 45%;
+    --ring: 84 85% 45%;
+    --sidebar-primary: 84 85% 45%;
+    --sidebar-ring: 84 85% 45%;
+    --chart-1: 84 85% 45%;
+  }
+
+  :root[data-accent="orange"] {
+    --primary: 25 95% 53%;
+    --accent: 25 95% 53%;
+    --ring: 25 95% 53%;
+    --sidebar-primary: 25 95% 53%;
+    --sidebar-ring: 25 95% 53%;
+    --chart-1: 25 95% 53%;
+  }
+
+  :root[data-accent="slate"] {
+    --primary: 215 25% 50%;
+    --accent: 215 25% 50%;
+    --ring: 215 25% 50%;
+    --sidebar-primary: 215 25% 50%;
+    --sidebar-ring: 215 25% 50%;
+    --chart-1: 215 25% 50%;
+  }
+
   .dark {
     --background: 220 25% 8%;
     --foreground: 220 15% 95%;
@@ -239,6 +293,60 @@ textarea,
     --sidebar-ring: 175 70% 50%;
     --chart-1: 175 70% 50%;
   }
+
+  .dark[data-accent="amber"] {
+    --primary: 38 92% 55%;
+    --accent: 38 92% 55%;
+    --ring: 38 92% 55%;
+    --sidebar-primary: 38 92% 55%;
+    --sidebar-ring: 38 92% 55%;
+    --chart-1: 38 92% 55%;
+  }
+
+  .dark[data-accent="indigo"] {
+    --primary: 239 84% 70%;
+    --accent: 239 84% 70%;
+    --ring: 239 84% 70%;
+    --sidebar-primary: 239 84% 70%;
+    --sidebar-ring: 239 84% 70%;
+    --chart-1: 239 84% 70%;
+  }
+
+  .dark[data-accent="cyan"] {
+    --primary: 192 91% 55%;
+    --accent: 192 91% 55%;
+    --ring: 192 91% 55%;
+    --sidebar-primary: 192 91% 55%;
+    --sidebar-ring: 192 91% 55%;
+    --chart-1: 192 91% 55%;
+  }
+
+  .dark[data-accent="lime"] {
+    --primary: 84 85% 50%;
+    --accent: 84 85% 50%;
+    --ring: 84 85% 50%;
+    --sidebar-primary: 84 85% 50%;
+    --sidebar-ring: 84 85% 50%;
+    --chart-1: 84 85% 50%;
+  }
+
+  .dark[data-accent="orange"] {
+    --primary: 25 95% 58%;
+    --accent: 25 95% 58%;
+    --ring: 25 95% 58%;
+    --sidebar-primary: 25 95% 58%;
+    --sidebar-ring: 25 95% 58%;
+    --chart-1: 25 95% 58%;
+  }
+
+  .dark[data-accent="slate"] {
+    --primary: 215 25% 60%;
+    --accent: 215 25% 60%;
+    --ring: 215 25% 60%;
+    --sidebar-primary: 215 25% 60%;
+    --sidebar-ring: 215 25% 60%;
+    --chart-1: 215 25% 60%;
+  }
 }
 
 @layer base {
@@ -247,6 +355,76 @@ textarea,
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Better focus styles */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Selection color */
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
+}
+
+/* Custom utility classes */
+@layer utilities {
+  /* Card shadows */
+  .shadow-card {
+    box-shadow:
+      0 1px 3px 0 rgb(0 0 0 / 0.04),
+      0 1px 2px -1px rgb(0 0 0 / 0.04);
+  }
+
+  .shadow-card-hover {
+    box-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 0.07),
+      0 2px 4px -2px rgb(0 0 0 / 0.07);
+  }
+
+  .dark .shadow-card {
+    box-shadow:
+      0 1px 3px 0 rgb(0 0 0 / 0.2),
+      0 1px 2px -1px rgb(0 0 0 / 0.2),
+      inset 0 1px 0 0 rgb(255 255 255 / 0.03);
+  }
+
+  .dark .shadow-card-hover {
+    box-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 0.3),
+      0 2px 4px -2px rgb(0 0 0 / 0.3),
+      inset 0 1px 0 0 rgb(255 255 255 / 0.05);
+  }
+
+  /* Primary glow effect */
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.15);
+  }
+
+  .glow-primary-hover {
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.25);
+  }
+
+  /* Gradient text */
+  .text-gradient {
+    @apply bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent;
+  }
+
+  /* Smooth transitions */
+  .transition-smooth {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  /* Active press effect */
+  .active-scale {
+    @apply active:scale-[0.98] transition-transform;
   }
 }

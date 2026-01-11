@@ -292,7 +292,7 @@ export default function Exercises() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="absolute top-3 right-3 h-9 w-9 bg-background/90 backdrop-blur-sm text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-700 dark:hover:text-red-300 rounded-xl shadow-md opacity-0 group-hover:opacity-100 transition-all duration-300"
+                        className="absolute top-3 right-3 h-9 w-9 bg-background/90 backdrop-blur-sm text-muted-foreground hover:bg-muted hover:text-foreground rounded-xl shadow-md opacity-0 group-hover:opacity-100 transition-all duration-300"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDelete(exercise.id);

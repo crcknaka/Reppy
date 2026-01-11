@@ -609,7 +609,7 @@ export default function WorkoutDetail() {
                   variant="outline"
                   size="icon"
                   onClick={() => setUnlockDialogOpen(true)}
-                  className="text-yellow-600 dark:text-yellow-500 hover:text-yellow-700 dark:hover:text-yellow-400"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <Lock className="h-5 w-5" />
                 </Button>
@@ -770,8 +770,8 @@ export default function WorkoutDetail() {
                             className={cn(
                               "h-4 w-4 transition-colors",
                               isFavorite
-                                ? "fill-yellow-500 text-yellow-500"
-                                : "text-muted-foreground hover:text-yellow-500"
+                                ? "fill-primary text-primary"
+                                : "text-muted-foreground hover:text-primary"
                             )}
                           />
                         </button>
@@ -1145,18 +1145,18 @@ export default function WorkoutDetail() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30 hover:text-green-700"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
                             onClick={handleSaveEdit}
                           >
-                            <Save className="h-4 w-4" />
+                            <Save className="h-3.5 w-3.5" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
                             onClick={handleCancelEdit}
                           >
-                            <X className="h-4 w-4" />
+                            <X className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       </>
@@ -1198,7 +1198,7 @@ export default function WorkoutDetail() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted"
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
                               onClick={() => handleEditSet(set)}
                             >
                               <Pencil className="h-3.5 w-3.5" />
@@ -1206,7 +1206,7 @@ export default function WorkoutDetail() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted"
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
                               onClick={() => handleDeleteSet(set.id)}
                             >
                               <Trash2 className="h-3.5 w-3.5" />
@@ -1262,10 +1262,10 @@ export default function WorkoutDetail() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+                className="h-7 w-7 text-muted-foreground hover:text-foreground"
                 onClick={() => setIsEditingNotes(true)}
               >
-                {notes ? <Pencil className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                {notes ? <Pencil className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
               </Button>
             )}
           </div>
@@ -1320,11 +1320,11 @@ export default function WorkoutDetail() {
             {isOwner && workout?.photo_url && !workout?.is_locked && (
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={() => setPhotoToDelete(true)}
-                className="text-destructive hover:text-destructive"
+                className="h-7 w-7 text-muted-foreground hover:text-foreground"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-3.5 w-3.5" />
               </Button>
             )}
           </div>

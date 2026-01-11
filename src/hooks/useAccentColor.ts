@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export type AccentColor = "coral" | "blue" | "green" | "purple" | "pink" | "teal";
+export type AccentColor = "coral" | "blue" | "green" | "purple" | "pink" | "teal" | "amber" | "indigo" | "cyan" | "lime" | "orange" | "slate";
 
 const ACCENT_STORAGE_KEY = "fittrack-accent-color";
 
@@ -27,7 +27,7 @@ export function useAccentColor() {
 }
 
 function isValidAccent(value: string): value is AccentColor {
-  return ["coral", "blue", "green", "purple", "pink", "teal"].includes(value);
+  return ["coral", "blue", "green", "purple", "pink", "teal", "amber", "indigo", "cyan", "lime", "orange", "slate"].includes(value);
 }
 
 export const ACCENT_COLORS: { value: AccentColor; label: string; color: string }[] = [
@@ -37,4 +37,10 @@ export const ACCENT_COLORS: { value: AccentColor; label: string; color: string }
   { value: "purple", label: "Фиолетовый", color: "hsl(270, 70%, 60%)" },
   { value: "pink", label: "Розовый", color: "hsl(330, 80%, 60%)" },
   { value: "teal", label: "Бирюзовый", color: "hsl(175, 70%, 45%)" },
+  { value: "amber", label: "Янтарь", color: "hsl(38, 92%, 50%)" },
+  { value: "indigo", label: "Индиго", color: "hsl(239, 84%, 67%)" },
+  { value: "cyan", label: "Голубой", color: "hsl(192, 91%, 50%)" },
+  { value: "lime", label: "Лайм", color: "hsl(84, 85%, 45%)" },
+  { value: "orange", label: "Оранжевый", color: "hsl(25, 95%, 53%)" },
+  { value: "slate", label: "Сланец", color: "hsl(215, 25%, 50%)" },
 ];

@@ -19,6 +19,7 @@ interface PdfDailyBreakdownProps {
     sec: string;
   };
   formatDate: (date: string) => string;
+  primaryColor: string;
 }
 
 const localStyles = StyleSheet.create({
@@ -32,7 +33,6 @@ const localStyles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 6,
     borderBottomWidth: 2,
-    borderBottomColor: colors.primary,
   },
   dayCard: {
     marginBottom: 12,
@@ -54,7 +54,6 @@ const localStyles = StyleSheet.create({
   dayDate: {
     fontSize: 11,
     fontWeight: 700,
-    color: colors.primary,
   },
   daySummary: {
     fontSize: 9,
@@ -88,6 +87,7 @@ export function PdfDailyBreakdown({
   labels,
   units,
   formatDate,
+  primaryColor,
 }: PdfDailyBreakdownProps) {
   if (dailyData.length === 0) {
     return null;
@@ -140,11 +140,11 @@ export function PdfDailyBreakdown({
 
   return (
     <View style={localStyles.container}>
-      <Text style={localStyles.title}>{labels.title}</Text>
+      <Text style={[localStyles.title, { borderBottomColor: primaryColor }]}>{labels.title}</Text>
       {dailyData.map((day, dayIndex) => (
         <View key={dayIndex} style={localStyles.dayCard} wrap={false}>
           <View style={localStyles.dayHeader}>
-            <Text style={localStyles.dayDate}>{formatDate(day.date)}</Text>
+            <Text style={[localStyles.dayDate, { color: primaryColor }]}>{formatDate(day.date)}</Text>
             <Text style={localStyles.daySummary}>
               {day.sets} {labels.sets}
               {day.reps > 0 ? ` · ${day.reps} ${labels.reps}` : ""}

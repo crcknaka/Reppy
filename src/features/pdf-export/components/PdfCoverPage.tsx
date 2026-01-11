@@ -8,6 +8,7 @@ interface PdfCoverPageProps {
   userName: string;
   monthYear: string;
   stats: MonthlyStats;
+  primaryColor: string;
   labels: {
     title: string;
     workouts: string;
@@ -31,6 +32,7 @@ export function PdfCoverPage({
   userName,
   monthYear,
   stats,
+  primaryColor,
   labels,
   units,
 }: PdfCoverPageProps) {
@@ -64,11 +66,11 @@ export function PdfCoverPage({
     <View>
       {/* Header with Logo */}
       <View style={styles.header}>
-        <PdfLogo size={56} />
-        <Text style={styles.logo}>FITTRACK</Text>
+        <PdfLogo size={56} color={primaryColor} />
+        <Text style={[styles.logo, { color: primaryColor }]}>FITTRACK</Text>
         <Text style={styles.title}>{labels.title}</Text>
         <Text style={styles.userName}>{userName}</Text>
-        <Text style={styles.monthYear}>{monthYear}</Text>
+        <Text style={[styles.monthYear, { color: primaryColor }]}>{monthYear}</Text>
       </View>
 
       {/* Stats Grid */}

@@ -1,5 +1,5 @@
 import { Document, Page, View, Text } from "@react-pdf/renderer";
-import { styles } from "./styles";
+import { styles, type PdfColors } from "./styles";
 import { PdfCoverPage } from "./components/PdfCoverPage";
 import { PdfBarChart } from "./components/PdfBarChart";
 import { PdfWorkoutTable } from "./components/PdfWorkoutTable";
@@ -10,6 +10,7 @@ interface MonthlyReportPdfProps {
   userName: string;
   monthYear: string;
   data: MonthlyReportData;
+  colors: PdfColors;
   translations: {
     title: string;
     exerciseBreakdown: string;
@@ -56,6 +57,7 @@ export function MonthlyReportPdf({
   userName,
   monthYear,
   data,
+  colors,
   translations,
   formatDate,
 }: MonthlyReportPdfProps) {
@@ -76,6 +78,7 @@ export function MonthlyReportPdf({
           userName={userName}
           monthYear={monthYear}
           stats={stats}
+          primaryColor={colors.primary}
           labels={{
             title: translations.title,
             workouts: translations.stats.workouts,
@@ -102,13 +105,14 @@ export function MonthlyReportPdf({
           {/* Workout progress chart */}
           {chartData.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
+              <Text style={[styles.sectionTitle, { borderBottomColor: colors.primary }]}>
                 {translations.workoutProgress}
               </Text>
               <PdfBarChart
                 data={chartData}
                 unit={translations.daily.sets}
                 maxBars={15}
+                primaryColor={colors.primary}
               />
             </View>
           )}
@@ -116,13 +120,14 @@ export function MonthlyReportPdf({
           {/* Exercise breakdown table */}
           {exerciseBreakdown.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
+              <Text style={[styles.sectionTitle, { borderBottomColor: colors.primary }]}>
                 {translations.exerciseBreakdown}
               </Text>
               <PdfWorkoutTable
                 exercises={exerciseBreakdown}
                 labels={translations.table}
                 units={{ kg: translations.units.kg }}
+                primaryColor={colors.primary}
               />
             </View>
           )}
@@ -152,6 +157,7 @@ export function MonthlyReportPdf({
               sec: translations.units.sec,
             }}
             formatDate={formatDate}
+            primaryColor={colors.primary}
           />
 
           {/* Footer */}

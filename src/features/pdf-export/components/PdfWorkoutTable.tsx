@@ -22,12 +22,14 @@ interface PdfWorkoutTableProps {
   units: {
     kg: string;
   };
+  primaryColor: string;
 }
 
 export function PdfWorkoutTable({
   exercises,
   labels,
   units,
+  primaryColor,
 }: PdfWorkoutTableProps) {
   if (exercises.length === 0) {
     return null;
@@ -45,7 +47,7 @@ export function PdfWorkoutTable({
   return (
     <View style={styles.table}>
       {/* Header */}
-      <View style={styles.tableHeader}>
+      <View style={[styles.tableHeader, { backgroundColor: primaryColor }]}>
         <Text style={[styles.tableHeaderCell, { width: colWidths.name }]}>
           {labels.exercise}
         </Text>

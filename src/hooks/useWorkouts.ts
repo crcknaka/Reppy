@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { offlineDb } from "@/offline/db";
+import { syncQueue } from "@/offline/syncQueue";
 import type { ExerciseTranslations } from "./useExercises";
 
 export interface WorkoutSet {
@@ -429,8 +430,15 @@ export function useLockWorkout() {
       // Update IndexedDB first for immediate UI update
       await offlineDb.workouts.update(workoutId, {
         is_locked: true,
+        _synced: false,
         _lastModified: Date.now()
       });
+
+      // If offline, queue for sync later
+      if (!navigator.onLine) {
+        await syncQueue.enqueue("workouts", "update", workoutId, { is_locked: true });
+        return { id: workoutId, is_locked: true };
+      }
 
       const { data, error } = await supabase
         .from("workouts")
@@ -447,6 +455,9 @@ export function useLockWorkout() {
         });
         throw error;
       }
+
+      // Mark as synced
+      await offlineDb.workouts.update(workoutId, { _synced: true });
       return data;
     },
     onSuccess: () => {
@@ -464,8 +475,15 @@ export function useUnlockWorkout() {
       // Update IndexedDB first for immediate UI update
       await offlineDb.workouts.update(workoutId, {
         is_locked: false,
+        _synced: false,
         _lastModified: Date.now()
       });
+
+      // If offline, queue for sync later
+      if (!navigator.onLine) {
+        await syncQueue.enqueue("workouts", "update", workoutId, { is_locked: false });
+        return { id: workoutId, is_locked: false };
+      }
 
       const { data, error } = await supabase
         .from("workouts")
@@ -482,6 +500,9 @@ export function useUnlockWorkout() {
         });
         throw error;
       }
+
+      // Mark as synced
+      await offlineDb.workouts.update(workoutId, { _synced: true });
       return data;
     },
     onSuccess: () => {

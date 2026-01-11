@@ -560,10 +560,6 @@ export default function WorkoutDetail() {
 
   const handleLockWorkout = async () => {
     if (!workout) return;
-    if (!isOnline) {
-      toast.error(t("offline.featureRequiresInternet"));
-      return;
-    }
 
     try {
       await lockWorkout.mutateAsync(workout.id);
@@ -576,10 +572,6 @@ export default function WorkoutDetail() {
 
   const handleUnlockWorkout = async () => {
     if (!workout) return;
-    if (!isOnline) {
-      toast.error(t("offline.featureRequiresInternet"));
-      return;
-    }
 
     try {
       await unlockWorkout.mutateAsync(workout.id);

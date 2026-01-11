@@ -139,11 +139,6 @@ export default function Workouts() {
   const handleToggleLock = async (workoutId: string, isLocked: boolean, e: React.MouseEvent) => {
     e.stopPropagation();
 
-    if (!isOnline) {
-      toast.error(t("offline.featureRequiresInternet"));
-      return;
-    }
-
     if (isLocked) {
       // Show confirmation dialog for unlocking
       setWorkoutToUnlock(workoutId);
@@ -160,12 +155,6 @@ export default function Workouts() {
 
   const confirmUnlock = async () => {
     if (!workoutToUnlock) return;
-
-    if (!isOnline) {
-      toast.error(t("offline.featureRequiresInternet"));
-      setWorkoutToUnlock(null);
-      return;
-    }
 
     try {
       await unlockWorkout.mutateAsync(workoutToUnlock);

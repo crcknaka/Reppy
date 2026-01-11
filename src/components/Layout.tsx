@@ -4,18 +4,17 @@ import { TrendingUp, ListPlus, LogOut, Activity, Settings, Users } from "lucide-
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import { usePendingRequestsCount } from "@/hooks/useFriends";
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 const navItems = [
-  { to: "/", icon: Activity, label: "Тренировки", hasBadge: false },
-  { to: "/progress", icon: TrendingUp, label: "Прогресс", hasBadge: false },
-  { to: "/friends", icon: Users, label: "Друзья", hasBadge: true },
-  { to: "/exercises", icon: ListPlus, label: "Упражнения", hasBadge: false },
-  { to: "/settings", icon: Settings, label: "Настройки", hasBadge: false },
+  { to: "/", icon: Activity, label: "Тренировки" },
+  { to: "/progress", icon: TrendingUp, label: "Прогресс" },
+  { to: "/friends", icon: Users, label: "Друзья" },
+  { to: "/exercises", icon: ListPlus, label: "Упражнения" },
+  { to: "/settings", icon: Settings, label: "Настройки" },
 ];
 
 export default function Layout({ children }: LayoutProps) {
@@ -24,7 +23,6 @@ export default function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const logoSrc = resolvedTheme === "dark" ? "/logo-white.png" : "/logo-black.png";
-  const { data: pendingRequestsCount } = usePendingRequestsCount();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -40,7 +38,6 @@ export default function Layout({ children }: LayoutProps) {
         <div className="flex items-center justify-around py-2 px-2">
           {navItems.map((item) => {
             const isActive = location.pathname === item.to;
-            const showBadge = item.hasBadge && pendingRequestsCount && pendingRequestsCount > 0;
             return (
               <NavLink
                 key={item.to}
@@ -60,11 +57,6 @@ export default function Layout({ children }: LayoutProps) {
                     "h-5 w-5 transition-transform duration-200",
                     isActive && "scale-110"
                   )} />
-                  {showBadge && (
-                    <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] flex items-center justify-center text-[9px] font-bold bg-destructive text-destructive-foreground rounded-full px-1">
-                      {pendingRequestsCount > 9 ? "9+" : pendingRequestsCount}
-                    </span>
-                  )}
                 </div>
                 <span className={cn(
                   "text-[10px] font-medium mt-0.5 transition-all duration-200",
@@ -99,7 +91,6 @@ export default function Layout({ children }: LayoutProps) {
         <nav className="flex-1 p-4 space-y-1.5">
           {navItems.map((item, index) => {
             const isActive = location.pathname === item.to;
-            const showBadge = item.hasBadge && pendingRequestsCount && pendingRequestsCount > 0;
             return (
               <NavLink
                 key={item.to}
@@ -112,24 +103,12 @@ export default function Layout({ children }: LayoutProps) {
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/80 active:scale-[0.98]"
                 )}
               >
-                <div className="relative">
-                  <item.icon className={cn(
-                    "h-5 w-5 transition-transform duration-200",
-                    !isActive && "group-hover:scale-110"
-                  )} />
-                  {showBadge && (
-                    <span className={cn(
-                      "absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] flex items-center justify-center text-[9px] font-bold rounded-full px-1",
-                      isActive
-                        ? "bg-primary-foreground text-primary"
-                        : "bg-destructive text-destructive-foreground"
-                    )}>
-                      {pendingRequestsCount > 9 ? "9+" : pendingRequestsCount}
-                    </span>
-                  )}
-                </div>
+                <item.icon className={cn(
+                  "h-5 w-5 transition-transform duration-200",
+                  !isActive && "group-hover:scale-110"
+                )} />
                 <span className="font-medium">{item.label}</span>
-                {isActive && !showBadge && (
+                {isActive && (
                   <span className="absolute right-3 w-1.5 h-1.5 rounded-full bg-primary-foreground/80" />
                 )}
               </NavLink>

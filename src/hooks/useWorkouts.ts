@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { offlineDb } from "@/offline/db";
 import type { ExerciseTranslations } from "./useExercises";
 
 export interface WorkoutSet {
@@ -425,6 +426,12 @@ export function useLockWorkout() {
 
   return useMutation({
     mutationFn: async (workoutId: string) => {
+      // Update IndexedDB first for immediate UI update
+      await offlineDb.workouts.update(workoutId, {
+        is_locked: true,
+        _lastModified: Date.now()
+      });
+
       const { data, error } = await supabase
         .from("workouts")
         .update({ is_locked: true })
@@ -432,12 +439,19 @@ export function useLockWorkout() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Rollback IndexedDB on error
+        await offlineDb.workouts.update(workoutId, {
+          is_locked: false,
+          _lastModified: Date.now()
+        });
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workouts"] });
-      queryClient.invalidateQueries({ queryKey: ["workout"] });
+      queryClient.invalidateQueries({ queryKey: ["workouts"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["workout"], exact: false });
     },
   });
 }
@@ -447,6 +461,12 @@ export function useUnlockWorkout() {
 
   return useMutation({
     mutationFn: async (workoutId: string) => {
+      // Update IndexedDB first for immediate UI update
+      await offlineDb.workouts.update(workoutId, {
+        is_locked: false,
+        _lastModified: Date.now()
+      });
+
       const { data, error } = await supabase
         .from("workouts")
         .update({ is_locked: false })
@@ -454,12 +474,19 @@ export function useUnlockWorkout() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Rollback IndexedDB on error
+        await offlineDb.workouts.update(workoutId, {
+          is_locked: true,
+          _lastModified: Date.now()
+        });
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workouts"] });
-      queryClient.invalidateQueries({ queryKey: ["workout"] });
+      queryClient.invalidateQueries({ queryKey: ["workouts"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["workout"], exact: false });
     },
   });
 }

@@ -4,6 +4,29 @@ export type AccentColor = "coral" | "blue" | "green" | "purple" | "pink" | "teal
 
 const ACCENT_STORAGE_KEY = "fittrack-accent-color";
 
+// HEX colors for theme-color meta tag (status bar)
+export const ACCENT_THEME_COLORS: Record<AccentColor, string> = {
+  coral: "#f05a2a",
+  blue: "#3b82f6",
+  green: "#22c55e",
+  purple: "#a855f7",
+  pink: "#ec4899",
+  teal: "#14b8a6",
+  amber: "#f59e0b",
+  indigo: "#818cf8",
+  cyan: "#06b6d4",
+  lime: "#84cc16",
+  orange: "#f97316",
+  slate: "#64748b",
+};
+
+export function updateThemeColor(color: AccentColor) {
+  const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeColorMeta) {
+    themeColorMeta.setAttribute("content", ACCENT_THEME_COLORS[color]);
+  }
+}
+
 export function useAccentColor() {
   // Read initial value from DOM attribute (already set in main.tsx)
   const [accentColor, setAccentColorState] = useState<AccentColor>(() => {
@@ -17,6 +40,7 @@ export function useAccentColor() {
   useEffect(() => {
     document.documentElement.setAttribute("data-accent", accentColor);
     localStorage.setItem(ACCENT_STORAGE_KEY, accentColor);
+    updateThemeColor(accentColor);
   }, [accentColor]);
 
   const setAccentColor = (color: AccentColor) => {

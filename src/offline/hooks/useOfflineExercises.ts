@@ -28,7 +28,7 @@ export function useOfflineExercises() {
             await offlineDb.exercises.bulkPut(
               data.map((e) => ({
                 ...e,
-                name_translations: null,
+                name_translations: (e as any).name_translations ?? null,
                 _synced: true,
               }))
             );

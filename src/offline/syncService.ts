@@ -293,7 +293,7 @@ class SyncService {
         await offlineDb.exercises.delete(entityId);
         await offlineDb.exercises.put({
           ...result,
-          name_translations: null,
+          name_translations: (result as any).name_translations ?? null,
           _synced: true,
         });
       }

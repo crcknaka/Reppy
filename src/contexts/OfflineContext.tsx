@@ -34,7 +34,8 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const { isOnline, pendingCount, lastSyncTime, checkConnection } = useOfflineStatus();
 
-  const [isInitialized, setIsInitialized] = useState(false);
+  // Always true - IndexedDB is always "ready", just may be empty
+  const isInitialized = true;
   const [isSyncing, setIsSyncing] = useState(false);
   const wasOfflineRef = useRef(false);
   const hasHydratedRef = useRef(false);
@@ -137,18 +138,13 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
-  // Initialize offline storage
+  // Initialize offline storage - hydrate from server if needed
   useEffect(() => {
     const init = async () => {
       if (!user) {
-        setIsInitialized(false);
         hasHydratedRef.current = false;
         return;
       }
-
-      // Always set initialized to true immediately so queries can run
-      // They will read from IndexedDB which may be empty initially
-      setIsInitialized(true);
 
       try {
         // Check if we have data and need to hydrate

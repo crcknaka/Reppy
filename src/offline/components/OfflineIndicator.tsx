@@ -108,9 +108,8 @@ export function UnsyncedIndicator({ synced }: { synced: boolean }) {
   }
 
   return (
-    <CloudOff
-      className="h-4 w-4 text-muted-foreground"
-      title={t("offline.notSynced")}
-    />
+    <span title={t("offline.notSynced")}>
+      <CloudOff className="h-4 w-4 text-muted-foreground" />
+    </span>
   );
 }

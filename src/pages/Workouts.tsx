@@ -55,6 +55,7 @@ export default function Workouts() {
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const handleUserChange = (userId: string) => {
     if (userId === user?.id) {
@@ -327,7 +328,10 @@ export default function Workouts() {
         <>
           {/* Date Filter */}
           <div className="flex items-center gap-2">
-            <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+            <Popover open={filterOpen} onOpenChange={(open) => {
+              setFilterOpen(open);
+              if (!open) setDatePickerOpen(false);
+            }}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -348,86 +352,105 @@ export default function Workouts() {
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-2" align="start">
-                <div className="space-y-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start text-xs h-8"
-                    onClick={() => {
-                      setDateRange(undefined);
-                      setFilterOpen(false);
-                    }}
-                  >
-                    Все тренировки
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-xs h-8"
-                onClick={() => handleQuickFilter(7)}
-              >
-                Последние 7 дней
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-xs h-8"
-                onClick={() => handleQuickFilter(30)}
-              >
-                Последние 30 дней
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-xs h-8"
-                onClick={() => handleQuickFilter("current-month")}
-              >
-                Этот месяц
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-xs h-8"
-                onClick={() => handleQuickFilter("last-month")}
-              >
-                Прошлый месяц
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
-
-        {/* Custom date range picker */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-9 w-9 shrink-0"
-            >
-              <CalendarIcon className="h-3.5 w-3.5" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="range"
-              selected={dateRange}
-              onSelect={setDateRange}
-              locale={ru}
-              className="rounded-md border-0"
-              numberOfMonths={1}
-            />
-            <div className="p-2 border-t border-border flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={() => setDateRange(undefined)}
-              >
-                Сбросить
-              </Button>
-            </div>
-          </PopoverContent>
+              <PopoverContent className="w-auto p-0" align="start">
+                {!datePickerOpen ? (
+                  <div className="p-2 space-y-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-xs h-8"
+                      onClick={() => {
+                        setDateRange(undefined);
+                        setFilterOpen(false);
+                      }}
+                    >
+                      Все тренировки
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-xs h-8"
+                      onClick={() => handleQuickFilter(7)}
+                    >
+                      Последние 7 дней
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-xs h-8"
+                      onClick={() => handleQuickFilter(30)}
+                    >
+                      Последние 30 дней
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-xs h-8"
+                      onClick={() => handleQuickFilter("current-month")}
+                    >
+                      Этот месяц
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-xs h-8"
+                      onClick={() => handleQuickFilter("last-month")}
+                    >
+                      Прошлый месяц
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start text-xs h-8"
+                      onClick={() => setDatePickerOpen(true)}
+                    >
+                      По дате...
+                    </Button>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="p-2 border-b border-border">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="gap-2 text-xs h-8"
+                        onClick={() => setDatePickerOpen(false)}
+                      >
+                        <ChevronLeft className="h-3.5 w-3.5" />
+                        Назад
+                      </Button>
+                    </div>
+                    <Calendar
+                      mode="range"
+                      selected={dateRange}
+                      onSelect={(range) => {
+                        setDateRange(range);
+                        if (range?.from && range?.to) {
+                          setDatePickerOpen(false);
+                          setFilterOpen(false);
+                        }
+                      }}
+                      locale={ru}
+                      className="rounded-md border-0"
+                      numberOfMonths={1}
+                    />
+                    <div className="p-2 border-t border-border">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-xs"
+                        onClick={() => {
+                          setDateRange(undefined);
+                          setDatePickerOpen(false);
+                          setFilterOpen(false);
+                        }}
+                      >
+                        Сбросить
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </PopoverContent>
         </Popover>
 
         {dateRange?.from && (

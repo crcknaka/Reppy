@@ -6,15 +6,23 @@ import "./lib/i18n";
 
 // Register service worker for PWA
 const updateSW = registerSW({
+  immediate: true, // Register immediately for faster caching
   onNeedRefresh() {
-    // Could show a toast here asking user to refresh
-    console.log("New content available, please refresh.");
+    // Auto-update when new content is available
+    console.log("New content available, updating...");
+    updateSW(true); // Force update
   },
   onOfflineReady() {
     console.log("App ready for offline use.");
   },
   onRegistered(registration) {
     console.log("Service worker registered:", registration);
+    // Check for updates periodically
+    if (registration) {
+      setInterval(() => {
+        registration.update();
+      }, 60 * 60 * 1000); // Check every hour
+    }
   },
   onRegisterError(error) {
     console.error("Service worker registration error:", error);

@@ -14,6 +14,7 @@ const Auth = lazy(() => import("@/pages/Auth"));
 const Workouts = lazy(() => import("@/pages/Workouts"));
 const WorkoutDetail = lazy(() => import("@/pages/WorkoutDetail"));
 const Progress = lazy(() => import("@/pages/Progress"));
+const Friends = lazy(() => import("@/pages/Friends"));
 const Exercises = lazy(() => import("@/pages/Exercises"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
@@ -91,6 +92,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <Progress />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/friends"
+          element={
+            <ProtectedRoute>
+              <Friends />
             </ProtectedRoute>
           }
         />

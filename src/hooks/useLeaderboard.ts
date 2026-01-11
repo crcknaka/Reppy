@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfMonth, startOfDay } from "date-fns";
+import { useAuth } from "@/contexts/AuthContext";
+import { useFriends } from "@/hooks/useFriends";
 
 export interface LeaderboardEntry {
   user_id: string;
@@ -35,10 +37,14 @@ interface WorkoutSet {
 
 export function useLeaderboard(
   exerciseName: string,
-  timeFilter: "all" | "month" | "today" = "all"
+  timeFilter: "all" | "month" | "today" = "all",
+  friendsOnly: boolean = false,
+  friendIds: string[] = []
 ) {
+  const { user } = useAuth();
+
   return useQuery({
-    queryKey: ["leaderboard", exerciseName, timeFilter],
+    queryKey: ["leaderboard", exerciseName, timeFilter, friendsOnly, friendIds],
     queryFn: async () => {
       // Build date filter
       let dateFilter = "";
@@ -84,6 +90,14 @@ export function useLeaderboard(
           const workoutDate = new Date(set.workout.date);
           return workoutDate >= todayStart;
         });
+      }
+
+      // Filter by friends if friendsOnly is enabled
+      if (friendsOnly && user) {
+        const allowedUserIds = new Set([user.id, ...friendIds]);
+        filteredSets = filteredSets.filter((set) =>
+          allowedUserIds.has(set.workout.user_id)
+        );
       }
 
       // Group by user and calculate max weight, total reps, max distance, total distance, plank seconds

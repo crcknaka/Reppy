@@ -26,6 +26,7 @@ import { DateRange } from "react-day-picker";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile, useUserProfile } from "@/hooks/useProfile";
 import { useAllProfiles } from "@/hooks/useAllProfiles";
+import { useFriends } from "@/hooks/useFriends";
 import { ViewingUserBanner } from "@/components/ViewingUserBanner";
 
 export default function Workouts() {
@@ -40,6 +41,7 @@ export default function Workouts() {
   const { data: currentUserProfile } = useProfile();
   const { data: viewingUserProfile } = useUserProfile(isViewingOther ? viewingUserId : null);
   const { data: allProfiles } = useAllProfiles();
+  const { data: friends } = useFriends();
 
   const { data: workouts, isLoading } = useUserWorkouts(targetUserId);
   const createWorkout = useCreateWorkout();
@@ -287,8 +289,8 @@ export default function Workouts() {
             )}
           </div>
         </div>
-        {/* User selector - only visible to admins */}
-        {currentUserProfile?.is_admin && (
+        {/* User selector - for admins (all users) or regular users (friends only) */}
+        {currentUserProfile?.is_admin ? (
           <Select value={targetUserId || ""} onValueChange={handleUserChange}>
             <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Выберите" />
@@ -307,6 +309,30 @@ export default function Workouts() {
                   <div className="flex items-center gap-2">
                     <span>{profile.avatar || "👤"}</span>
                     <span className="truncate">{profile.display_name || "Аноним"}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : friends && friends.length > 0 && (
+          <Select value={targetUserId || ""} onValueChange={handleUserChange}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Выберите" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={user?.id || ""}>
+                <div className="flex items-center gap-2">
+                  <span>{currentUserProfile?.avatar || "👤"}</span>
+                  <span className="truncate">{currentUserProfile?.display_name || "Я"}</span>
+                  <span className="text-muted-foreground text-xs">(Вы)</span>
+                </div>
+              </SelectItem>
+              <SelectSeparator />
+              {friends.map((friendship) => (
+                <SelectItem key={friendship.friend.user_id} value={friendship.friend.user_id}>
+                  <div className="flex items-center gap-2">
+                    <span>{friendship.friend.avatar || "👤"}</span>
+                    <span className="truncate">{friendship.friend.display_name || "Аноним"}</span>
                   </div>
                 </SelectItem>
               ))}

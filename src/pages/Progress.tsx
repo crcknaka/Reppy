@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format, subDays, startOfMonth, endOfMonth, startOfDay, endOfDay, parseISO, subMonths, isWithinInterval } from "date-fns";
 import { ru } from "date-fns/locale";
-import { Zap, Repeat, Plus, Trophy, Medal, Activity, Clock, Weight, TrendingUp, User, Dumbbell, Timer, LayoutGrid, ChevronDown, Calendar as CalendarIcon, X } from "lucide-react";
+import { Zap, Repeat, Plus, Trophy, Medal, Activity, Clock, Weight, TrendingUp, User, Dumbbell, Timer, LayoutGrid, ChevronDown, Calendar as CalendarIcon, X, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import { calculateTotalVolume } from "@/lib/volumeUtils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { pluralize } from "@/lib/pluralize";
 import { cn } from "@/lib/utils";
+import { useFriends } from "@/hooks/useFriends";
 
 export default function Progress() {
   const navigate = useNavigate();
@@ -44,10 +45,20 @@ export default function Progress() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [leaderboardExercise, setLeaderboardExercise] = useState<string>("Штанга лёжа");
   const [leaderboardPeriod, setLeaderboardPeriod] = useState<"all" | "month" | "today">("all");
+  const [leaderboardFriendsOnly, setLeaderboardFriendsOnly] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
 
+  // Load friends data
+  const { data: friends } = useFriends();
+  const friendIds = useMemo(() => friends?.map(f => f.friend.user_id) || [], [friends]);
+
   // Load leaderboard data
-  const { data: leaderboardData } = useLeaderboard(leaderboardExercise, leaderboardPeriod);
+  const { data: leaderboardData } = useLeaderboard(
+    leaderboardExercise,
+    leaderboardPeriod,
+    leaderboardFriendsOnly,
+    friendIds
+  );
 
   // Base exercises for leaderboard
   const baseExercises = [
@@ -1114,6 +1125,19 @@ export default function Progress() {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Friends filter toggle */}
+          {friends && friends.length > 0 && (
+            <Button
+              variant={leaderboardFriendsOnly ? "default" : "outline"}
+              size="sm"
+              className="w-full gap-2 text-xs"
+              onClick={() => setLeaderboardFriendsOnly(!leaderboardFriendsOnly)}
+            >
+              <Users className="h-3.5 w-3.5" />
+              {leaderboardFriendsOnly ? "Только друзья" : "Все пользователи"}
+            </Button>
+          )}
 
           {/* Exercise image */}
           {(() => {

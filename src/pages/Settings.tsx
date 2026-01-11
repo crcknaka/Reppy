@@ -375,16 +375,16 @@ export default function Settings() {
       <Collapsible open={profileOpen} onOpenChange={setProfileOpen}>
         <Card>
           <CollapsibleTrigger asChild>
-            <CardHeader className="pb-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
-              <CardTitle className="text-base flex items-center justify-between">
+            <CardHeader className="pb-2 pt-4 px-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <User className="h-5 w-5 text-primary" />
+                  <User className="h-4 w-4 text-primary" />
                   Профиль
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-3xl">{avatar || "👤"}</span>
+                  <span className="text-2xl">{avatar || "👤"}</span>
                   <ChevronDown className={cn(
-                    "h-5 w-5 text-muted-foreground transition-transform duration-200",
+                    "h-4 w-4 text-muted-foreground transition-transform duration-200",
                     profileOpen && "rotate-180"
                   )} />
                 </div>
@@ -392,7 +392,7 @@ export default function Settings() {
             </CardHeader>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <CardContent className="pt-4 pb-6">
+            <CardContent className="px-4 pb-4">
               <div className="space-y-4">
                 {/* Avatar + Age */}
                 <div className="flex items-center gap-4">
@@ -477,22 +477,23 @@ export default function Settings() {
                 </div>
 
                 {/* Display Name and Gender */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="displayName">Имя</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="displayName" className="text-xs">Имя</Label>
                     <Input
                       id="displayName"
                       type="text"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                       placeholder="Введите имя"
+                      className="h-9 text-xs"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="gender">Пол</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="gender" className="text-xs">Пол</Label>
                     <Select value={gender} onValueChange={(v) => setGender(v as "male" | "female" | "other" | "none")}>
-                      <SelectTrigger id="gender">
+                      <SelectTrigger id="gender" className="h-9 text-xs">
                         <SelectValue placeholder="Выберите пол" />
                       </SelectTrigger>
                       <SelectContent>
@@ -506,19 +507,20 @@ export default function Settings() {
                 </div>
 
                 {/* Date of Birth and Zodiac */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="dateOfBirth">Дата рождения</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="dateOfBirth" className="text-xs">Дата рождения</Label>
                     <Input
                       id="dateOfBirth"
                       type="date"
                       value={dateOfBirth}
                       onChange={(e) => setDateOfBirth(e.target.value)}
+                      className="h-9 text-xs"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Знак зодиака</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Знак зодиака</Label>
                     {dateOfBirth ? (() => {
                       const birthDate = new Date(dateOfBirth);
                       const month = birthDate.getMonth() + 1;
@@ -544,9 +546,9 @@ export default function Settings() {
                       return (
                         <Popover>
                           <PopoverTrigger asChild>
-                            <button className="flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-background hover:bg-muted/50 transition-colors w-full">
-                              <span className="text-xl">{zodiac.sign}</span>
-                              <span className="text-sm">{zodiac.name}</span>
+                            <button className="flex items-center gap-2 h-9 px-3 rounded-md border border-input bg-background hover:bg-muted/50 transition-colors w-full text-xs">
+                              <span className="text-base">{zodiac.sign}</span>
+                              <span>{zodiac.name}</span>
                             </button>
                           </PopoverTrigger>
                           <PopoverContent className="w-64 p-3">
@@ -561,7 +563,7 @@ export default function Settings() {
                         </Popover>
                       );
                     })() : (
-                      <div className="flex items-center h-10 px-3 rounded-md border border-input bg-background text-muted-foreground text-sm">
+                      <div className="flex items-center h-9 px-3 rounded-md border border-input bg-background text-muted-foreground text-xs">
                         —
                       </div>
                     )}
@@ -569,9 +571,9 @@ export default function Settings() {
                 </div>
 
                 {/* Height and Weight */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="height">Рост (см)</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="height" className="text-xs">Рост (см)</Label>
                     <Input
                       id="height"
                       type="number"
@@ -579,11 +581,12 @@ export default function Settings() {
                       value={height}
                       onChange={(e) => setHeight(e.target.value)}
                       placeholder="Введите рост"
+                      className="h-9 text-xs"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="currentWeight">Вес (кг)</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="currentWeight" className="text-xs">Вес (кг)</Label>
                     <Input
                       id="currentWeight"
                       type="number"
@@ -591,6 +594,7 @@ export default function Settings() {
                       value={currentWeight}
                       onChange={(e) => setCurrentWeight(e.target.value)}
                       placeholder="Введите вес"
+                      className="h-9 text-xs"
                     />
                   </div>
                 </div>
@@ -648,9 +652,10 @@ export default function Settings() {
                 <Button
                   onClick={handleSave}
                   disabled={updateProfile.isPending}
-                  className="w-full gap-2"
+                  size="sm"
+                  className="w-full gap-2 text-xs"
                 >
-                  <Save className="h-4 w-4" />
+                  <Save className="h-3.5 w-3.5" />
                   Сохранить
                 </Button>
               </div>
@@ -665,20 +670,20 @@ export default function Settings() {
       <Collapsible open={appOpen} onOpenChange={setAppOpen}>
         <Card>
           <CollapsibleTrigger asChild>
-            <CardHeader className="pb-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
-              <CardTitle className="text-base flex items-center justify-between">
+            <CardHeader className="pb-2 pt-4 px-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  {theme === "dark" ? <Moon className="h-5 w-5 text-primary" /> :
-                   theme === "light" ? <Sun className="h-5 w-5 text-primary" /> :
-                   <Monitor className="h-5 w-5 text-primary" />}
+                  {theme === "dark" ? <Moon className="h-4 w-4 text-primary" /> :
+                   theme === "light" ? <Sun className="h-4 w-4 text-primary" /> :
+                   <Monitor className="h-4 w-4 text-primary" />}
                   Приложение
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     {theme === "dark" ? "Тёмная" : theme === "light" ? "Светлая" : "Авто"}
                   </span>
                   <ChevronDown className={cn(
-                    "h-5 w-5 text-muted-foreground transition-transform duration-200",
+                    "h-4 w-4 text-muted-foreground transition-transform duration-200",
                     appOpen && "rotate-180"
                   )} />
                 </div>
@@ -686,7 +691,7 @@ export default function Settings() {
             </CardHeader>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <CardContent className="pt-4 pb-6 space-y-6">
+            <CardContent className="px-4 pb-4 space-y-4">
               {/* Тема */}
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">Тема</p>
@@ -761,18 +766,18 @@ export default function Settings() {
       <Collapsible open={dataOpen} onOpenChange={setDataOpen}>
         <Card>
           <CollapsibleTrigger asChild>
-            <CardHeader className="pb-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
-              <CardTitle className="text-base flex items-center justify-between">
+            <CardHeader className="pb-2 pt-4 px-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Download className="h-5 w-5 text-primary" />
+                  <Download className="h-4 w-4 text-primary" />
                   Данные
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     {workouts?.length || 0} тренировок
                   </span>
                   <ChevronDown className={cn(
-                    "h-5 w-5 text-muted-foreground transition-transform duration-200",
+                    "h-4 w-4 text-muted-foreground transition-transform duration-200",
                     dataOpen && "rotate-180"
                   )} />
                 </div>
@@ -780,36 +785,39 @@ export default function Settings() {
             </CardHeader>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <CardContent className="pt-4 pb-6">
-              <p className="text-sm text-muted-foreground mb-4">
+            <CardContent className="px-4 pb-4">
+              <p className="text-xs text-muted-foreground mb-3">
                 Скачайте все ваши тренировки для резервного копирования или анализа
               </p>
               <div className="grid grid-cols-3 gap-2">
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={exportToXLS}
                   disabled={exportLoading || !workouts?.length}
-                  className="gap-2"
+                  className="gap-2 text-xs"
                 >
-                  <FileSpreadsheet className="h-4 w-4" />
+                  <FileSpreadsheet className="h-3.5 w-3.5" />
                   Excel
                 </Button>
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={exportToCSV}
                   disabled={exportLoading || !workouts?.length}
-                  className="gap-2"
+                  className="gap-2 text-xs"
                 >
-                  <FileSpreadsheet className="h-4 w-4" />
+                  <FileSpreadsheet className="h-3.5 w-3.5" />
                   CSV
                 </Button>
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={exportToJSON}
                   disabled={exportLoading || !workouts?.length}
-                  className="gap-2"
+                  className="gap-2 text-xs"
                 >
-                  <FileJson className="h-4 w-4" />
+                  <FileJson className="h-3.5 w-3.5" />
                   JSON
                 </Button>
               </div>
@@ -824,24 +832,24 @@ export default function Settings() {
       <Collapsible open={securityOpen} onOpenChange={setSecurityOpen}>
         <Card>
           <CollapsibleTrigger asChild>
-            <CardHeader className="pb-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
-              <CardTitle className="text-base flex items-center justify-between">
+            <CardHeader className="pb-2 pt-4 px-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Lock className="h-5 w-5 text-primary" />
+                  <Lock className="h-4 w-4 text-primary" />
                   Смена пароля
                 </div>
                 <ChevronDown className={cn(
-                  "h-5 w-5 text-muted-foreground transition-transform duration-200",
+                  "h-4 w-4 text-muted-foreground transition-transform duration-200",
                   securityOpen && "rotate-180"
                 )} />
               </CardTitle>
             </CardHeader>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <CardContent className="pt-4 pb-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword">Новый пароль</Label>
+            <CardContent className="px-4 pb-4">
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="newPassword" className="text-xs">Новый пароль</Label>
                   <div className="relative">
                     <Input
                       id="newPassword"
@@ -849,34 +857,36 @@ export default function Settings() {
                       placeholder="Минимум 6 символов"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="pr-10"
+                      className="pr-10 h-9 text-xs"
                     />
                     <button
                       type="button"
                       onClick={() => setShowNewPassword(!showNewPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showNewPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                     </button>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Подтвердите пароль</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="confirmPassword" className="text-xs">Подтвердите пароль</Label>
                   <Input
                     id="confirmPassword"
                     type="password"
                     placeholder="Повторите пароль"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="h-9 text-xs"
                   />
                 </div>
                 <Button
                   onClick={handleChangePassword}
                   disabled={passwordLoading}
                   variant="secondary"
-                  className="w-full gap-2"
+                  size="sm"
+                  className="w-full gap-2 text-xs"
                 >
-                  <Lock className="h-4 w-4" />
+                  <Lock className="h-3.5 w-3.5" />
                   {passwordLoading ? "Сохранение..." : "Изменить пароль"}
                 </Button>
               </div>
@@ -892,9 +902,10 @@ export default function Settings() {
         <AlertDialogTrigger asChild>
           <Button
             variant="outline"
-            className="w-full gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+            size="sm"
+            className="w-full gap-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-3.5 w-3.5" />
             Выйти из аккаунта
           </Button>
         </AlertDialogTrigger>

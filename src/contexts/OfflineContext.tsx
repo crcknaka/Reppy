@@ -146,19 +146,20 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      // Always set initialized to true immediately so queries can run
+      // They will read from IndexedDB which may be empty initially
+      setIsInitialized(true);
+
       try {
-        // Check if we have data
+        // Check if we have data and need to hydrate
         const workoutCount = await offlineDb.workouts.count();
 
         if (workoutCount === 0 && isOnline) {
           // First time - hydrate from server
           await hydrateFromServer();
         }
-
-        setIsInitialized(true);
       } catch (error) {
         console.error("Failed to initialize offline storage:", error);
-        setIsInitialized(true);
       }
     };
 

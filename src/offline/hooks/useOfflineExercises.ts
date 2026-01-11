@@ -53,6 +53,8 @@ export function useOfflineExercises() {
       return exercises as Exercise[];
     },
     enabled: !!user && isInitialized,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
   });
 }
 
@@ -220,6 +222,8 @@ export function useOfflineFavoriteExercises() {
       return new Set(favorites.map((f) => f.exercise_id));
     },
     enabled: !!user && isInitialized,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
   });
 }
 

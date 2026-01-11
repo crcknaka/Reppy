@@ -1,15 +1,27 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { WifiOff, Loader2, CloudOff, Check } from "lucide-react";
+import { WifiOff, Loader2, CloudOff, X } from "lucide-react";
 import { useOffline } from "@/contexts/OfflineContext";
 import { cn } from "@/lib/utils";
 
 export function OfflineIndicator() {
   const { t } = useTranslation();
   const { isOnline, isSyncing, pendingCount } = useOffline();
+  const [isDismissed, setIsDismissed] = useState(false);
 
   // Don't show anything if online and no pending items
   if (isOnline && pendingCount === 0 && !isSyncing) {
     return null;
+  }
+
+  // Don't show if user dismissed (only for offline state)
+  if (isDismissed && !isOnline) {
+    return null;
+  }
+
+  // Reset dismissed state when back online
+  if (isOnline && isDismissed) {
+    setIsDismissed(false);
   }
 
   return (
@@ -31,6 +43,13 @@ export function OfflineIndicator() {
             <span>
               {t("offline.youAreOffline")}. {t("offline.changesWillSync")}
             </span>
+            <button
+              onClick={() => setIsDismissed(true)}
+              className="ml-2 p-1 rounded hover:bg-white/20 transition-colors"
+              aria-label={t("common.close")}
+            >
+              <X className="h-4 w-4" />
+            </button>
           </>
         ) : isSyncing ? (
           <>

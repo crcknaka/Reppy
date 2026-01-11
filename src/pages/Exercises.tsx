@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { getExerciseName } from "@/lib/i18n";
 import { Plus, User, Dumbbell, Trash2, Search, Activity, Timer, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -267,7 +268,7 @@ export default function Exercises() {
                         <div className="w-full aspect-[4/3] rounded-lg overflow-hidden bg-primary/10">
                           <img
                             src={exercise.image_url}
-                            alt={exercise.name}
+                            alt={getExerciseName(exercise.name, exercise.name_translations)}
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -285,7 +286,7 @@ export default function Exercises() {
                         </div>
                       )}
                       <div className="text-center">
-                        <p className="text-sm font-semibold text-foreground">{exercise.name}</p>
+                        <p className="text-sm font-semibold text-foreground">{getExerciseName(exercise.name, exercise.name_translations)}</p>
                         <p className="text-xs text-muted-foreground">
                           {exercise.type === "weighted" ? t("progress.weighted") : exercise.type === "cardio" ? t("progress.cardio") : exercise.type === "timed" ? t("progress.timed") : t("progress.bodyweight")}
                         </p>
@@ -328,7 +329,7 @@ export default function Exercises() {
                         <div className="w-full aspect-[4/3] rounded-lg overflow-hidden bg-muted">
                           <img
                             src={exercise.image_url}
-                            alt={exercise.name}
+                            alt={getExerciseName(exercise.name, exercise.name_translations)}
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               console.error(`Failed to load image for ${exercise.name}:`, exercise.image_url);
@@ -350,7 +351,7 @@ export default function Exercises() {
                         </div>
                       )}
                       <div className="text-center">
-                        <p className="text-sm font-semibold text-foreground">{exercise.name}</p>
+                        <p className="text-sm font-semibold text-foreground">{getExerciseName(exercise.name, exercise.name_translations)}</p>
                         <p className="text-xs text-muted-foreground">
                           {exercise.type === "weighted" ? t("progress.weighted") : exercise.type === "cardio" ? t("progress.cardio") : exercise.type === "timed" ? t("progress.timed") : t("progress.bodyweight")}
                         </p>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { format, subDays, startOfMonth, endOfMonth, startOfDay, endOfDay, parseISO, subMonths, isWithinInterval } from "date-fns";
 import { ru, enUS, es, ptBR, de, fr } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
+import { getExerciseName } from "@/lib/i18n";
 import { Zap, Repeat, Plus, Trophy, Medal, Activity, Clock, Weight, TrendingUp, User, Dumbbell, Timer, LayoutGrid, ChevronDown, Calendar as CalendarIcon, X, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -621,7 +622,7 @@ export default function Progress() {
               )}
               {usedExercises.map((exercise) => (
                 <SelectItem key={exercise.id} value={exercise.id}>
-                  {exercise.name}
+                  {getExerciseName(exercise.name, exercise.name_translations)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -949,7 +950,7 @@ export default function Progress() {
                       : t("progress.maxWeight")} {getFilterText()}
                 {selectedExercise !== "all" && selectedExerciseData && (
                   <span className="text-muted-foreground font-normal ml-2">
-                    · {selectedExerciseData.name}
+                    · {getExerciseName(selectedExerciseData.name, selectedExerciseData.name_translations)}
                   </span>
                 )}
               </CardTitle>
@@ -1106,7 +1107,10 @@ export default function Progress() {
         <CardHeader className="pb-2 pt-4 px-4">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Trophy className="h-4 w-4 text-primary" />
-            {t("progress.top10")} · {leaderboardExercise}
+            {t("progress.top10")} · {(() => {
+              const ex = exercises?.find(e => e.name === leaderboardExercise);
+              return ex ? getExerciseName(ex.name, ex.name_translations) : leaderboardExercise;
+            })()}
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 pb-4 space-y-3">
@@ -1117,11 +1121,14 @@ export default function Progress() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {baseExercises.map((exercise) => (
-                  <SelectItem key={exercise} value={exercise}>
-                    {exercise}
-                  </SelectItem>
-                ))}
+                {baseExercises.map((exerciseName) => {
+                  const ex = exercises?.find(e => e.name === exerciseName);
+                  return (
+                    <SelectItem key={exerciseName} value={exerciseName}>
+                      {ex ? getExerciseName(ex.name, ex.name_translations) : exerciseName}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
 
@@ -1175,7 +1182,7 @@ export default function Progress() {
                 <div className="w-full aspect-[4/3] rounded-lg overflow-hidden bg-muted">
                   <img
                     src={selectedEx.image_url}
-                    alt={leaderboardExercise}
+                    alt={getExerciseName(selectedEx.name, selectedEx.name_translations)}
                     className="w-full h-full object-cover"
                   />
                 </div>

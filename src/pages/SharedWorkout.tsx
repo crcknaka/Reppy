@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
+import { getExerciseName } from "@/lib/i18n";
 
 const DATE_LOCALES: Record<string, Locale> = {
   en: enUS,
@@ -255,13 +256,13 @@ export default function SharedWorkout() {
                       ) : (
                         <User className="h-4 w-4 text-primary" />
                       )}
-                      {exercise?.name}
+                      {exercise?.name ? getExerciseName(exercise.name, (exercise as any).name_translations) : ""}
                     </CardTitle>
                     {exercise?.image_url && (
                       <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                         <img
                           src={exercise.image_url}
-                          alt={exercise.name}
+                          alt={exercise?.name ? getExerciseName(exercise.name, (exercise as any).name_translations) : ""}
                           className="w-full h-full object-cover"
                         />
                       </div>

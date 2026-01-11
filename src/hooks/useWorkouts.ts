@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import type { ExerciseTranslations } from "./useExercises";
 
 export interface WorkoutSet {
   id: string;
@@ -18,6 +19,8 @@ export interface WorkoutSet {
     name: string;
     type: "bodyweight" | "weighted" | "cardio" | "timed";
     image_url?: string | null;
+    is_preset?: boolean;
+    name_translations?: ExerciseTranslations | null;
   };
 }
 
@@ -54,7 +57,7 @@ export function useWorkouts() {
             duration_minutes,
             plank_seconds,
             created_at,
-            exercise:exercises (id, name, type, image_url)
+            exercise:exercises (id, name, type, image_url, is_preset, name_translations)
           )
         `)
         .eq('user_id', user!.id)
@@ -90,7 +93,7 @@ export function useWorkoutsByMonth(year: number, month: number) {
             duration_minutes,
             plank_seconds,
             created_at,
-            exercise:exercises (id, name, type, image_url)
+            exercise:exercises (id, name, type, image_url, is_preset, name_translations)
           )
         `)
         .eq('user_id', user!.id)
@@ -298,7 +301,7 @@ export function useUserWorkouts(userId: string | null | undefined) {
             duration_minutes,
             plank_seconds,
             created_at,
-            exercise:exercises (id, name, type, image_url)
+            exercise:exercises (id, name, type, image_url, is_preset, name_translations)
           )
         `)
         .eq('user_id', userId!)
@@ -330,7 +333,7 @@ export function useSingleWorkout(workoutId: string | undefined) {
             duration_minutes,
             plank_seconds,
             created_at,
-            exercise:exercises (id, name, type, image_url)
+            exercise:exercises (id, name, type, image_url, is_preset, name_translations)
           )
         `)
         .eq('id', workoutId!)
@@ -358,7 +361,7 @@ export function useUserAllTimeBests(userId: string | null | undefined) {
           duration_minutes,
           plank_seconds,
           workout:workouts!inner(user_id),
-          exercise:exercises(id, name, type)
+          exercise:exercises(id, name, type, is_preset, name_translations)
         `)
         .eq('workout.user_id', userId!);
 

@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
 import { format, isWithinInterval, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, subMonths, parseISO, isToday, eachDayOfInterval, isSameDay, addMonths } from "date-fns";
-import { ru, enUS, es, ptBR, de, fr } from "date-fns/locale";
+import { ru, enUS, es, ptBR, de, fr, Locale } from "date-fns/locale";
 import { Plus, Calendar as CalendarIcon, Trash2, Filter, X, Dumbbell, MessageSquare, Lock, Unlock, List, ChevronLeft, ChevronRight, Activity, Timer, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { getExerciseName } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -763,6 +764,7 @@ export default function Workouts() {
                             acc[exerciseId] = {
                               name: set.exercise?.name || t("exercises.exercise"),
                               type: set.exercise?.type || "weighted",
+                              name_translations: set.exercise?.name_translations,
                               sets: 0,
                               totalReps: 0,
                               maxWeight: 0,
@@ -783,6 +785,7 @@ export default function Workouts() {
                         }, {} as Record<string, {
                           name: string;
                           type: string;
+                          name_translations?: any;
                           sets: number;
                           totalReps: number;
                           maxWeight: number;
@@ -802,7 +805,7 @@ export default function Workouts() {
                             ) : (
                               <User className="h-4 w-4 text-primary flex-shrink-0" />
                             )}
-                            <span className="font-medium text-sm truncate">{exercise.name}</span>
+                            <span className="font-medium text-sm truncate">{getExerciseName(exercise.name, exercise.name_translations)}</span>
                           </div>
                           <div className="text-xs text-muted-foreground mt-1 ml-6">
                             {exercise.type === "cardio" ? (

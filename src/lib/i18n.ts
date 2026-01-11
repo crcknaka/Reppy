@@ -44,4 +44,52 @@ i18n
     },
   });
 
+export type ExerciseTranslations = {
+  en?: string;
+  es?: string;
+  "pt-BR"?: string;
+  de?: string;
+  fr?: string;
+  ru?: string;
+};
+
+/**
+ * Get translated exercise name using database translations.
+ * Custom exercises keep their original name.
+ *
+ * @param exerciseName - The original exercise name (from database)
+ * @param nameTranslations - JSONB translations object from database
+ * @returns Translated name for current language, or original name as fallback
+ */
+export function getExerciseName(
+  exerciseName: string,
+  nameTranslations?: ExerciseTranslations | null
+): string {
+  // If no translations available, return original name
+  if (!nameTranslations) {
+    return exerciseName;
+  }
+
+  const currentLang = i18n.language as keyof ExerciseTranslations;
+
+  // Try to get translation for current language
+  const translated = nameTranslations[currentLang];
+  if (translated) {
+    return translated;
+  }
+
+  // For Russian, return original name (exercises are stored in Russian)
+  if (currentLang === 'ru') {
+    return exerciseName;
+  }
+
+  // Fallback to English if available
+  if (nameTranslations.en) {
+    return nameTranslations.en;
+  }
+
+  // Final fallback to original name
+  return exerciseName;
+}
+
 export default i18n;

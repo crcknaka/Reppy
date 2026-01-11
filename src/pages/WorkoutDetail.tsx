@@ -4,6 +4,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format, isToday, parseISO } from "date-fns";
 import { ru, enUS, es, ptBR, de, fr, Locale } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
+import { getExerciseName } from "@/lib/i18n";
 import { ArrowLeft, Plus, Trash2, User, Dumbbell, MessageSquare, Save, Pencil, X, Activity, Timer, Camera, Loader2, ImageIcon, LayoutGrid, Trophy, Search, Share2, Copy, Check, Ban, Lock, Unlock, Star, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -692,7 +693,7 @@ export default function WorkoutDetail() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="exercise-dialog-description">
           <DialogHeader>
             <DialogTitle>
-              {selectedExercise ? selectedExercise.name : t("workout.selectExercise")}
+              {selectedExercise ? getExerciseName(selectedExercise.name, selectedExercise.name_translations) : t("workout.selectExercise")}
             </DialogTitle>
             <p id="exercise-dialog-description" className="sr-only">
               {selectedExercise ? t("workout.addingSetFor") : t("workout.selectingExercise")}
@@ -805,7 +806,7 @@ export default function WorkoutDetail() {
                           <div className="w-full aspect-[4/3] overflow-hidden bg-muted">
                             <img
                               src={exercise.image_url}
-                              alt={exercise.name}
+                              alt={getExerciseName(exercise.name, exercise.name_translations)}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                             />
                           </div>
@@ -823,7 +824,7 @@ export default function WorkoutDetail() {
                           </div>
                         )}
                         <div className="p-3 bg-card">
-                          <p className="font-medium text-foreground text-center">{exercise.name}</p>
+                          <p className="font-medium text-foreground text-center">{getExerciseName(exercise.name, exercise.name_translations)}</p>
                           <p className="text-xs text-muted-foreground text-center">
                             {exercise.type === "weighted" ? t("progress.weighted") :
                              exercise.type === "cardio" ? t("progress.cardio") :
@@ -1005,13 +1006,13 @@ export default function WorkoutDetail() {
                     ) : (
                       <User className="h-4 w-4 text-primary" />
                     )}
-                    {exercise?.name}
+                    {exercise?.name ? getExerciseName(exercise.name, exercise.name_translations) : ""}
                   </CardTitle>
                   {exercise?.image_url ? (
                     <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                       <img
                         src={exercise.image_url}
-                        alt={exercise.name}
+                        alt={getExerciseName(exercise.name, exercise.name_translations)}
                         className="w-full h-full object-cover"
                       />
                     </div>

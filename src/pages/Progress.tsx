@@ -1159,18 +1159,27 @@ export default function Progress() {
           {/* Leaderboard table */}
           {leaderboardData && leaderboardData.length > 0 ? (
             <div className="space-y-2">
-              {leaderboardData.map((entry, index) => (
+              {leaderboardData.map((entry, index) => {
+                const isCurrentUser = entry.user_id === user?.id;
+                const isFriend = friendIds.includes(entry.user_id);
+                const canViewWorkouts = isCurrentUser || isFriend;
+
+                return (
                 <div
                   key={entry.user_id}
                   className={cn(
-                    "flex items-center gap-2 p-2.5 rounded-lg cursor-pointer transition-colors",
-                    "hover:bg-muted/50",
-                    index === 0 && "bg-yellow-500/10 border border-yellow-500/20 hover:bg-yellow-500/20",
-                    index === 1 && "bg-gray-400/10 border border-gray-400/20 hover:bg-gray-400/20",
-                    index === 2 && "bg-orange-600/10 border border-orange-600/20 hover:bg-orange-600/20",
+                    "flex items-center gap-2 p-2.5 rounded-lg transition-colors",
+                    canViewWorkouts && "cursor-pointer hover:bg-muted/50",
+                    !canViewWorkouts && "cursor-default",
+                    index === 0 && "bg-yellow-500/10 border border-yellow-500/20",
+                    index === 0 && canViewWorkouts && "hover:bg-yellow-500/20",
+                    index === 1 && "bg-gray-400/10 border border-gray-400/20",
+                    index === 1 && canViewWorkouts && "hover:bg-gray-400/20",
+                    index === 2 && "bg-orange-600/10 border border-orange-600/20",
+                    index === 2 && canViewWorkouts && "hover:bg-orange-600/20",
                     index > 2 && "bg-muted/30"
                   )}
-                  onClick={() => navigate(`/?user=${entry.user_id}`)}
+                  onClick={() => canViewWorkouts && navigate(`/?user=${entry.user_id}`)}
                 >
                   {/* Rank */}
                   <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted font-bold text-xs shrink-0">
@@ -1211,7 +1220,8 @@ export default function Progress() {
                     </div>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">

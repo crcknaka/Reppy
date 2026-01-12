@@ -107,6 +107,10 @@ export default function Settings() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'offline'>('idle');
   const saveStatusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // App settings save status (for theme, language, accent color, units, auto-fill)
+  const [appSaveStatus, setAppSaveStatus] = useState<'idle' | 'saved'>('idle');
+  const appSaveStatusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Track if form has been initialized to prevent overwriting user edits
   const formInitializedRef = useRef(false);
 
@@ -276,8 +280,22 @@ export default function Settings() {
       if (saveStatusTimeoutRef.current) {
         clearTimeout(saveStatusTimeoutRef.current);
       }
+      if (appSaveStatusTimeoutRef.current) {
+        clearTimeout(appSaveStatusTimeoutRef.current);
+      }
     };
   }, []);
+
+  // Helper to show app settings saved badge
+  const showAppSaved = () => {
+    if (appSaveStatusTimeoutRef.current) {
+      clearTimeout(appSaveStatusTimeoutRef.current);
+    }
+    setAppSaveStatus('saved');
+    appSaveStatusTimeoutRef.current = setTimeout(() => {
+      setAppSaveStatus('idle');
+    }, 2000);
+  };
 
   // Helper to mark that user has made changes
   const markChanged = () => {
@@ -842,6 +860,13 @@ export default function Settings() {
                   {t("settings.application")}
                 </div>
                 <div className="flex items-center gap-3">
+                  {/* App settings save status indicator */}
+                  {appSaveStatus === 'saved' && (
+                    <div className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 transition-all">
+                      <Check className="h-3 w-3" />
+                      <span>{t("settings.saved")}</span>
+                    </div>
+                  )}
                   <span className="text-xs text-muted-foreground">
                     {theme === "dark" ? t("settings.themeDark") : theme === "light" ? t("settings.themeLight") : t("settings.themeAuto")}
                   </span>
@@ -860,7 +885,7 @@ export default function Settings() {
                 <p className="text-sm font-medium text-muted-foreground">{t("settings.theme")}</p>
                 <div className="grid grid-cols-3 gap-2">
                   <button
-                    onClick={() => setTheme("light")}
+                    onClick={() => { setTheme("light"); showAppSaved(); }}
                     className={cn(
                       "flex flex-col items-center gap-2 p-3 rounded-lg transition-all",
                       theme === "light"
@@ -872,7 +897,7 @@ export default function Settings() {
                     <span className="text-sm font-medium">{t("settings.themeLight")}</span>
                   </button>
                   <button
-                    onClick={() => setTheme("dark")}
+                    onClick={() => { setTheme("dark"); showAppSaved(); }}
                     className={cn(
                       "flex flex-col items-center gap-2 p-3 rounded-lg transition-all",
                       theme === "dark"
@@ -884,7 +909,7 @@ export default function Settings() {
                     <span className="text-sm font-medium">{t("settings.themeDark")}</span>
                   </button>
                   <button
-                    onClick={() => setTheme("system")}
+                    onClick={() => { setTheme("system"); showAppSaved(); }}
                     className={cn(
                       "flex flex-col items-center gap-2 p-3 rounded-lg transition-all",
                       theme === "system"
@@ -905,7 +930,7 @@ export default function Settings() {
                   {ACCENT_COLORS.map((color) => (
                     <button
                       key={color.value}
-                      onClick={() => setAccentColor(color.value)}
+                      onClick={() => { setAccentColor(color.value); showAppSaved(); }}
                       className={cn(
                         "flex items-center justify-center w-full aspect-square rounded-lg transition-all",
                         accentColor === color.value
@@ -926,7 +951,7 @@ export default function Settings() {
                   {LANGUAGES.map((lang) => (
                     <button
                       key={lang.code}
-                      onClick={() => i18n.changeLanguage(lang.code)}
+                      onClick={() => { i18n.changeLanguage(lang.code); showAppSaved(); }}
                       className={cn(
                         "flex items-center justify-center gap-2 p-3 rounded-lg transition-all",
                         i18n.language === lang.code || (i18n.language.startsWith(lang.code.split('-')[0]) && lang.code.includes('-'))
@@ -948,7 +973,7 @@ export default function Settings() {
                   {UNIT_SYSTEMS.map((system) => (
                     <button
                       key={system.value}
-                      onClick={() => setUnitSystem(system.value)}
+                      onClick={() => { setUnitSystem(system.value); showAppSaved(); }}
                       className={cn(
                         "flex items-center justify-center gap-2 p-3 rounded-lg transition-all",
                         unitSystem === system.value
@@ -973,7 +998,7 @@ export default function Settings() {
                 <p className="text-sm font-medium text-muted-foreground">{t("settings.autoFill.title")}</p>
                 <div className="grid grid-cols-2 gap-2">
                   <button
-                    onClick={() => setAutoFillEnabled(true)}
+                    onClick={() => { setAutoFillEnabled(true); showAppSaved(); }}
                     className={cn(
                       "flex items-center justify-center gap-2 p-3 rounded-lg transition-all",
                       autoFillEnabled
@@ -985,7 +1010,7 @@ export default function Settings() {
                     <span className="text-sm font-medium">{t("settings.autoFill.on")}</span>
                   </button>
                   <button
-                    onClick={() => setAutoFillEnabled(false)}
+                    onClick={() => { setAutoFillEnabled(false); showAppSaved(); }}
                     className={cn(
                       "flex items-center justify-center gap-2 p-3 rounded-lg transition-all",
                       !autoFillEnabled

@@ -128,6 +128,9 @@ export default defineConfig(() => ({
           // i18n
           'i18n-vendor': ['i18next', 'react-i18next'],
 
+          // Charts (lazy-loaded with Progress page)
+          'recharts-vendor': ['recharts'],
+
           // Other utilities
           'utils-vendor': ['sonner', 'class-variance-authority', 'clsx', 'tailwind-merge'],
         },

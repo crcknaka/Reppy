@@ -5,7 +5,6 @@ import { User, LogOut, Lock, Eye, EyeOff, ChevronDown, Sun, Moon, Monitor, Downl
 import { useDebounce } from "@/hooks/useDebounce";
 import { useOfflineProfile, useOfflineUpdateProfile, useOfflineWorkouts } from "@/offline";
 import { format } from "date-fns";
-import * as XLSX from "xlsx-js-style";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -434,13 +433,16 @@ export default function Settings() {
     }
   };
 
-  const exportToXLS = () => {
+  const exportToXLS = async () => {
     if (!workouts || workouts.length === 0) {
       toast.error(t("settings.noDataToExport"));
       return;
     }
     setExportLoading(true);
     try {
+      // Dynamically import xlsx-js-style for code splitting (~200KB)
+      const XLSX = await import("xlsx-js-style");
+
       const headers = ["Date", "Exercise", "Type", "Set", "Reps", "Weight (kg)", "Distance (km)", "Time (min)", "Plank (sec)", "Notes"];
       const data: (string | number | null)[][] = [headers];
 

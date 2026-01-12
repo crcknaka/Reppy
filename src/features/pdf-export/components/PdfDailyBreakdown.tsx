@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from "@react-pdf/renderer";
-import { colors } from "../styles";
+import { colors } from "../colors";
 import type { DailyWorkoutData } from "../hooks/useMonthlyReportData";
 
 interface PdfDailyBreakdownProps {

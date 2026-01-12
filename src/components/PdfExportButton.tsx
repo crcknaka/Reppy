@@ -15,7 +15,7 @@ import { useOfflineProfile } from "@/offline/hooks/useOfflineProfile";
 import { useAccentColor } from "@/hooks/useAccentColor";
 import { useUnits } from "@/hooks/useUnits";
 import { calculateMonthlyReportData } from "@/features/pdf-export";
-import { createColors } from "@/features/pdf-export/styles";
+import { createColors } from "@/features/pdf-export/colors";
 import { toast } from "sonner";
 
 const localeMap: Record<string, Locale> = {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
-import { User, LogOut, Lock, Eye, EyeOff, ChevronDown, Sun, Moon, Monitor, Download, FileJson, FileSpreadsheet, Check, Loader2, CloudOff, Palette, Globe, Ruler, Sparkles, Settings as SettingsIcon, UserCircle, Calendar, Scale, RulerIcon, Smile } from "lucide-react";
+import { User, LogOut, Lock, Eye, EyeOff, ChevronDown, Sun, Moon, Monitor, Download, FileJson, FileSpreadsheet, Check, Loader2, CloudOff, Palette, Globe, Ruler, Sparkles, Settings as SettingsIcon, UserCircle, Calendar, Scale, RulerIcon, Smile, Database, KeyRound, ShieldCheck } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useOfflineProfile, useOfflineUpdateProfile, useOfflineWorkouts } from "@/offline";
 import { format } from "date-fns";
@@ -1022,7 +1022,7 @@ export default function Settings() {
             <CardHeader className="pb-2 pt-4 px-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
               <CardTitle className="text-sm font-semibold flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Download className="h-4 w-4 text-primary" />
+                  <Database className="h-4 w-4 text-primary" />
                   {t("settings.data")}
                 </div>
                 <div className="flex items-center gap-3">
@@ -1038,41 +1038,59 @@ export default function Settings() {
             </CardHeader>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <CardContent className="px-4 pb-4">
-              <p className="text-xs text-muted-foreground mb-3">
-                {t("settings.exportDescription")}
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={exportToXLS}
-                  disabled={exportLoading || !workouts?.length}
-                  className="gap-2 text-xs"
-                >
-                  <FileSpreadsheet className="h-3.5 w-3.5" />
-                  Excel
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={exportToCSV}
-                  disabled={exportLoading || !workouts?.length}
-                  className="gap-2 text-xs"
-                >
-                  <FileSpreadsheet className="h-3.5 w-3.5" />
-                  CSV
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={exportToJSON}
-                  disabled={exportLoading || !workouts?.length}
-                  className="gap-2 text-xs"
-                >
-                  <FileJson className="h-3.5 w-3.5" />
-                  JSON
-                </Button>
+            <CardContent className="px-4 pb-4 space-y-1">
+              {/* Export Row */}
+              <div className="flex items-center gap-3 py-3">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-500/10">
+                  <Download className="h-4 w-4 text-emerald-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{t("settings.export")}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-1">
+                    {t("settings.exportDescription")}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={exportToXLS}
+                    disabled={exportLoading || !workouts?.length}
+                    className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all",
+                      exportLoading || !workouts?.length
+                        ? "opacity-50 cursor-not-allowed bg-muted text-muted-foreground"
+                        : "bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20"
+                    )}
+                  >
+                    <FileSpreadsheet className="h-3.5 w-3.5" />
+                    XLS
+                  </button>
+                  <button
+                    onClick={exportToCSV}
+                    disabled={exportLoading || !workouts?.length}
+                    className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all",
+                      exportLoading || !workouts?.length
+                        ? "opacity-50 cursor-not-allowed bg-muted text-muted-foreground"
+                        : "bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20"
+                    )}
+                  >
+                    <FileSpreadsheet className="h-3.5 w-3.5" />
+                    CSV
+                  </button>
+                  <button
+                    onClick={exportToJSON}
+                    disabled={exportLoading || !workouts?.length}
+                    className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all",
+                      exportLoading || !workouts?.length
+                        ? "opacity-50 cursor-not-allowed bg-muted text-muted-foreground"
+                        : "bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20"
+                    )}
+                  >
+                    <FileJson className="h-3.5 w-3.5" />
+                    JSON
+                  </button>
+                </div>
               </div>
             </CardContent>
           </CollapsibleContent>
@@ -1080,7 +1098,7 @@ export default function Settings() {
       </Collapsible>
 
       {/* ═══════════════════════════════════════════════════════════════
-          СЕКЦИЯ: СМЕНА ПАРОЛЯ
+          СЕКЦИЯ: БЕЗОПАСНОСТЬ
       ═══════════════════════════════════════════════════════════════ */}
       <Collapsible open={securityOpen} onOpenChange={setSecurityOpen}>
         <Card>
@@ -1088,8 +1106,8 @@ export default function Settings() {
             <CardHeader className="pb-2 pt-4 px-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
               <CardTitle className="text-sm font-semibold flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-primary" />
-                  {t("settings.changePassword")}
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                  {t("settings.security")}
                 </div>
                 <ChevronDown className={cn(
                   "h-4 w-4 text-muted-foreground transition-transform duration-200",
@@ -1099,49 +1117,84 @@ export default function Settings() {
             </CardHeader>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <CardContent className="px-4 pb-4">
-              <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="newPassword" className="text-xs">{t("settings.newPassword")}</Label>
-                  <div className="relative">
-                    <Input
-                      id="newPassword"
-                      type={showNewPassword ? "text" : "password"}
-                      placeholder={t("auth.minPassword")}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="pr-10 h-9 text-xs"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {showNewPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                    </button>
-                  </div>
+            <CardContent className="px-4 pb-4 space-y-1">
+              {/* New Password Row */}
+              <div className="flex items-center gap-3 py-3 border-b border-border/50">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-500/10">
+                  <KeyRound className="h-4 w-4 text-blue-500" />
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="confirmPassword" className="text-xs">{t("settings.confirmPassword")}</Label>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{t("settings.newPassword")}</p>
+                  <p className="text-xs text-muted-foreground">{t("auth.minPassword")}</p>
+                </div>
+                <div className="relative">
                   <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder={t("settings.repeatPassword")}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="h-9 text-xs"
+                    id="newPassword"
+                    type={showNewPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="pr-9 h-8 w-36 text-xs"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showNewPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  </button>
                 </div>
-                <Button
+              </div>
+
+              {/* Confirm Password Row */}
+              <div className="flex items-center gap-3 py-3 border-b border-border/50">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-purple-500/10">
+                  <Lock className="h-4 w-4 text-purple-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{t("settings.confirmPassword")}</p>
+                  <p className="text-xs text-muted-foreground">{t("settings.repeatPassword")}</p>
+                </div>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="h-8 w-36 text-xs"
+                />
+              </div>
+
+              {/* Change Password Button Row */}
+              <div className="flex items-center gap-3 py-3">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-green-500/10">
+                  <ShieldCheck className="h-4 w-4 text-green-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{t("settings.changePassword")}</p>
+                </div>
+                <button
                   onClick={handleChangePassword}
-                  disabled={passwordLoading}
-                  variant="secondary"
-                  size="sm"
-                  className="w-full gap-2 text-xs"
+                  disabled={passwordLoading || !newPassword || !confirmPassword}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+                    passwordLoading || !newPassword || !confirmPassword
+                      ? "opacity-50 cursor-not-allowed bg-muted text-muted-foreground"
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  )}
                 >
-                  <Lock className="h-3.5 w-3.5" />
-                  {passwordLoading ? t("settings.saving") : t("settings.changePasswordButton")}
-                </Button>
+                  {passwordLoading ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      {t("settings.saving")}
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="h-3.5 w-3.5" />
+                      {t("settings.changePasswordButton")}
+                    </>
+                  )}
+                </button>
               </div>
             </CardContent>
           </CollapsibleContent>

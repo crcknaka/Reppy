@@ -104,7 +104,9 @@
       "off": "Off",
       "description": "Automatically fill in data from the last set when selecting an exercise"
     },
+    "export": "Export",
     "exportDescription": "Download all your workouts for backup or analysis",
+    "security": "Security",
     "newPassword": "New password",
     "confirmPassword": "Confirm password",
     "repeatPassword": "Repeat password",

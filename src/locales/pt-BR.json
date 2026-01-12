@@ -104,7 +104,9 @@
       "off": "Desativado",
       "description": "Preencher automaticamente os dados da última série ao selecionar um exercício"
     },
+    "export": "Exportar",
     "exportDescription": "Baixe todos os seus treinos para backup ou análise",
+    "security": "Segurança",
     "newPassword": "Nova senha",
     "confirmPassword": "Confirmar senha",
     "repeatPassword": "Repetir senha",

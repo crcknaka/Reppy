@@ -104,7 +104,9 @@
       "off": "Aus",
       "description": "Automatisch Daten vom letzten Satz einfügen bei Übungsauswahl"
     },
+    "export": "Exportieren",
     "exportDescription": "Lade alle deine Trainings zur Sicherung oder Analyse herunter",
+    "security": "Sicherheit",
     "newPassword": "Neues Passwort",
     "confirmPassword": "Passwort bestätigen",
     "repeatPassword": "Passwort wiederholen",

@@ -365,6 +365,8 @@
     "title": "Friends",
     "subtitle": "Social connections",
     "searchByName": "Search by name...",
+    "count_one": "{{count}} friend",
+    "count_other": "{{count}} friends",
     "tabs": {
       "friends": "Friends",
       "myFriends": "My friends",

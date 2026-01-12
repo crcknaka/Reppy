@@ -363,6 +363,9 @@
     "title": "Друзья",
     "subtitle": "Социальные связи",
     "searchByName": "Поиск по имени...",
+    "count_one": "{{count}} друг",
+    "count_few": "{{count}} друга",
+    "count_many": "{{count}} друзей",
     "tabs": {
       "friends": "Друзья",
       "myFriends": "Мои друзья",

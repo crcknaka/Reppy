@@ -364,6 +364,8 @@
     "title": "Amigos",
     "subtitle": "Conexões sociais",
     "searchByName": "Buscar por nome...",
+    "count_one": "{{count}} amigo",
+    "count_other": "{{count}} amigos",
     "tabs": {
       "friends": "Amigos",
       "myFriends": "Meus amigos",

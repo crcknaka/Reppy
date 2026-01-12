@@ -90,7 +90,7 @@ export default function Friends() {
             {t("friends.title")}
           </h1>
           <p className="text-muted-foreground text-sm">
-            {friends?.length || 0} {t("friends.tabs.friends").toLowerCase()}
+            {t("friends.count", { count: friends?.length || 0 })}
           </p>
         </div>
         <AddFriendDialog

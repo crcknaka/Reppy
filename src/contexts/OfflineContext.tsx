@@ -270,7 +270,7 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user) {
       clearOfflineData().catch(console.error);
-      syncService.clearMappings();
+      syncService.clearMappings().catch(console.error);
     }
   }, [user]);
 

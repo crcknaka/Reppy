@@ -287,11 +287,14 @@ export default function WorkoutDetail() {
     );
   }
 
-  // Only show "not found" if we're done fetching and truly have no data
-  if (!workout && !isFetching) {
+  // Redirect to workouts list if workout not found (deleted on another device)
+  if (isError || (!workout && !isFetching)) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh]">
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
         <p className="text-muted-foreground">{t("workout.notFound")}</p>
+        <Button variant="outline" onClick={() => navigate("/workouts")}>
+          {t("workout.backToWorkouts")}
+        </Button>
       </div>
     );
   }

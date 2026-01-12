@@ -63,6 +63,14 @@ export interface SyncMetadata {
   value: unknown;
 }
 
+// ID mapping for offline -> server ID persistence
+export interface IdMapping {
+  offlineId: string;
+  serverId: string;
+  table: SyncTable;
+  createdAt: number;
+}
+
 // Workout with nested sets for display (matching existing app types)
 export interface OfflineWorkoutWithSets extends OfflineWorkout {
   workout_sets: (OfflineWorkoutSet & {

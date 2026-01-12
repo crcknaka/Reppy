@@ -19,9 +19,23 @@ export class SyncQueue {
     });
   }
 
-  // Get the next item to sync (oldest first)
+  // Get the next item to sync (workouts first, then other tables, oldest first)
   async getNext(): Promise<SyncQueueItem | undefined> {
-    return await offlineDb.syncQueue.orderBy("createdAt").first();
+    // Priority: sync workouts before workout_sets to ensure IDs are mapped
+    const items = await offlineDb.syncQueue.orderBy("createdAt").toArray();
+
+    // First, try to find a workout create operation
+    const workoutCreate = items.find(
+      (item) => item.table === "workouts" && item.operation === "create"
+    );
+    if (workoutCreate) return workoutCreate;
+
+    // Then, try to find any other workout operation
+    const workoutOther = items.find((item) => item.table === "workouts");
+    if (workoutOther) return workoutOther;
+
+    // Finally, return the oldest item
+    return items[0];
   }
 
   // Get all pending items

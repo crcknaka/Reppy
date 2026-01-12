@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { offlineDb, setLastSyncTime, isOfflineId } from "./db";
 import { syncQueue } from "./syncQueue";
-import type { SyncQueueItem, SyncTable } from "./types";
+import type { SyncQueueItem, SyncTable, IdMapping } from "./types";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAYS = [1000, 5000, 15000]; // Exponential backoff
@@ -15,7 +15,59 @@ export interface SyncResult {
 
 class SyncService {
   private isSyncing = false;
-  private idMappings = new Map<string, string>(); // offline_id -> real_id
+  private idMappingsCache = new Map<string, string>(); // In-memory cache for performance
+  private mappingsLoaded = false;
+
+  // Load ID mappings from IndexedDB into memory cache
+  private async loadMappings(): Promise<void> {
+    if (this.mappingsLoaded) return;
+
+    try {
+      const mappings = await offlineDb.idMappings.toArray();
+      for (const mapping of mappings) {
+        this.idMappingsCache.set(mapping.offlineId, mapping.serverId);
+      }
+      this.mappingsLoaded = true;
+    } catch (error) {
+      console.error("Failed to load ID mappings:", error);
+    }
+  }
+
+  // Save a single ID mapping to IndexedDB
+  private async saveMapping(offlineId: string, serverId: string, table: SyncTable): Promise<void> {
+    this.idMappingsCache.set(offlineId, serverId);
+
+    try {
+      await offlineDb.idMappings.put({
+        offlineId,
+        serverId,
+        table,
+        createdAt: Date.now(),
+      });
+    } catch (error) {
+      console.error("Failed to save ID mapping:", error);
+    }
+  }
+
+  // Get server ID for an offline ID (from cache or DB)
+  private async getServerId(offlineId: string): Promise<string | undefined> {
+    // Check cache first
+    const cached = this.idMappingsCache.get(offlineId);
+    if (cached) return cached;
+
+    // Load from DB if not in cache
+    try {
+      const mapping = await offlineDb.idMappings.get(offlineId);
+      if (mapping) {
+        this.idMappingsCache.set(offlineId, mapping.serverId);
+        return mapping.serverId;
+      }
+    } catch (error) {
+      console.error("Failed to get ID mapping:", error);
+    }
+
+    return undefined;
+  }
 
   // Start sync process
   async sync(): Promise<SyncResult> {
@@ -27,6 +79,9 @@ class SyncService {
     const result: SyncResult = { success: true, synced: 0, failed: 0, errors: [] };
 
     try {
+      // Load ID mappings from IndexedDB before syncing
+      await this.loadMappings();
+
       // Consolidate queue before syncing
       await syncQueue.consolidate();
 
@@ -69,7 +124,7 @@ class SyncService {
   private async syncItem(item: SyncQueueItem): Promise<{ success: boolean; error?: string }> {
     try {
       // Replace offline IDs with real IDs in data
-      const data = this.replaceOfflineIds(item.data);
+      const data = await this.replaceOfflineIds(item.data);
 
       switch (item.table) {
         case "workouts":
@@ -94,12 +149,12 @@ class SyncService {
   }
 
   // Replace offline IDs with mapped real IDs
-  private replaceOfflineIds(data: Record<string, unknown>): Record<string, unknown> {
+  private async replaceOfflineIds(data: Record<string, unknown>): Promise<Record<string, unknown>> {
     const result = { ...data };
 
     for (const [key, value] of Object.entries(result)) {
       if (typeof value === "string" && isOfflineId(value)) {
-        const realId = this.idMappings.get(value);
+        const realId = await this.getServerId(value);
         if (realId) {
           result[key] = realId;
         }
@@ -130,8 +185,8 @@ class SyncService {
       if (error) return { success: false, error: error.message };
 
       if (result) {
-        // Map offline ID to real ID
-        this.idMappings.set(entityId, result.id);
+        // Map offline ID to real ID and persist to IndexedDB
+        await this.saveMapping(entityId, result.id, "workouts");
 
         // Update local database with real ID
         await offlineDb.workouts.delete(entityId);
@@ -158,7 +213,7 @@ class SyncService {
     }
 
     if (operation === "update") {
-      const realId = this.idMappings.get(entityId) || entityId;
+      const realId = (await this.getServerId(entityId)) || entityId;
       const { id, ...updateData } = cleanData;
 
       const { error } = await supabase
@@ -175,7 +230,7 @@ class SyncService {
     }
 
     if (operation === "delete") {
-      const realId = this.idMappings.get(entityId) || entityId;
+      const realId = (await this.getServerId(entityId)) || entityId;
 
       const { error } = await supabase
         .from("workouts")
@@ -203,9 +258,15 @@ class SyncService {
 
     // Replace offline workout_id with real ID
     if (cleanData.workout_id && isOfflineId(cleanData.workout_id as string)) {
-      const realWorkoutId = this.idMappings.get(cleanData.workout_id as string);
+      const realWorkoutId = await this.getServerId(cleanData.workout_id as string);
       if (realWorkoutId) {
         cleanData.workout_id = realWorkoutId;
+      } else {
+        // Workout not yet synced - skip this set for now, it will retry
+        return {
+          success: false,
+          error: "Waiting for workout to sync first",
+        };
       }
     }
 
@@ -222,7 +283,7 @@ class SyncService {
       if (error) return { success: false, error: error.message };
 
       if (result) {
-        this.idMappings.set(entityId, result.id);
+        await this.saveMapping(entityId, result.id, "workout_sets");
         await offlineDb.workoutSets.delete(entityId);
         await offlineDb.workoutSets.put({
           ...result,
@@ -235,7 +296,7 @@ class SyncService {
     }
 
     if (operation === "update") {
-      const realId = this.idMappings.get(entityId) || entityId;
+      const realId = (await this.getServerId(entityId)) || entityId;
       const { id, ...updateData } = cleanData;
 
       const { error } = await supabase
@@ -251,7 +312,7 @@ class SyncService {
     }
 
     if (operation === "delete") {
-      const realId = this.idMappings.get(entityId) || entityId;
+      const realId = (await this.getServerId(entityId)) || entityId;
 
       const { error } = await supabase
         .from("workout_sets")
@@ -289,7 +350,7 @@ class SyncService {
       if (error) return { success: false, error: error.message };
 
       if (result) {
-        this.idMappings.set(entityId, result.id);
+        await this.saveMapping(entityId, result.id, "exercises");
         await offlineDb.exercises.delete(entityId);
         await offlineDb.exercises.put({
           ...result,
@@ -302,7 +363,7 @@ class SyncService {
     }
 
     if (operation === "delete") {
-      const realId = this.idMappings.get(entityId) || entityId;
+      const realId = (await this.getServerId(entityId)) || entityId;
 
       const { error } = await supabase
         .from("exercises")
@@ -369,7 +430,7 @@ class SyncService {
       if (error) return { success: false, error: error.message };
 
       if (result) {
-        this.idMappings.set(entityId, result.id);
+        await this.saveMapping(entityId, result.id, "favorite_exercises");
         await offlineDb.favoriteExercises.delete(entityId);
         await offlineDb.favoriteExercises.put({
           ...result,
@@ -381,7 +442,7 @@ class SyncService {
     }
 
     if (operation === "delete") {
-      const realId = this.idMappings.get(entityId) || entityId;
+      const realId = (await this.getServerId(entityId)) || entityId;
 
       const { error } = await supabase
         .from("favorite_exercises")
@@ -404,8 +465,14 @@ class SyncService {
   }
 
   // Clear ID mappings (call on logout)
-  clearMappings(): void {
-    this.idMappings.clear();
+  async clearMappings(): Promise<void> {
+    this.idMappingsCache.clear();
+    this.mappingsLoaded = false;
+    try {
+      await offlineDb.idMappings.clear();
+    } catch (error) {
+      console.error("Failed to clear ID mappings:", error);
+    }
   }
 }
 

@@ -7,6 +7,7 @@ import type {
   OfflineFavoriteExercise,
   SyncQueueItem,
   SyncMetadata,
+  IdMapping,
 } from "./types";
 
 class FitTrackOfflineDB extends Dexie {
@@ -17,6 +18,7 @@ class FitTrackOfflineDB extends Dexie {
   favoriteExercises!: Table<OfflineFavoriteExercise>;
   syncQueue!: Table<SyncQueueItem>;
   metadata!: Table<SyncMetadata>;
+  idMappings!: Table<IdMapping>;
 
   constructor() {
     super("FitTrackOfflineDB");
@@ -29,6 +31,18 @@ class FitTrackOfflineDB extends Dexie {
       favoriteExercises: "id, user_id, exercise_id, _synced",
       syncQueue: "++id, table, createdAt, entityId",
       metadata: "key",
+    });
+
+    // Version 2: Add idMappings table for offline->server ID persistence
+    this.version(2).stores({
+      workouts: "id, user_id, date, _synced, _lastModified",
+      workoutSets: "id, workout_id, exercise_id, _synced, _lastModified",
+      exercises: "id, user_id, is_preset, type, _synced",
+      profiles: "user_id",
+      favoriteExercises: "id, user_id, exercise_id, _synced",
+      syncQueue: "++id, table, createdAt, entityId",
+      metadata: "key",
+      idMappings: "offlineId, serverId, table",
     });
   }
 }
@@ -57,6 +71,7 @@ export async function clearOfflineData(): Promise<void> {
       offlineDb.favoriteExercises,
       offlineDb.syncQueue,
       offlineDb.metadata,
+      offlineDb.idMappings,
     ],
     async () => {
       await offlineDb.workouts.clear();
@@ -66,6 +81,7 @@ export async function clearOfflineData(): Promise<void> {
       await offlineDb.favoriteExercises.clear();
       await offlineDb.syncQueue.clear();
       await offlineDb.metadata.clear();
+      await offlineDb.idMappings.clear();
     }
   );
 }

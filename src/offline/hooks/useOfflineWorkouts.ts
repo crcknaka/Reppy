@@ -79,66 +79,7 @@ export function useOfflineWorkouts() {
         return workoutsWithSets;
       };
 
-      // ALWAYS try cache first - prevents errors on offline transition
-      const cachedData = await getFromCache();
-      if (cachedData && cachedData.length > 0) {
-        // If online, refresh in background but return cached immediately
-        if (navigator.onLine) {
-          // Fire and forget - update cache in background
-          supabase
-            .from("workouts")
-            .select(`
-              *,
-              workout_sets (
-                id, workout_id, exercise_id, set_number, reps, weight,
-                distance_km, duration_minutes, plank_seconds, created_at,
-                exercise:exercises (id, name, type, image_url, is_preset, name_translations)
-              )
-            `)
-            .eq("user_id", user.id)
-            .order("date", { ascending: false })
-            .then(async ({ data, error }) => {
-              if (!error && data) {
-                // Update IndexedDB cache silently
-                for (const workout of data) {
-                  await offlineDb.workouts.put({
-                    id: workout.id,
-                    user_id: workout.user_id,
-                    date: workout.date,
-                    notes: workout.notes,
-                    photo_url: workout.photo_url,
-                    created_at: workout.created_at,
-                    updated_at: workout.updated_at,
-                    is_locked: workout.is_locked,
-                    _synced: true,
-                    _lastModified: Date.now(),
-                  });
-                  if (workout.workout_sets) {
-                    for (const set of workout.workout_sets) {
-                      await offlineDb.workoutSets.put({
-                        id: set.id,
-                        workout_id: set.workout_id,
-                        exercise_id: set.exercise_id,
-                        set_number: set.set_number,
-                        reps: set.reps,
-                        weight: set.weight,
-                        distance_km: set.distance_km,
-                        duration_minutes: set.duration_minutes,
-                        plank_seconds: set.plank_seconds,
-                        created_at: set.created_at,
-                        _synced: true,
-                        _lastModified: Date.now(),
-                      });
-                    }
-                  }
-                }
-              }
-            });
-        }
-        return cachedData;
-      }
-
-      // No cache - try online fetch
+      // If online, fetch from server and sync cache
       if (navigator.onLine) {
         try {
           const { data, error } = await supabase
@@ -155,7 +96,26 @@ export function useOfflineWorkouts() {
             .order("date", { ascending: false });
 
           if (!error && data) {
-            // Update IndexedDB cache
+            // Get current cached workout IDs
+            const cachedWorkouts = await offlineDb.workouts
+              .where("user_id")
+              .equals(user.id)
+              .toArray();
+            const cachedIds = new Set(cachedWorkouts.map((w) => w.id));
+            const serverIds = new Set(data.map((w) => w.id));
+
+            // Delete workouts that exist in cache but not on server (deleted on another device)
+            for (const cachedId of cachedIds) {
+              if (!serverIds.has(cachedId) && !cachedId.startsWith("offline_")) {
+                await offlineDb.workoutSets
+                  .where("workout_id")
+                  .equals(cachedId)
+                  .delete();
+                await offlineDb.workouts.delete(cachedId);
+              }
+            }
+
+            // Update cache with server data
             for (const workout of data) {
               await offlineDb.workouts.put({
                 id: workout.id,
@@ -170,7 +130,23 @@ export function useOfflineWorkouts() {
                 _lastModified: Date.now(),
               });
 
-              // Cache workout sets
+              // Get current cached set IDs for this workout
+              const cachedSets = await offlineDb.workoutSets
+                .where("workout_id")
+                .equals(workout.id)
+                .toArray();
+              const cachedSetIds = new Set(cachedSets.map((s) => s.id));
+              const serverSetIds = new Set(
+                (workout.workout_sets || []).map((s: any) => s.id)
+              );
+
+              // Delete sets that exist in cache but not on server
+              for (const cachedSetId of cachedSetIds) {
+                if (!serverSetIds.has(cachedSetId) && !cachedSetId.startsWith("offline_")) {
+                  await offlineDb.workoutSets.delete(cachedSetId);
+                }
+              }
+
               if (workout.workout_sets) {
                 for (const set of workout.workout_sets) {
                   await offlineDb.workoutSets.put({
@@ -190,20 +166,22 @@ export function useOfflineWorkouts() {
                 }
               }
             }
+
             return data as unknown as Workout[];
           }
         } catch {
-          // Fall through to retry cache
+          // Network error - fall through to cache
         }
       }
 
-      // Last resort - return empty array or retry cache
-      const retryData = await getFromCache();
-      return retryData || [];
+      // Offline or network error - use cache
+      const cachedData = await getFromCache();
+      return cachedData || [];
     },
     enabled: !!user && isInitialized,
-    staleTime: 1000 * 60 * 5, // 5 minutes - don't refetch too often
+    staleTime: 0, // Always refetch on mount to get latest data
     gcTime: 1000 * 60 * 30, // 30 minutes - keep in cache
+    refetchOnMount: "always", // Force fresh fetch on every mount/page refresh
   });
 }
 
@@ -560,23 +538,12 @@ export function useOfflineDeleteWorkout() {
 // Offline-first useSingleWorkout hook
 export function useOfflineSingleWorkout(workoutId: string | undefined) {
   const { isInitialized } = useOffline();
-  const queryClient = useQueryClient();
 
   return useQuery({
     queryKey: ["workout", workoutId],
     queryFn: async () => {
-      // Helper to get workout from cache/IndexedDB
-      const getFromCache = async (): Promise<Workout | null> => {
-        // First try React Query cache (from workouts list)
-        const cachedWorkouts = queryClient.getQueryData<Workout[]>(["workouts"]);
-        if (cachedWorkouts) {
-          const cachedWorkout = cachedWorkouts.find((w) => w.id === workoutId);
-          if (cachedWorkout) {
-            return cachedWorkout;
-          }
-        }
-
-        // Then try IndexedDB
+      // Helper to get workout from IndexedDB only (no React Query cache to avoid stale data)
+      const getFromIndexedDB = async (): Promise<Workout | null> => {
         const workout = await offlineDb.workouts.get(workoutId || '');
         if (!workout) return null;
 
@@ -627,64 +594,19 @@ export function useOfflineSingleWorkout(workoutId: string | undefined) {
         } as Workout;
       };
 
-      // ALWAYS try cache first - this prevents "not found" on offline transition
-      const cachedData = await getFromCache();
-      if (cachedData) {
-        // If online, refresh in background but return cached immediately
-        if (navigator.onLine) {
-          // Fire and forget - update cache in background
-          supabase
-            .from("workouts")
-            .select(`
-              *,
-              workout_sets (
-                id, workout_id, exercise_id, set_number, reps, weight,
-                distance_km, duration_minutes, plank_seconds, created_at,
-                exercise:exercises (id, name, type, image_url, is_preset, name_translations)
-              )
-            `)
-            .eq("id", workoutId)
-            .single()
-            .then(async ({ data, error }) => {
-              if (!error && data) {
-                // Update IndexedDB cache silently
-                await offlineDb.workouts.put({
-                  id: data.id,
-                  user_id: data.user_id,
-                  date: data.date,
-                  notes: data.notes,
-                  photo_url: data.photo_url,
-                  created_at: data.created_at,
-                  updated_at: data.updated_at,
-                  is_locked: data.is_locked,
-                  _synced: true,
-                  _lastModified: Date.now(),
-                });
-                if (data.workout_sets) {
-                  for (const set of data.workout_sets) {
-                    await offlineDb.workoutSets.put({
-                      id: set.id,
-                      workout_id: set.workout_id,
-                      exercise_id: set.exercise_id,
-                      set_number: set.set_number,
-                      reps: set.reps,
-                      weight: set.weight,
-                      distance_km: set.distance_km,
-                      duration_minutes: set.duration_minutes,
-                      plank_seconds: set.plank_seconds,
-                      created_at: set.created_at,
-                      _synced: true,
-                      _lastModified: Date.now(),
-                    });
-                  }
-                }
-              }
-            });
+      // Check if this is an offline-created workout that hasn't been synced yet
+      const isOfflineWorkout = workoutId?.startsWith("offline_");
+
+      // For offline-created workouts, use IndexedDB directly (server doesn't know about them yet)
+      if (isOfflineWorkout) {
+        const cachedData = await getFromIndexedDB();
+        if (cachedData) {
+          return cachedData;
         }
-        return cachedData;
+        throw new Error("Workout not found");
       }
 
-      // No cache - try online fetch
+      // For server-synced workouts: ALWAYS check server first when online
       if (navigator.onLine) {
         try {
           const { data, error } = await supabase
@@ -700,8 +622,19 @@ export function useOfflineSingleWorkout(workoutId: string | undefined) {
             .eq("id", workoutId)
             .single();
 
-          if (!error && data) {
-            // Update IndexedDB cache
+          if (error) {
+            // Workout not found on server (deleted on another device)
+            // Remove from local IndexedDB cache
+            await offlineDb.workoutSets
+              .where("workout_id")
+              .equals(workoutId || "")
+              .delete();
+            await offlineDb.workouts.delete(workoutId || "");
+            throw new Error("Workout not found");
+          }
+
+          if (data) {
+            // Update IndexedDB cache with server data
             await offlineDb.workouts.put({
               id: data.id,
               user_id: data.user_id,
@@ -735,25 +668,33 @@ export function useOfflineSingleWorkout(workoutId: string | undefined) {
             }
             return data as unknown as Workout;
           }
-        } catch {
-          // Fall through to retry cache
+        } catch (err) {
+          // If error is "Workout not found", rethrow it
+          if (err instanceof Error && err.message === "Workout not found") {
+            throw err;
+          }
+          // Network error (timeout, DNS, etc.) - fall through to IndexedDB cache
         }
       }
 
-      // Last resort - retry cache with delays (DB may still be syncing)
-      for (let i = 0; i < 5; i++) {
-        await new Promise((resolve) => setTimeout(resolve, 200));
-        const retryData = await getFromCache();
-        if (retryData) return retryData;
+      // Offline or network error - try IndexedDB cache
+      const cachedData = await getFromIndexedDB();
+      if (cachedData) {
+        return cachedData;
       }
 
       throw new Error("Workout not found");
     },
     enabled: !!workoutId && isInitialized,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0, // Always refetch to check if workout still exists
     gcTime: 1000 * 60 * 30,
-    // Retry a few times when offline - IndexedDB may need time
-    retry: (failureCount) => {
+    // Completely disable React Query caching for this query to force fresh fetch
+    refetchOnMount: "always",
+    // Don't retry if workout not found
+    retry: (failureCount, error) => {
+      if (error instanceof Error && error.message === "Workout not found") {
+        return false;
+      }
       if (!navigator.onLine && failureCount < 3) return true;
       return false;
     },

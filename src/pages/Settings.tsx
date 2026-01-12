@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
-import { User, LogOut, Lock, Eye, EyeOff, ChevronDown, Sun, Moon, Monitor, Download, FileJson, FileSpreadsheet, Check, Loader2, CloudOff } from "lucide-react";
+import { User, LogOut, Lock, Eye, EyeOff, ChevronDown, Sun, Moon, Monitor, Download, FileJson, FileSpreadsheet, Check, Loader2, CloudOff, Palette, Globe, Ruler, Sparkles, Settings as SettingsIcon } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useOfflineProfile, useOfflineUpdateProfile, useOfflineWorkouts } from "@/offline";
 import { format } from "date-fns";
@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Switch } from "@/components/ui/switch";
 import { useAccentColor, ACCENT_COLORS } from "@/hooks/useAccentColor";
 import { useUnits, UNIT_SYSTEMS } from "@/hooks/useUnits";
 import { useAutoFillLastSet } from "@/hooks/useAutoFillLastSet";
@@ -854,9 +855,7 @@ export default function Settings() {
             <CardHeader className="pb-2 pt-4 px-4 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
               <CardTitle className="text-sm font-semibold flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  {theme === "dark" ? <Moon className="h-4 w-4 text-primary" /> :
-                   theme === "light" ? <Sun className="h-4 w-4 text-primary" /> :
-                   <Monitor className="h-4 w-4 text-primary" />}
+                  <SettingsIcon className="h-4 w-4 text-primary" />
                   {t("settings.application")}
                 </div>
                 <div className="flex items-center gap-3">
@@ -867,9 +866,6 @@ export default function Settings() {
                       <span>{t("settings.saved")}</span>
                     </div>
                   )}
-                  <span className="text-xs text-muted-foreground">
-                    {theme === "dark" ? t("settings.themeDark") : theme === "light" ? t("settings.themeLight") : t("settings.themeAuto")}
-                  </span>
                   <ChevronDown className={cn(
                     "h-4 w-4 text-muted-foreground transition-transform duration-200",
                     appOpen && "rotate-180"
@@ -879,63 +875,73 @@ export default function Settings() {
             </CardHeader>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <CardContent className="px-4 pb-4 space-y-4">
-              {/* Тема */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">{t("settings.theme")}</p>
-                <div className="grid grid-cols-3 gap-2">
+            <CardContent className="px-4 pb-4 space-y-1">
+              {/* Тема / Theme */}
+              <div className="flex items-center gap-3 py-3 border-b border-border/50">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-amber-500/10">
+                  <Sun className="h-4 w-4 text-amber-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{t("settings.theme")}</p>
+                </div>
+                <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
                   <button
                     onClick={() => { setTheme("light"); showAppSaved(); }}
                     className={cn(
-                      "flex flex-col items-center gap-2 p-3 rounded-lg transition-all",
+                      "p-2 rounded-md transition-all",
                       theme === "light"
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "bg-muted hover:bg-muted/70"
+                        ? "bg-background shadow-sm"
+                        : "hover:bg-background/50"
                     )}
+                    title={t("settings.themeLight")}
                   >
-                    <Sun className="h-5 w-5" />
-                    <span className="text-sm font-medium">{t("settings.themeLight")}</span>
+                    <Sun className={cn("h-4 w-4", theme === "light" ? "text-amber-500" : "text-muted-foreground")} />
                   </button>
                   <button
                     onClick={() => { setTheme("dark"); showAppSaved(); }}
                     className={cn(
-                      "flex flex-col items-center gap-2 p-3 rounded-lg transition-all",
+                      "p-2 rounded-md transition-all",
                       theme === "dark"
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "bg-muted hover:bg-muted/70"
+                        ? "bg-background shadow-sm"
+                        : "hover:bg-background/50"
                     )}
+                    title={t("settings.themeDark")}
                   >
-                    <Moon className="h-5 w-5" />
-                    <span className="text-sm font-medium">{t("settings.themeDark")}</span>
+                    <Moon className={cn("h-4 w-4", theme === "dark" ? "text-blue-500" : "text-muted-foreground")} />
                   </button>
                   <button
                     onClick={() => { setTheme("system"); showAppSaved(); }}
                     className={cn(
-                      "flex flex-col items-center gap-2 p-3 rounded-lg transition-all",
+                      "p-2 rounded-md transition-all",
                       theme === "system"
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "bg-muted hover:bg-muted/70"
+                        ? "bg-background shadow-sm"
+                        : "hover:bg-background/50"
                     )}
+                    title={t("settings.themeAuto")}
                   >
-                    <Monitor className="h-5 w-5" />
-                    <span className="text-sm font-medium">{t("settings.themeAuto")}</span>
+                    <Monitor className={cn("h-4 w-4", theme === "system" ? "text-primary" : "text-muted-foreground")} />
                   </button>
                 </div>
               </div>
 
-              {/* Цвет акцента */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">{t("settings.accentColor")}</p>
-                <div className="grid grid-cols-6 gap-2">
+              {/* Цвет акцента / Accent Color */}
+              <div className="flex items-center gap-3 py-3 border-b border-border/50">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-pink-500/10">
+                  <Palette className="h-4 w-4 text-pink-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{t("settings.accentColor")}</p>
+                </div>
+                <div className="flex items-center gap-1.5">
                   {ACCENT_COLORS.map((color) => (
                     <button
                       key={color.value}
                       onClick={() => { setAccentColor(color.value); showAppSaved(); }}
                       className={cn(
-                        "flex items-center justify-center w-full aspect-square rounded-lg transition-all",
+                        "w-6 h-6 rounded-full transition-all",
                         accentColor === color.value
                           ? "ring-2 ring-offset-2 ring-offset-background ring-foreground scale-110"
-                          : "hover:scale-105"
+                          : "hover:scale-110"
                       )}
                       style={{ backgroundColor: color.color }}
                       title={color.label}
@@ -945,86 +951,72 @@ export default function Settings() {
               </div>
 
               {/* Язык / Language */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">{t("settings.language")}</p>
-                <div className="grid grid-cols-3 gap-2">
+              <div className="flex items-center gap-3 py-3 border-b border-border/50">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-500/10">
+                  <Globe className="h-4 w-4 text-blue-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{t("settings.language")}</p>
+                </div>
+                <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
                   {LANGUAGES.map((lang) => (
                     <button
                       key={lang.code}
                       onClick={() => { i18n.changeLanguage(lang.code); showAppSaved(); }}
                       className={cn(
-                        "flex items-center justify-center gap-2 p-3 rounded-lg transition-all",
+                        "px-2 py-1.5 rounded-md transition-all text-base",
                         i18n.language === lang.code || (i18n.language.startsWith(lang.code.split('-')[0]) && lang.code.includes('-'))
-                          ? "bg-primary text-primary-foreground shadow-md"
-                          : "bg-muted hover:bg-muted/70"
+                          ? "bg-background shadow-sm"
+                          : "hover:bg-background/50 opacity-60 hover:opacity-100"
                       )}
+                      title={lang.native}
                     >
-                      <span className="text-lg">{lang.flag}</span>
-                      <span className="text-sm font-medium">{lang.native}</span>
+                      {lang.flag}
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* Единицы измерения / Units */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">{t("settings.units.title")}</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {UNIT_SYSTEMS.map((system) => (
-                    <button
-                      key={system.value}
-                      onClick={() => { setUnitSystem(system.value); showAppSaved(); }}
-                      className={cn(
-                        "flex items-center justify-center gap-2 p-3 rounded-lg transition-all",
-                        unitSystem === system.value
-                          ? "bg-primary text-primary-foreground shadow-md"
-                          : "bg-muted hover:bg-muted/70"
-                      )}
-                    >
-                      <span className="text-lg">{system.value === "metric" ? "🌍" : "🇺🇸"}</span>
-                      <span className="text-sm font-medium">{t(system.labelKey)}</span>
-                    </button>
-                  ))}
+              <div className="flex items-center gap-3 py-3 border-b border-border/50">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-green-500/10">
+                  <Ruler className="h-4 w-4 text-green-500" />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {unitSystem === "metric"
-                    ? t("settings.units.metricDesc")
-                    : t("settings.units.imperialDesc")}
-                </p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{t("settings.units.title")}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {unitSystem === "metric" ? t("settings.units.metricDesc") : t("settings.units.imperialDesc")}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={cn("text-xs transition-colors", unitSystem === "metric" ? "text-foreground font-medium" : "text-muted-foreground")}>
+                    {t("settings.units.metric")}
+                  </span>
+                  <Switch
+                    checked={unitSystem === "imperial"}
+                    onCheckedChange={(checked) => { setUnitSystem(checked ? "imperial" : "metric"); showAppSaved(); }}
+                  />
+                  <span className={cn("text-xs transition-colors", unitSystem === "imperial" ? "text-foreground font-medium" : "text-muted-foreground")}>
+                    {t("settings.units.imperial")}
+                  </span>
+                </div>
               </div>
 
-              {/* Автозаполнение последнего подхода / Auto-fill last set */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">{t("settings.autoFill.title")}</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => { setAutoFillEnabled(true); showAppSaved(); }}
-                    className={cn(
-                      "flex items-center justify-center gap-2 p-3 rounded-lg transition-all",
-                      autoFillEnabled
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "bg-muted hover:bg-muted/70"
-                    )}
-                  >
-                    <span className="text-lg">✨</span>
-                    <span className="text-sm font-medium">{t("settings.autoFill.on")}</span>
-                  </button>
-                  <button
-                    onClick={() => { setAutoFillEnabled(false); showAppSaved(); }}
-                    className={cn(
-                      "flex items-center justify-center gap-2 p-3 rounded-lg transition-all",
-                      !autoFillEnabled
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "bg-muted hover:bg-muted/70"
-                    )}
-                  >
-                    <span className="text-lg">✏️</span>
-                    <span className="text-sm font-medium">{t("settings.autoFill.off")}</span>
-                  </button>
+              {/* Автозаполнение / Auto-fill */}
+              <div className="flex items-center gap-3 py-3">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-purple-500/10">
+                  <Sparkles className="h-4 w-4 text-purple-500" />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("settings.autoFill.description")}
-                </p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{t("settings.autoFill.title")}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-1">
+                    {t("settings.autoFill.description")}
+                  </p>
+                </div>
+                <Switch
+                  checked={autoFillEnabled}
+                  onCheckedChange={(checked) => { setAutoFillEnabled(checked); showAppSaved(); }}
+                />
               </div>
             </CardContent>
           </CollapsibleContent>

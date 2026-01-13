@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
@@ -8,13 +8,35 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sun, Moon, Monitor, Globe } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
+const languages = [
+  { code: "en", name: "English", flag: "🇺🇸" },
+  { code: "ru", name: "Русский", flag: "🇷🇺" },
+  { code: "de", name: "Deutsch", flag: "🇩🇪" },
+  { code: "es", name: "Español", flag: "🇪🇸" },
+  { code: "fr", name: "Français", flag: "🇫🇷" },
+  { code: "pt-BR", name: "Português", flag: "🇧🇷" },
+];
+
 export default function Auth() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, signIn, signUp, resetPassword, loading: authLoading } = useAuth();
-  const { resolvedTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
+
+  const currentLanguage = languages.find(l => l.code === i18n.language) || languages[0];
+
+  const changeLanguage = (code: string) => {
+    i18n.changeLanguage(code);
+    localStorage.setItem("reppy-language", code);
+  };
   const logoSrc = resolvedTheme === "dark" ? "/logo-white.png" : "/logo-black.png";
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -90,7 +112,63 @@ export default function Auth() {
   // Forgot password form
   if (showForgotPassword) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+        {/* Theme and Language switcher */}
+        <div className="absolute top-4 right-4 flex gap-2">
+          {/* Language switcher */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 gap-1 bg-muted/50">
+                <Globe className="h-4 w-4" />
+                <span className="text-xs">{currentLanguage.flag}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {languages.map((lang) => (
+                <DropdownMenuItem
+                  key={lang.code}
+                  onClick={() => changeLanguage(lang.code)}
+                  className={i18n.language === lang.code ? "bg-accent" : ""}
+                >
+                  <span className="mr-2">{lang.flag}</span>
+                  {lang.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Theme switcher */}
+          <div className="flex gap-1 bg-muted/50 rounded-lg p-1">
+            <Button
+              variant={theme === "light" ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setTheme("light")}
+              title={t("settings.lightTheme")}
+            >
+              <Sun className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={theme === "dark" ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setTheme("dark")}
+              title={t("settings.darkTheme")}
+            >
+              <Moon className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={theme === "system" ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setTheme("system")}
+              title={t("settings.systemTheme")}
+            >
+              <Monitor className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
         <div className="w-full max-w-md animate-fade-in">
           <div className="flex items-center justify-center mb-8">
             <img
@@ -141,7 +219,63 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+      {/* Theme and Language switcher */}
+      <div className="absolute top-4 right-4 flex gap-2">
+        {/* Language switcher */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 gap-1 bg-muted/50">
+              <Globe className="h-4 w-4" />
+              <span className="text-xs">{currentLanguage.flag}</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {languages.map((lang) => (
+              <DropdownMenuItem
+                key={lang.code}
+                onClick={() => changeLanguage(lang.code)}
+                className={i18n.language === lang.code ? "bg-accent" : ""}
+              >
+                <span className="mr-2">{lang.flag}</span>
+                {lang.name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Theme switcher */}
+        <div className="flex gap-1 bg-muted/50 rounded-lg p-1">
+          <Button
+            variant={theme === "light" ? "secondary" : "ghost"}
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setTheme("light")}
+            title={t("settings.lightTheme")}
+          >
+            <Sun className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={theme === "dark" ? "secondary" : "ghost"}
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setTheme("dark")}
+            title={t("settings.darkTheme")}
+          >
+            <Moon className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={theme === "system" ? "secondary" : "ghost"}
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setTheme("system")}
+            title={t("settings.systemTheme")}
+          >
+            <Monitor className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
       <div className="w-full max-w-md animate-fade-in">
         <div className="flex items-center justify-center mb-8">
           <img
@@ -247,6 +381,17 @@ export default function Auth() {
             </Tabs>
           </CardContent>
         </Card>
+
+        {/* Legal links */}
+        <div className="mt-6 text-center text-sm text-muted-foreground">
+          <Link to="/privacy" className="hover:text-primary transition-colors">
+            {t("legal.footer.privacy")}
+          </Link>
+          <span className="mx-2">•</span>
+          <Link to="/terms" className="hover:text-primary transition-colors">
+            {t("legal.footer.terms")}
+          </Link>
+        </div>
       </div>
     </div>
   );

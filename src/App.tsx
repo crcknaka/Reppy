@@ -28,6 +28,8 @@ const Settings = lazy(() => import("@/pages/Settings"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const SharedWorkout = lazy(() => import("@/pages/SharedWorkout"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
+const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
@@ -138,6 +140,8 @@ function AppRoutes() {
       <Routes>
         <Route path="/auth" element={<Auth />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
         <Route path="/share/:token" element={<SharedWorkout />} />
         <Route
           path="/"

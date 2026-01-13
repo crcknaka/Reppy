@@ -529,6 +529,135 @@
     "unsupportedImageFormat": "Format non pris en charge. Utilisez JPG, PNG ou WebP.",
     "fileTooLarge": "Fichier trop volumineux. Maximum 20 Mo."
   },
+  "legal": {
+    "privacy": {
+      "title": "Politique de Confidentialité",
+      "lastUpdated": "Dernière mise à jour",
+      "sections": {
+        "intro": {
+          "title": "Introduction",
+          "content": "Reppy (\"nous\" ou \"notre\") s'engage à protéger votre vie privée. Cette Politique de Confidentialité explique comment nous collectons, utilisons et protégeons vos informations."
+        },
+        "dataCollected": {
+          "title": "Informations Collectées",
+          "intro": "Nous collectons les types d'informations suivants :",
+          "items": {
+            "email": "Adresse e-mail (pour l'authentification du compte)",
+            "name": "Nom d'affichage et nom d'utilisateur (optionnel, pour la personnalisation)",
+            "workouts": "Données d'entraînement incluant exercices, séries, répétitions, poids et photos",
+            "settings": "Préférences de l'application comme la langue, le thème et les unités"
+          }
+        },
+        "dataUse": {
+          "title": "Utilisation de vos Informations",
+          "intro": "Nous utilisons vos informations pour :",
+          "items": {
+            "provide": "Fournir le service de suivi d'entraînement",
+            "sync": "Synchroniser vos données entre appareils",
+            "improve": "Améliorer et optimiser l'application"
+          }
+        },
+        "dataStorage": {
+          "title": "Stockage et Sécurité",
+          "content": "Vos données sont stockées en toute sécurité avec Supabase. Nous appliquons des mesures de sécurité standard incluant le chiffrement."
+        },
+        "dataSharing": {
+          "title": "Partage des Données",
+          "content": "Nous ne vendons ni ne partageons vos informations personnelles avec des tiers à des fins marketing."
+        },
+        "userRights": {
+          "title": "Vos Droits",
+          "intro": "Vous avez le droit de :",
+          "items": {
+            "access": "Accéder à toutes vos données personnelles",
+            "export": "Exporter vos données d'entraînement au format JSON, CSV ou Excel",
+            "delete": "Supprimer définitivement votre compte et toutes les données associées"
+          }
+        },
+        "cookies": {
+          "title": "Cookies et Stockage Local",
+          "content": "Nous utilisons le stockage local pour sauvegarder vos préférences. Nous n'utilisons pas de cookies de suivi tiers."
+        },
+        "children": {
+          "title": "Confidentialité des Enfants",
+          "content": "Notre service n'est pas destiné aux enfants de moins de 13 ans."
+        },
+        "changes": {
+          "title": "Modifications de cette Politique",
+          "content": "Nous pouvons mettre à jour cette Politique de Confidentialité occasionnellement."
+        },
+        "contact": {
+          "title": "Nous Contacter",
+          "content": "Pour toute question concernant cette Politique de Confidentialité, contactez-nous à"
+        }
+      }
+    },
+    "terms": {
+      "title": "Conditions d'Utilisation",
+      "lastUpdated": "Dernière mise à jour",
+      "sections": {
+        "acceptance": {
+          "title": "Acceptation des Conditions",
+          "content": "En utilisant Reppy, vous acceptez ces Conditions d'Utilisation."
+        },
+        "description": {
+          "title": "Description du Service",
+          "content": "Reppy est une application de suivi d'entraînement pour enregistrer les exercices et suivre les progrès."
+        },
+        "account": {
+          "title": "Compte Utilisateur",
+          "intro": "Pour utiliser Reppy, vous devez créer un compte. Vous êtes responsable de :",
+          "items": {
+            "accurate": "Fournir des informations d'inscription exactes",
+            "secure": "Maintenir la sécurité de vos identifiants",
+            "responsible": "Toutes les activités sous votre compte"
+          }
+        },
+        "acceptable": {
+          "title": "Utilisation Acceptable",
+          "intro": "Vous acceptez de ne pas :",
+          "items": {
+            "illegal": "Utiliser le service à des fins illégales",
+            "harm": "Télécharger du contenu nuisible ou offensant",
+            "interfere": "Interférer avec le service",
+            "impersonate": "Usurper l'identité d'autres utilisateurs"
+          }
+        },
+        "content": {
+          "title": "Contenu Utilisateur",
+          "content": "Vous conservez la propriété du contenu que vous créez. Vous êtes responsable de vous assurer que votre contenu ne viole aucune loi."
+        },
+        "intellectual": {
+          "title": "Propriété Intellectuelle",
+          "content": "L'application Reppy est protégée par les lois sur la propriété intellectuelle."
+        },
+        "disclaimer": {
+          "title": "Clause de Non-Responsabilité",
+          "content": "Reppy est fourni \"tel quel\" sans garanties. Le suivi d'entraînement est uniquement à titre informatif."
+        },
+        "limitation": {
+          "title": "Limitation de Responsabilité",
+          "content": "Nous ne serons pas responsables des dommages indirects ou spéciaux résultant de l'utilisation du service."
+        },
+        "termination": {
+          "title": "Résiliation",
+          "content": "Nous pouvons suspendre ou supprimer votre compte pour violation de ces conditions."
+        },
+        "changes": {
+          "title": "Modifications des Conditions",
+          "content": "Nous pouvons modifier ces Conditions d'Utilisation à tout moment."
+        },
+        "contact": {
+          "title": "Contact",
+          "content": "Pour toute question concernant ces Conditions d'Utilisation, contactez-nous à"
+        }
+      }
+    },
+    "footer": {
+      "privacy": "Politique de Confidentialité",
+      "terms": "Conditions d'Utilisation"
+    }
+  },
   "admin": {
     "title": "Panneau Admin",
     "settingsDesc": "Statistiques, nettoyage, gestion",

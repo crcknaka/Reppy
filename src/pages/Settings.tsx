@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { User, LogOut, Lock, Eye, EyeOff, ChevronDown, Sun, Moon, Monitor, Download, FileJson, FileSpreadsheet, Check, Loader2, CloudOff, Palette, Globe, Ruler, Sparkles, Settings as SettingsIcon, UserCircle, Calendar, Scale, RulerIcon, Database, KeyRound, ShieldCheck, Crown, AtSign, Trash2, AlertTriangle } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useOfflineProfile, useOfflineUpdateProfile, useOfflineWorkouts } from "@/offline";
@@ -1540,6 +1540,17 @@ export default function Settings() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Legal links */}
+      <div className="text-center text-xs text-muted-foreground">
+        <Link to="/privacy" className="hover:text-primary transition-colors">
+          {t("legal.footer.privacy")}
+        </Link>
+        <span className="mx-2">•</span>
+        <Link to="/terms" className="hover:text-primary transition-colors">
+          {t("legal.footer.terms")}
+        </Link>
+      </div>
     </div>
   );
 }

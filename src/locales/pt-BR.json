@@ -529,6 +529,135 @@
     "unsupportedImageFormat": "Formato não suportado. Use JPG, PNG ou WebP.",
     "fileTooLarge": "Arquivo muito grande. Máximo 20 MB."
   },
+  "legal": {
+    "privacy": {
+      "title": "Política de Privacidade",
+      "lastUpdated": "Última atualização",
+      "sections": {
+        "intro": {
+          "title": "Introdução",
+          "content": "Reppy (\"nós\" ou \"nosso\") está comprometido em proteger sua privacidade. Esta Política de Privacidade explica como coletamos, usamos e protegemos suas informações."
+        },
+        "dataCollected": {
+          "title": "Informações Coletadas",
+          "intro": "Coletamos os seguintes tipos de informações:",
+          "items": {
+            "email": "Endereço de e-mail (para autenticação da conta)",
+            "name": "Nome de exibição e nome de usuário (opcional, para personalização)",
+            "workouts": "Dados de treino incluindo exercícios, séries, repetições, pesos e fotos",
+            "settings": "Preferências do aplicativo como idioma, tema e unidades"
+          }
+        },
+        "dataUse": {
+          "title": "Como Usamos suas Informações",
+          "intro": "Usamos suas informações para:",
+          "items": {
+            "provide": "Fornecer o serviço de acompanhamento de treinos",
+            "sync": "Sincronizar seus dados entre dispositivos",
+            "improve": "Melhorar e otimizar o aplicativo"
+          }
+        },
+        "dataStorage": {
+          "title": "Armazenamento e Segurança",
+          "content": "Seus dados são armazenados com segurança usando Supabase. Implementamos medidas de segurança padrão incluindo criptografia."
+        },
+        "dataSharing": {
+          "title": "Compartilhamento de Dados",
+          "content": "Não vendemos nem compartilhamos suas informações pessoais com terceiros para fins de marketing."
+        },
+        "userRights": {
+          "title": "Seus Direitos",
+          "intro": "Você tem o direito de:",
+          "items": {
+            "access": "Acessar todos os seus dados pessoais",
+            "export": "Exportar seus dados de treino em formato JSON, CSV ou Excel",
+            "delete": "Excluir permanentemente sua conta e todos os dados associados"
+          }
+        },
+        "cookies": {
+          "title": "Cookies e Armazenamento Local",
+          "content": "Usamos armazenamento local para salvar suas preferências. Não usamos cookies de rastreamento de terceiros."
+        },
+        "children": {
+          "title": "Privacidade de Crianças",
+          "content": "Nosso serviço não é destinado a crianças menores de 13 anos."
+        },
+        "changes": {
+          "title": "Alterações nesta Política",
+          "content": "Podemos atualizar esta Política de Privacidade ocasionalmente."
+        },
+        "contact": {
+          "title": "Contato",
+          "content": "Se você tiver dúvidas sobre esta Política de Privacidade, entre em contato conosco em"
+        }
+      }
+    },
+    "terms": {
+      "title": "Termos de Serviço",
+      "lastUpdated": "Última atualização",
+      "sections": {
+        "acceptance": {
+          "title": "Aceitação dos Termos",
+          "content": "Ao usar o Reppy, você concorda com estes Termos de Serviço."
+        },
+        "description": {
+          "title": "Descrição do Serviço",
+          "content": "Reppy é um aplicativo de acompanhamento de treinos para registrar exercícios e acompanhar o progresso."
+        },
+        "account": {
+          "title": "Conta de Usuário",
+          "intro": "Para usar o Reppy, você deve criar uma conta. Você é responsável por:",
+          "items": {
+            "accurate": "Fornecer informações de registro precisas",
+            "secure": "Manter a segurança das suas credenciais",
+            "responsible": "Todas as atividades sob sua conta"
+          }
+        },
+        "acceptable": {
+          "title": "Uso Aceitável",
+          "intro": "Você concorda em não:",
+          "items": {
+            "illegal": "Usar o serviço para fins ilegais",
+            "harm": "Enviar conteúdo prejudicial ou ofensivo",
+            "interfere": "Interferir no serviço",
+            "impersonate": "Se passar por outros usuários"
+          }
+        },
+        "content": {
+          "title": "Conteúdo do Usuário",
+          "content": "Você mantém a propriedade do conteúdo que cria. Você é responsável por garantir que seu conteúdo não viole nenhuma lei."
+        },
+        "intellectual": {
+          "title": "Propriedade Intelectual",
+          "content": "O aplicativo Reppy é protegido por leis de propriedade intelectual."
+        },
+        "disclaimer": {
+          "title": "Isenção de Responsabilidade",
+          "content": "Reppy é fornecido \"como está\" sem garantias. O acompanhamento de treinos é apenas informativo."
+        },
+        "limitation": {
+          "title": "Limitação de Responsabilidade",
+          "content": "Não seremos responsáveis por danos indiretos ou especiais decorrentes do uso do serviço."
+        },
+        "termination": {
+          "title": "Rescisão",
+          "content": "Podemos suspender ou excluir sua conta por violação destes termos."
+        },
+        "changes": {
+          "title": "Alterações nos Termos",
+          "content": "Podemos modificar estes Termos de Serviço a qualquer momento."
+        },
+        "contact": {
+          "title": "Contato",
+          "content": "Para dúvidas sobre estes Termos de Serviço, entre em contato conosco em"
+        }
+      }
+    },
+    "footer": {
+      "privacy": "Política de Privacidade",
+      "terms": "Termos de Serviço"
+    }
+  },
   "admin": {
     "title": "Painel Admin",
     "settingsDesc": "Estatísticas, limpeza, gerenciamento",

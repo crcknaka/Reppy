@@ -530,6 +530,135 @@
     "unsupportedImageFormat": "Unsupported format. Use JPG, PNG or WebP.",
     "fileTooLarge": "File is too large. Maximum 20 MB."
   },
+  "legal": {
+    "privacy": {
+      "title": "Privacy Policy",
+      "lastUpdated": "Last updated",
+      "sections": {
+        "intro": {
+          "title": "Introduction",
+          "content": "Reppy (\"we\", \"our\", or \"us\") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our workout tracking application."
+        },
+        "dataCollected": {
+          "title": "Information We Collect",
+          "intro": "We collect the following types of information:",
+          "items": {
+            "email": "Email address (for account authentication)",
+            "name": "Display name and username (optional, for personalization)",
+            "workouts": "Workout data including exercises, sets, reps, weights, and photos you choose to upload",
+            "settings": "App preferences such as language, theme, and unit system"
+          }
+        },
+        "dataUse": {
+          "title": "How We Use Your Information",
+          "intro": "We use your information to:",
+          "items": {
+            "provide": "Provide and maintain the workout tracking service",
+            "sync": "Synchronize your data across devices",
+            "improve": "Improve and optimize the application"
+          }
+        },
+        "dataStorage": {
+          "title": "Data Storage and Security",
+          "content": "Your data is stored securely using Supabase, a trusted cloud database provider. We implement industry-standard security measures including encryption in transit and at rest. Your workout data is also cached locally on your device for offline access."
+        },
+        "dataSharing": {
+          "title": "Data Sharing",
+          "content": "We do not sell, trade, or share your personal information with third parties for marketing purposes. Your workout data is only shared when you explicitly create a public share link or add friends who can view your workouts."
+        },
+        "userRights": {
+          "title": "Your Rights",
+          "intro": "You have the right to:",
+          "items": {
+            "access": "Access all your personal data stored in the application",
+            "export": "Export your workout data in JSON, CSV, or Excel format",
+            "delete": "Delete your account and all associated data permanently"
+          }
+        },
+        "cookies": {
+          "title": "Cookies and Local Storage",
+          "content": "We use local storage to save your preferences (language, theme, accent color) and authentication tokens. We do not use third-party tracking cookies."
+        },
+        "children": {
+          "title": "Children's Privacy",
+          "content": "Our service is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13."
+        },
+        "changes": {
+          "title": "Changes to This Policy",
+          "content": "We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the \"Last updated\" date."
+        },
+        "contact": {
+          "title": "Contact Us",
+          "content": "If you have any questions about this Privacy Policy, please contact us at"
+        }
+      }
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "lastUpdated": "Last updated",
+      "sections": {
+        "acceptance": {
+          "title": "Acceptance of Terms",
+          "content": "By accessing or using Reppy, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the application."
+        },
+        "description": {
+          "title": "Service Description",
+          "content": "Reppy is a workout tracking application that allows you to log exercises, track progress, share workouts with friends, and export your fitness data. The service is provided \"as is\" and may be updated or modified at any time."
+        },
+        "account": {
+          "title": "User Account",
+          "intro": "To use Reppy, you must create an account. You are responsible for:",
+          "items": {
+            "accurate": "Providing accurate and complete registration information",
+            "secure": "Maintaining the security of your account credentials",
+            "responsible": "All activities that occur under your account"
+          }
+        },
+        "acceptable": {
+          "title": "Acceptable Use",
+          "intro": "You agree not to:",
+          "items": {
+            "illegal": "Use the service for any illegal purpose",
+            "harm": "Upload harmful, offensive, or inappropriate content",
+            "interfere": "Attempt to interfere with or disrupt the service",
+            "impersonate": "Impersonate other users or provide false information"
+          }
+        },
+        "content": {
+          "title": "User Content",
+          "content": "You retain ownership of the content you create (workout data, photos, comments). By using our service, you grant us a license to store and display your content as necessary to provide the service. You are responsible for ensuring your content does not violate any laws or third-party rights."
+        },
+        "intellectual": {
+          "title": "Intellectual Property",
+          "content": "The Reppy application, including its design, features, and code, is protected by intellectual property laws. You may not copy, modify, or distribute any part of the application without our permission."
+        },
+        "disclaimer": {
+          "title": "Disclaimer of Warranties",
+          "content": "Reppy is provided \"as is\" without warranties of any kind. We do not guarantee that the service will be uninterrupted, error-free, or meet your specific requirements. Workout tracking is for informational purposes only and should not replace professional fitness or medical advice."
+        },
+        "limitation": {
+          "title": "Limitation of Liability",
+          "content": "To the maximum extent permitted by law, we shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the service, including but not limited to loss of data or physical injury from exercise."
+        },
+        "termination": {
+          "title": "Termination",
+          "content": "We reserve the right to suspend or terminate your account at any time for violation of these terms or for any other reason at our discretion. You may delete your account at any time through the application settings."
+        },
+        "changes": {
+          "title": "Changes to Terms",
+          "content": "We may modify these Terms of Service at any time. Continued use of the service after changes constitutes acceptance of the new terms."
+        },
+        "contact": {
+          "title": "Contact",
+          "content": "For questions about these Terms of Service, contact us at"
+        }
+      }
+    },
+    "footer": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    }
+  },
   "admin": {
     "title": "Admin Panel",
     "settingsDesc": "Statistics, cleanup tools, management",

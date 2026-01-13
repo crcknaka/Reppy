@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { format, isWithinInterval, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, subMonths, parseISO, isToday, eachDayOfInterval, isSameDay, addMonths } from "date-fns";
 import { ru, enUS, es, ptBR, de, fr, Locale } from "date-fns/locale";
-import { Plus, Calendar as CalendarIcon, CalendarPlus, Trash2, Filter, X, Dumbbell, MessageSquare, List, ChevronLeft, ChevronRight, Activity, Timer, User } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, CalendarPlus, Trash2, Filter, X, Dumbbell, MessageSquare, List, ChevronLeft, ChevronRight, Activity, Timer, User, Layers, Route } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getExerciseName } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
@@ -158,6 +158,11 @@ export default function Workouts() {
   const getUniqueExercises = (workout: typeof workouts extends (infer T)[] | undefined ? T : never) => {
     const exerciseIds = new Set(workout?.workout_sets?.map(s => s.exercise_id));
     return exerciseIds.size;
+  };
+
+  const getTotalDistance = (workout: typeof workouts extends (infer T)[] | undefined ? T : never) => {
+    const distance = workout?.workout_sets?.reduce((sum, set) => sum + (set.distance_km || 0), 0) || 0;
+    return distance > 0 ? Math.round(distance * 10) / 10 : 0;
   };
 
   const isWeekend = (dateStr: string) => {
@@ -566,43 +571,55 @@ export default function Workouts() {
               onClick={() => navigate(`/workout/${workout.id}`)}
             >
               <CardContent className="p-3 flex items-center gap-3">
-                {/* Photo thumbnail or placeholder */}
-                <div className="flex-shrink-0">
-                  {workout.photo_url ? (
-                    <img
-                      src={workout.photo_url}
-                      alt=""
-                      className="w-16 h-16 rounded-lg object-cover"
-                    />
-                  ) : (
-                    <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center">
-                      <Dumbbell className="h-7 w-7 text-muted-foreground" />
-                    </div>
-                  )}
+                {/* Calendar date badge */}
+                <div className={cn(
+                  "flex-shrink-0 w-14 h-14 rounded-lg flex flex-col items-center justify-center",
+                  isToday(parseISO(workout.date))
+                    ? "bg-green-500/15 text-green-600 dark:text-green-400"
+                    : isWeekend(workout.date)
+                      ? "bg-primary/10 text-primary"
+                      : "bg-muted text-foreground"
+                )}>
+                  <span className="text-xl font-bold leading-none">
+                    {format(new Date(workout.date), "d")}
+                  </span>
+                  <span className="text-[10px] font-medium uppercase mt-0.5">
+                    {format(new Date(workout.date), "MMM", { locale: dateLocale })}
+                  </span>
                 </div>
 
+                {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-foreground">
-                      {format(new Date(workout.date), "d MMMM", { locale: dateLocale })}
-                    </span>
-                    {isToday(parseISO(workout.date)) && (
-                      <span className="hidden md:inline text-xs px-1.5 py-0.5 rounded font-medium bg-green-500/15 text-green-600 dark:text-green-400">
-                        {t("workouts.today")}
-                      </span>
-                    )}
                     <span className={cn(
-                      "text-xs px-1.5 py-0.5 rounded font-medium",
-                      isWeekend(workout.date)
-                        ? "bg-primary/10 text-primary"
-                        : "bg-sky-500/10 text-sky-600 dark:text-sky-400"
+                      "text-sm font-medium capitalize",
+                      isToday(parseISO(workout.date))
+                        ? "text-green-600 dark:text-green-400"
+                        : isWeekend(workout.date)
+                          ? "text-primary"
+                          : "text-foreground"
                     )}>
-                      {format(new Date(workout.date), "EEEE", { locale: dateLocale })}
+                      {isToday(parseISO(workout.date))
+                        ? t("workouts.today")
+                        : format(new Date(workout.date), "EEEE", { locale: dateLocale })}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {getUniqueExercises(workout)} {t("workouts.exercises")} · {getTotalSets(workout)} {t("workouts.sets")}
-                  </p>
+                  <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Dumbbell className="h-3.5 w-3.5" />
+                      {getUniqueExercises(workout)}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Layers className="h-3.5 w-3.5" />
+                      {getTotalSets(workout)}
+                    </span>
+                    {getTotalDistance(workout) > 0 && (
+                      <span className="flex items-center gap-1">
+                        <Route className="h-3.5 w-3.5" />
+                        {getTotalDistance(workout)} {t("units.km")}
+                      </span>
+                    )}
+                  </div>
                   {workout.notes && (
                     <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
                       <MessageSquare className="h-3 w-3 flex-shrink-0" />
@@ -611,11 +628,23 @@ export default function Workouts() {
                   )}
                 </div>
 
+                {/* Photo thumbnail (if exists) */}
+                {workout.photo_url && (
+                  <div className="flex-shrink-0">
+                    <img
+                      src={workout.photo_url}
+                      alt=""
+                      className="w-12 h-12 rounded-lg object-cover"
+                    />
+                  </div>
+                )}
+
+                {/* Delete button */}
                 {!isViewingOther && !workout.is_locked && (
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 text-muted-foreground hover:text-foreground flex-shrink-0"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive flex-shrink-0"
                     onClick={(e) => handleDeleteWorkout(workout.id, e)}
                   >
                     <Trash2 className="h-4 w-4" />

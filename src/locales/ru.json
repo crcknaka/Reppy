@@ -60,7 +60,10 @@
     "registerError": "Ошибка регистрации",
     "enterEmail": "Введите email",
     "resetEmailSent": "Письмо для сброса пароля отправлено! Проверьте почту.",
-    "resetEmailError": "Ошибка отправки письма"
+    "resetEmailError": "Ошибка отправки письма",
+    "orContinueWith": "или продолжить через",
+    "continueWithGoogle": "Войти через Google",
+    "googleError": "Ошибка входа через Google"
   },
   "settings": {
     "title": "Настройки",

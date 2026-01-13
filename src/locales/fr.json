@@ -60,7 +60,10 @@
     "registerError": "Erreur d'inscription",
     "enterEmail": "Entrez l'email",
     "resetEmailSent": "Email de réinitialisation envoyé ! Vérifiez votre boîte.",
-    "resetEmailError": "Erreur d'envoi de l'email"
+    "resetEmailError": "Erreur d'envoi de l'email",
+    "orContinueWith": "ou continuer avec",
+    "continueWithGoogle": "Continuer avec Google",
+    "googleError": "Erreur de connexion Google"
   },
   "settings": {
     "title": "Paramètres",

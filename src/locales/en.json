@@ -60,7 +60,10 @@
     "registerError": "Registration error",
     "enterEmail": "Enter email",
     "resetEmailSent": "Password reset email sent! Check your inbox.",
-    "resetEmailError": "Error sending email"
+    "resetEmailError": "Error sending email",
+    "orContinueWith": "or continue with",
+    "continueWithGoogle": "Continue with Google",
+    "googleError": "Google sign-in error"
   },
   "settings": {
     "title": "Settings",

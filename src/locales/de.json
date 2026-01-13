@@ -60,7 +60,10 @@
     "registerError": "Registrierungsfehler",
     "enterEmail": "E-Mail eingeben",
     "resetEmailSent": "E-Mail zum Zurücksetzen gesendet! Überprüfe deinen Posteingang.",
-    "resetEmailError": "Fehler beim Senden der E-Mail"
+    "resetEmailError": "Fehler beim Senden der E-Mail",
+    "orContinueWith": "oder fortfahren mit",
+    "continueWithGoogle": "Mit Google fortfahren",
+    "googleError": "Fehler bei Google-Anmeldung"
   },
   "settings": {
     "title": "Einstellungen",

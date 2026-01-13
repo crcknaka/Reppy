@@ -60,7 +60,10 @@
     "registerError": "Erro ao cadastrar",
     "enterEmail": "Digite o email",
     "resetEmailSent": "Email de redefinição enviado! Verifique sua caixa de entrada.",
-    "resetEmailError": "Erro ao enviar email"
+    "resetEmailError": "Erro ao enviar email",
+    "orContinueWith": "ou continuar com",
+    "continueWithGoogle": "Continuar com Google",
+    "googleError": "Erro ao entrar com Google"
   },
   "settings": {
     "title": "Configurações",

@@ -60,7 +60,10 @@
     "registerError": "Error de registro",
     "enterEmail": "Ingresa email",
     "resetEmailSent": "¡Email de restablecimiento enviado! Revisa tu bandeja.",
-    "resetEmailError": "Error al enviar email"
+    "resetEmailError": "Error al enviar email",
+    "orContinueWith": "o continuar con",
+    "continueWithGoogle": "Continuar con Google",
+    "googleError": "Error al iniciar con Google"
   },
   "settings": {
     "title": "Ajustes",

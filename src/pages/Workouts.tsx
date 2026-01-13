@@ -323,9 +323,157 @@ export default function Workouts() {
         />
       )}
 
-      {/* View toggle + Date Filter */}
-      <div className="flex items-center gap-2">
-        {/* View toggle */}
+      {/* Date Filter (left) + View toggle (right) */}
+      <div className="flex items-center justify-between gap-2">
+        {/* Date filter - only in list view */}
+        <div className="flex items-center gap-2">
+          {viewMode === "list" && (
+            <>
+              <Popover open={filterOpen} onOpenChange={(open) => {
+                setFilterOpen(open);
+                if (!open) setDatePickerOpen(false);
+              }}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 text-xs"
+                  >
+                    <Filter className="h-3.5 w-3.5" />
+                    {dateRange?.from ? (
+                      dateRange.to ? (
+                        <>
+                          {format(dateRange.from, "d MMM", { locale: dateLocale })} – {format(dateRange.to, "d MMM", { locale: dateLocale })}
+                        </>
+                      ) : (
+                        <>{format(dateRange.from, "d MMM", { locale: dateLocale })}</>
+                      )
+                    ) : (
+                      t("workouts.filter.all")
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  {!datePickerOpen ? (
+                    <div className="p-2 space-y-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-start text-xs h-8"
+                        onClick={() => {
+                          setDateRange(undefined);
+                          setFilterOpen(false);
+                        }}
+                      >
+                        {t("workouts.filter.allWorkouts")}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-start text-xs h-8"
+                        onClick={() => handleQuickFilter(7)}
+                      >
+                        {t("workouts.filter.last7days")}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-start text-xs h-8"
+                        onClick={() => handleQuickFilter(30)}
+                      >
+                        {t("workouts.filter.last30days")}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-start text-xs h-8"
+                        onClick={() => handleQuickFilter("current-month")}
+                      >
+                        {t("workouts.filter.thisMonth")}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-start text-xs h-8"
+                        onClick={() => handleQuickFilter("last-month")}
+                      >
+                        {t("workouts.filter.lastMonth")}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-start text-xs h-8"
+                        onClick={() => setDatePickerOpen(true)}
+                      >
+                        {t("workouts.filter.byDate")}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="p-2 border-b border-border">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="gap-2 text-xs h-8"
+                          onClick={() => setDatePickerOpen(false)}
+                        >
+                          <ChevronLeft className="h-3.5 w-3.5" />
+                          {t("common.back")}
+                        </Button>
+                      </div>
+                      <Calendar
+                        mode="range"
+                        selected={dateRange}
+                        onSelect={(range) => {
+                          setDateRange(range);
+                          if (range?.from && range?.to) {
+                            setDatePickerOpen(false);
+                            setFilterOpen(false);
+                          }
+                        }}
+                        locale={dateLocale}
+                        className="rounded-md border-0"
+                        numberOfMonths={1}
+                      />
+                      <div className="p-2 border-t border-border">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full text-xs"
+                          onClick={() => {
+                            setDateRange(undefined);
+                            setDatePickerOpen(false);
+                            setFilterOpen(false);
+                          }}
+                        >
+                          {t("common.reset")}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
+
+              {dateRange?.from && (
+                <>
+                  <span className="text-xs text-muted-foreground hidden sm:inline">
+                    {filteredWorkouts.length} {t("workouts.workoutsCount")}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                    onClick={handleClearFilter}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* View toggle - right aligned */}
         <div className="flex items-center bg-muted rounded-lg p-0.5">
           <Button
             variant="ghost"
@@ -350,152 +498,6 @@ export default function Workouts() {
             <CalendarIcon className="h-4 w-4" />
           </Button>
         </div>
-
-        {/* Date filter - only in list view */}
-        {viewMode === "list" && (
-          <>
-            <Popover open={filterOpen} onOpenChange={(open) => {
-              setFilterOpen(open);
-              if (!open) setDatePickerOpen(false);
-            }}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 text-xs"
-                >
-                  <Filter className="h-3.5 w-3.5" />
-                  {dateRange?.from ? (
-                    dateRange.to ? (
-                      <>
-                        {format(dateRange.from, "d MMM", { locale: dateLocale })} – {format(dateRange.to, "d MMM", { locale: dateLocale })}
-                      </>
-                    ) : (
-                      <>{format(dateRange.from, "d MMM", { locale: dateLocale })}</>
-                    )
-                  ) : (
-                    t("workouts.filter.all")
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                {!datePickerOpen ? (
-                  <div className="p-2 space-y-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start text-xs h-8"
-                      onClick={() => {
-                        setDateRange(undefined);
-                        setFilterOpen(false);
-                      }}
-                    >
-                      {t("workouts.filter.allWorkouts")}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start text-xs h-8"
-                      onClick={() => handleQuickFilter(7)}
-                    >
-                      {t("workouts.filter.last7days")}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start text-xs h-8"
-                      onClick={() => handleQuickFilter(30)}
-                    >
-                      {t("workouts.filter.last30days")}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start text-xs h-8"
-                      onClick={() => handleQuickFilter("current-month")}
-                    >
-                      {t("workouts.filter.thisMonth")}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start text-xs h-8"
-                      onClick={() => handleQuickFilter("last-month")}
-                    >
-                      {t("workouts.filter.lastMonth")}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start text-xs h-8"
-                      onClick={() => setDatePickerOpen(true)}
-                    >
-                      {t("workouts.filter.byDate")}
-                    </Button>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="p-2 border-b border-border">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="gap-2 text-xs h-8"
-                        onClick={() => setDatePickerOpen(false)}
-                      >
-                        <ChevronLeft className="h-3.5 w-3.5" />
-                        {t("common.back")}
-                      </Button>
-                    </div>
-                    <Calendar
-                      mode="range"
-                      selected={dateRange}
-                      onSelect={(range) => {
-                        setDateRange(range);
-                        if (range?.from && range?.to) {
-                          setDatePickerOpen(false);
-                          setFilterOpen(false);
-                        }
-                      }}
-                      locale={dateLocale}
-                      className="rounded-md border-0"
-                      numberOfMonths={1}
-                    />
-                    <div className="p-2 border-t border-border">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full text-xs"
-                        onClick={() => {
-                          setDateRange(undefined);
-                          setDatePickerOpen(false);
-                          setFilterOpen(false);
-                        }}
-                      >
-                        {t("common.reset")}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </PopoverContent>
-            </Popover>
-
-            {dateRange?.from && (
-              <>
-                <span className="text-xs text-muted-foreground hidden sm:inline">
-                  {filteredWorkouts.length} {t("workouts.workoutsCount")}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                  onClick={handleClearFilter}
-                >
-                  <X className="h-3.5 w-3.5" />
-                </Button>
-              </>
-            )}
-          </>
-        )}
       </div>
 
       {/* Create workout button - full width */}

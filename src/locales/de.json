@@ -562,7 +562,7 @@
       "orphanedExercises": "Verwaiste Einträge",
       "orphanedExercisesDesc": "Übungen ohne Training",
       "unusedExercises": "Ungenutzte Übungen",
-      "unusedExercisesDesc": "Benutzer-Übungen, die über 30 Tage nicht verwendet wurden",
+      "unusedExercisesDesc": "Von Benutzern erstellte Übungen, die nie verwendet wurden oder seit über 30 Tagen nicht verwendet wurden",
       "unusedExercisesCount": "ungenutzte Übungen",
       "found": "Gefunden",
       "deleteAll": "Alle löschen",

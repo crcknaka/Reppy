@@ -561,7 +561,7 @@
       "orphanedExercises": "Registros órfãos",
       "orphanedExercisesDesc": "Exercícios sem treino",
       "unusedExercises": "Exercícios não usados",
-      "unusedExercisesDesc": "Exercícios de usuário não usados há mais de 30 dias",
+      "unusedExercisesDesc": "Exercícios criados por usuários que nunca foram usados ou não usados há mais de 30 dias",
       "unusedExercisesCount": "exercícios não usados",
       "found": "Encontrados",
       "deleteAll": "Excluir tudo",

@@ -1,14 +1,7 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { useAdminStats, useUniqueExercises } from "@/hooks/admin/useAdminStats";
+import { useAdminStats } from "@/hooks/admin/useAdminStats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Users,
   Activity,
@@ -19,8 +12,6 @@ import {
   UserPlus,
   Hash,
   BarChart3,
-  Loader2,
-  User,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -76,8 +67,6 @@ function StatCardSkeleton() {
 export default function AdminDashboard() {
   const { t } = useTranslation();
   const { data: stats, isLoading } = useAdminStats();
-  const [exercisesDialogOpen, setExercisesDialogOpen] = useState(false);
-  const { data: uniqueExercises, isLoading: exercisesLoading } = useUniqueExercises();
 
   return (
     <AdminLayout>
@@ -190,7 +179,6 @@ export default function AdminDashboard() {
                   title={t("admin.stats.totalExercises")}
                   value={stats?.totalExercises || 0}
                   icon={Dumbbell}
-                  onClick={() => setExercisesDialogOpen(true)}
                 />
                 <StatCard
                   title={t("admin.stats.avgWorkoutsPerUser")}
@@ -206,52 +194,6 @@ export default function AdminDashboard() {
             )}
           </div>
         </div>
-
-        {/* Top Exercises */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5" />
-              {t("admin.stats.topExercises")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="flex items-center justify-between">
-                    <Skeleton className="h-4 w-48" />
-                    <Skeleton className="h-4 w-12" />
-                  </div>
-                ))}
-              </div>
-            ) : stats?.topExercises && stats.topExercises.length > 0 ? (
-              <div className="space-y-3">
-                {stats.topExercises.map((exercise, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium text-muted-foreground w-6">
-                        #{index + 1}
-                      </span>
-                      <Dumbbell className="h-4 w-4 text-primary" />
-                      <span className="font-medium">{exercise.name}</span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      {exercise.count} {t("admin.stats.uses")}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-center py-4">
-                {t("common.noData")}
-              </p>
-            )}
-          </CardContent>
-        </Card>
 
         {/* Top Users */}
         <Card>
@@ -319,72 +261,53 @@ export default function AdminDashboard() {
             )}
           </CardContent>
         </Card>
-      </div>
 
-      {/* Unique Exercises Dialog */}
-      <Dialog open={exercisesDialogOpen} onOpenChange={setExercisesDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Dumbbell className="h-5 w-5" />
-              {t("admin.stats.uniqueExercises")}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
-            {exercisesLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        {/* Top Exercises */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5" />
+              {t("admin.stats.topExercises")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-4 w-12" />
+                  </div>
+                ))}
               </div>
-            ) : uniqueExercises && uniqueExercises.length > 0 ? (
-              uniqueExercises.map((exercise) => (
-                <div
-                  key={exercise.exerciseId}
-                  className="p-3 rounded-lg border border-border/50"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <Dumbbell className="h-4 w-4 text-primary" />
-                    <span className="font-medium">{exercise.exerciseName}</span>
-                    <span className="text-xs text-muted-foreground">
-                      ({exercise.users.length} {exercise.users.length === 1 ? t("admin.stats.user") : t("admin.stats.usersCount")})
+            ) : stats?.topExercises && stats.topExercises.length > 0 ? (
+              <div className="space-y-3">
+                {stats.topExercises.map((exercise, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-muted-foreground w-6">
+                        #{index + 1}
+                      </span>
+                      <Dumbbell className="h-4 w-4 text-primary" />
+                      <span className="font-medium">{exercise.name}</span>
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {exercise.count} {t("admin.stats.uses")}
                     </span>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {exercise.users.map((user) => (
-                      <div
-                        key={user.userId}
-                        className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-muted/50 text-xs"
-                      >
-                        <Avatar className="h-5 w-5">
-                          <AvatarImage src={user.avatar || undefined} />
-                          <AvatarFallback>
-                            <User className="h-3 w-3" />
-                          </AvatarFallback>
-                        </Avatar>
-                        <span>{user.displayName || t("common.anonymous")}</span>
-                        {user.username && (
-                          <span
-                            className="text-muted-foreground hover:text-primary cursor-pointer"
-                            onClick={() => {
-                              navigator.clipboard.writeText(`@${user.username}`);
-                              toast.success(t("common.copied"));
-                            }}
-                          >
-                            @{user.username}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             ) : (
-              <p className="text-muted-foreground text-center py-8">
+              <p className="text-muted-foreground text-center py-4">
                 {t("common.noData")}
               </p>
             )}
-          </div>
-        </DialogContent>
-      </Dialog>
+          </CardContent>
+        </Card>
+      </div>
     </AdminLayout>
   );
 }

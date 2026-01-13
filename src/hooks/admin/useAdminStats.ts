@@ -182,27 +182,46 @@ export function useUniqueExercises() {
   return useQuery({
     queryKey: ["admin", "uniqueExercises"],
     queryFn: async (): Promise<UniqueExerciseWithUsers[]> => {
-      // Get all workout sets with exercise info and workout user
+      // Get only user-created exercises (not presets)
+      const { data: userExercises } = await supabase
+        .from("exercises")
+        .select("id, name, user_id")
+        .eq("is_preset", false);
+
+      if (!userExercises || userExercises.length === 0) return [];
+
+      const exerciseIds = userExercises.map((e) => e.id);
+
+      // Get workout sets for these exercises
       const { data: setsData } = await supabase
         .from("workout_sets")
         .select(`
           exercise_id,
-          exercises (
-            name
-          ),
           workouts (
             user_id
           )
-        `);
+        `)
+        .in("exercise_id", exerciseIds);
 
-      if (!setsData) return [];
+      // Build exercise name map from userExercises
+      const exerciseNameMap = new Map(userExercises.map((e) => [e.id, e.name]));
+      const exerciseCreatorMap = new Map(userExercises.map((e) => [e.id, e.user_id]));
 
-      // Group exercises with unique users who did them
-      const exerciseUsers = new Map<string, { name: string; userIds: Set<string> }>();
+      // Group exercises with unique users who used them
+      const exerciseUsers = new Map<string, { name: string; creatorId: string | null; userIds: Set<string> }>();
 
-      setsData.forEach((item) => {
+      // Initialize all user exercises (even if not used in any workout)
+      userExercises.forEach((exercise) => {
+        exerciseUsers.set(exercise.id, {
+          name: exercise.name,
+          creatorId: exercise.user_id,
+          userIds: new Set(),
+        });
+      });
+
+      // Add users who used each exercise
+      setsData?.forEach((item) => {
         const exerciseId = item.exercise_id;
-        const exerciseName = (item.exercises as { name: string } | null)?.name || "Unknown";
         const userId = (item.workouts as { user_id: string } | null)?.user_id;
 
         if (!userId) return;
@@ -210,14 +229,13 @@ export function useUniqueExercises() {
         const existing = exerciseUsers.get(exerciseId);
         if (existing) {
           existing.userIds.add(userId);
-        } else {
-          exerciseUsers.set(exerciseId, { name: exerciseName, userIds: new Set([userId]) });
         }
       });
 
-      // Get all unique user IDs
+      // Get all unique user IDs (including creators)
       const allUserIds = new Set<string>();
       exerciseUsers.forEach((data) => {
+        if (data.creatorId) allUserIds.add(data.creatorId);
         data.userIds.forEach((id) => allUserIds.add(id));
       });
 

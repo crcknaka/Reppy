@@ -562,7 +562,7 @@
       "orphanedExercises": "Orphaned Records",
       "orphanedExercisesDesc": "Exercises without a workout",
       "unusedExercises": "Unused Exercises",
-      "unusedExercisesDesc": "User-created exercises not used for 30+ days",
+      "unusedExercisesDesc": "User-created exercises that were never used or not used for 30+ days",
       "unusedExercisesCount": "unused exercises",
       "found": "Found",
       "deleteAll": "Delete All",

@@ -32,6 +32,7 @@
     "progress": "Progress",
     "friends": "Friends",
     "exercises": "Exercises",
+    "admin": "Admin",
     "settings": "Settings",
     "logout": "Logout"
   },
@@ -511,7 +512,10 @@
   "admin": {
     "title": "Admin Panel",
     "settingsDesc": "Statistics, cleanup tools, management",
+    "showInNav": "Show admin nav",
+    "showInNavDesc": "Display admin menu item",
     "backToApp": "Back to app",
+    "back": "Back",
     "dashboardDesc": "Platform overview and statistics",
     "cleanupDesc": "Database cleanup tools",
     "usersDesc": "User management",
@@ -537,10 +541,13 @@
     "cleanup": {
       "emptyWorkouts": "Empty Workouts",
       "emptyWorkoutsDesc": "Workouts with no exercises",
+      "emptyWorkoutsCount": "empty workouts",
       "orphanedExercises": "Orphaned Records",
       "orphanedExercisesDesc": "Exercises without a workout",
       "found": "Found",
       "deleteAll": "Delete All",
+      "deleteSelected": "Delete Selected",
+      "selectAll": "Select all",
       "confirmTitle": "Confirm Deletion",
       "confirmEmptyWorkouts": "Delete {{count}} empty workouts? This cannot be undone.",
       "confirmOrphanedExercises": "Delete {{count}} orphaned records? This cannot be undone.",

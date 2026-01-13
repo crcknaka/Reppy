@@ -32,6 +32,7 @@
     "progress": "Прогресс",
     "friends": "Друзья",
     "exercises": "Упражнения",
+    "admin": "Админка",
     "settings": "Настройки",
     "logout": "Выйти"
   },
@@ -513,7 +514,10 @@
   "admin": {
     "title": "Админ-панель",
     "settingsDesc": "Статистика, очистка данных, управление",
+    "showInNav": "Показывать админку",
+    "showInNavDesc": "Отображать пункт меню «Админка»",
     "backToApp": "Вернуться в приложение",
+    "back": "Назад",
     "dashboardDesc": "Общая статистика платформы",
     "cleanupDesc": "Инструменты для очистки базы данных",
     "usersDesc": "Управление пользователями платформы",
@@ -539,10 +543,13 @@
     "cleanup": {
       "emptyWorkouts": "Пустые тренировки",
       "emptyWorkoutsDesc": "Тренировки без упражнений",
+      "emptyWorkoutsCount": "пустых тренировок",
       "orphanedExercises": "Осиротевшие записи",
       "orphanedExercisesDesc": "Упражнения без привязки к тренировке",
       "found": "Найдено",
       "deleteAll": "Удалить все",
+      "deleteSelected": "Удалить выбранные",
+      "selectAll": "Выбрать все",
       "confirmTitle": "Подтверждение удаления",
       "confirmEmptyWorkouts": "Удалить {{count}} пустых тренировок? Это действие нельзя отменить.",
       "confirmOrphanedExercises": "Удалить {{count}} осиротевших записей? Это действие нельзя отменить.",

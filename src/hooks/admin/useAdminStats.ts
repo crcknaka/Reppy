@@ -55,15 +55,15 @@ export function useAdminStats() {
         .gte("date", thirtyDaysAgo);
       const activeUsers30d = new Set(activeUsers30dData?.map((w) => w.user_id)).size;
 
-      // Get total unique exercises used
+      // Get total unique exercises used (from workout_sets table)
       const { data: exerciseData } = await supabase
-        .from("workout_exercises")
+        .from("workout_sets")
         .select("exercise_id");
       const totalExercises = new Set(exerciseData?.map((e) => e.exercise_id)).size;
 
-      // Get top exercises by usage
+      // Get top exercises by usage (count sets per exercise)
       const { data: topExercisesData } = await supabase
-        .from("workout_exercises")
+        .from("workout_sets")
         .select(`
           exercise_id,
           exercises (

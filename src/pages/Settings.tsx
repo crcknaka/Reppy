@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
-import { User, LogOut, Lock, Eye, EyeOff, ChevronDown, Sun, Moon, Monitor, Download, FileJson, FileSpreadsheet, Check, Loader2, CloudOff, Palette, Globe, Ruler, Sparkles, Settings as SettingsIcon, UserCircle, Calendar, Scale, RulerIcon, Database, KeyRound, ShieldCheck, Crown, ChevronRight } from "lucide-react";
+import { User, LogOut, Lock, Eye, EyeOff, ChevronDown, Sun, Moon, Monitor, Download, FileJson, FileSpreadsheet, Check, Loader2, CloudOff, Palette, Globe, Ruler, Sparkles, Settings as SettingsIcon, UserCircle, Calendar, Scale, RulerIcon, Database, KeyRound, ShieldCheck, Crown } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useOfflineProfile, useOfflineUpdateProfile, useOfflineWorkouts } from "@/offline";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAccentColor, ACCENT_COLORS } from "@/hooks/useAccentColor";
 import { useUnits, UNIT_SYSTEMS } from "@/hooks/useUnits";
 import { useAutoFillLastSet } from "@/hooks/useAutoFillLastSet";
+import { useShowAdminNav } from "@/hooks/useShowAdminNav";
 import { LANGUAGES } from "@/lib/i18n";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -78,12 +78,12 @@ export default function Settings() {
   const { data: workouts } = useOfflineWorkouts();
   const updateProfile = useOfflineUpdateProfile();
   const { signOut, updatePassword } = useAuth();
-  const navigate = useNavigate();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { accentColor, setAccentColor } = useAccentColor();
   const { unitSystem, setUnitSystem, units, convertWeight, convertHeight, toMetricWeight, toMetricHeight } = useUnits();
   const isMetric = unitSystem === "metric";
   const { autoFillEnabled, setAutoFillEnabled } = useAutoFillLastSet();
+  const { showAdminNav, setShowAdminNav } = useShowAdminNav();
   const logoSrc = resolvedTheme === "dark" ? "/logo-white.png" : "/logo-black.png";
   const [exportLoading, setExportLoading] = useState(false);
 
@@ -1101,21 +1101,22 @@ export default function Settings() {
                 />
               </div>
 
-              {/* Админка / Admin Panel - только для админов */}
+              {/* Показывать админку в меню / Show admin nav - только для админов */}
               {profile?.is_admin && (
-                <button
-                  onClick={() => navigate("/admin")}
-                  className="w-full flex items-center gap-3 py-3 hover:bg-muted/50 rounded-lg transition-colors -mx-1 px-1"
-                >
+                <div className="flex items-center gap-3 py-3">
                   <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20">
                     <Crown className="h-4 w-4 text-amber-500" />
                   </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <p className="text-sm font-medium">{t("admin.title")}</p>
-                    <p className="text-xs text-muted-foreground">{t("admin.settingsDesc")}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">{t("admin.showInNav")}</p>
+                    <p className="text-xs text-muted-foreground">{t("admin.showInNavDesc")}</p>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </button>
+                  <Checkbox
+                    checked={showAdminNav}
+                    onCheckedChange={(checked) => { setShowAdminNav(checked === true); showAppSaved(); }}
+                    className="h-5 w-5"
+                  />
+                </div>
               )}
             </div>
           </CollapsibleContent>

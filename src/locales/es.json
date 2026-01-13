@@ -32,6 +32,7 @@
     "progress": "Progreso",
     "friends": "Amigos",
     "exercises": "Ejercicios",
+    "admin": "Admin",
     "settings": "Ajustes",
     "logout": "Cerrar sesión"
   },
@@ -510,7 +511,10 @@
   "admin": {
     "title": "Panel de Admin",
     "settingsDesc": "Estadísticas, limpieza, gestión",
+    "showInNav": "Mostrar admin",
+    "showInNavDesc": "Mostrar menú de admin",
     "backToApp": "Volver a la app",
+    "back": "Atrás",
     "dashboardDesc": "Resumen de la plataforma",
     "cleanupDesc": "Herramientas de limpieza",
     "usersDesc": "Gestión de usuarios",
@@ -536,10 +540,13 @@
     "cleanup": {
       "emptyWorkouts": "Entrenamientos vacíos",
       "emptyWorkoutsDesc": "Entrenamientos sin ejercicios",
+      "emptyWorkoutsCount": "entrenamientos vacíos",
       "orphanedExercises": "Registros huérfanos",
       "orphanedExercisesDesc": "Ejercicios sin entrenamiento",
       "found": "Encontrados",
       "deleteAll": "Eliminar todo",
+      "deleteSelected": "Eliminar seleccionados",
+      "selectAll": "Seleccionar todo",
       "confirmTitle": "Confirmar eliminación",
       "confirmEmptyWorkouts": "¿Eliminar {{count}} entrenamientos vacíos? Esto no se puede deshacer.",
       "confirmOrphanedExercises": "¿Eliminar {{count}} registros huérfanos? Esto no se puede deshacer.",

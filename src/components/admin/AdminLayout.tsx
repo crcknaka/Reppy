@@ -41,6 +41,19 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       {/* Mobile Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border/50 md:hidden z-50 safe-area-bottom">
         <div className="flex items-center justify-around py-2 px-2">
+          {/* Back to app button */}
+          <button
+            onClick={() => navigate("/")}
+            className="relative flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 min-w-[56px] text-muted-foreground hover:text-foreground active:scale-95"
+          >
+            <div className="relative p-1.5 rounded-xl transition-all duration-200">
+              <ArrowLeft className="h-5 w-5 transition-transform duration-200" />
+            </div>
+            <span className="text-[10px] font-medium mt-0.5 transition-all duration-200 text-muted-foreground">
+              {t("admin.back")}
+            </span>
+          </button>
+
           {adminNavItems.map((item) => {
             const isActive = item.exact
               ? location.pathname === item.to

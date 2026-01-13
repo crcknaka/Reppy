@@ -32,6 +32,7 @@
     "progress": "Fortschritt",
     "friends": "Freunde",
     "exercises": "Übungen",
+    "admin": "Admin",
     "settings": "Einstellungen",
     "logout": "Abmelden"
   },
@@ -511,7 +512,10 @@
   "admin": {
     "title": "Admin-Panel",
     "settingsDesc": "Statistiken, Bereinigung, Verwaltung",
+    "showInNav": "Admin anzeigen",
+    "showInNavDesc": "Admin-Menüeintrag anzeigen",
     "backToApp": "Zurück zur App",
+    "back": "Zurück",
     "dashboardDesc": "Plattform-Übersicht",
     "cleanupDesc": "Datenbank-Bereinigungstools",
     "usersDesc": "Benutzerverwaltung",
@@ -537,10 +541,13 @@
     "cleanup": {
       "emptyWorkouts": "Leere Trainings",
       "emptyWorkoutsDesc": "Trainings ohne Übungen",
+      "emptyWorkoutsCount": "leere Trainings",
       "orphanedExercises": "Verwaiste Einträge",
       "orphanedExercisesDesc": "Übungen ohne Training",
       "found": "Gefunden",
       "deleteAll": "Alle löschen",
+      "deleteSelected": "Ausgewählte löschen",
+      "selectAll": "Alle auswählen",
       "confirmTitle": "Löschen bestätigen",
       "confirmEmptyWorkouts": "{{count}} leere Trainings löschen? Dies kann nicht rückgängig gemacht werden.",
       "confirmOrphanedExercises": "{{count}} verwaiste Einträge löschen? Dies kann nicht rückgängig gemacht werden.",

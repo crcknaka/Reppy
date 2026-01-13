@@ -1,10 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-interface EmptyWorkout {
+export interface EmptyWorkout {
   id: string;
   date: string;
   user_id: string;
+  display_name: string | null;
+  avatar: string | null;
 }
 
 interface InactiveUser {
@@ -21,21 +23,57 @@ export function useEmptyWorkouts() {
       // Get all workouts
       const { data: workouts } = await supabase
         .from("workouts")
-        .select("id, date, user_id");
+        .select("id, date, user_id")
+        .order("date", { ascending: false });
 
       if (!workouts || workouts.length === 0) return [];
 
-      // Get workout IDs that have exercises
-      const { data: exerciseData } = await supabase
-        .from("workout_exercises")
-        .select("workout_id");
+      // Get ALL workout IDs that have sets (paginate to avoid 1000 row limit)
+      // Note: Data is stored in workout_sets table, not workout_exercises
+      const workoutsWithSets = new Set<string>();
+      let offset = 0;
+      const pageSize = 1000;
 
-      const workoutsWithExercises = new Set(
-        exerciseData?.map((e) => e.workout_id) || []
+      while (true) {
+        const { data: setsData } = await supabase
+          .from("workout_sets")
+          .select("workout_id")
+          .range(offset, offset + pageSize - 1);
+
+        if (!setsData || setsData.length === 0) break;
+
+        setsData.forEach((s) => {
+          if (s.workout_id) workoutsWithSets.add(s.workout_id);
+        });
+
+        if (setsData.length < pageSize) break;
+        offset += pageSize;
+      }
+
+      // Get empty workouts (workouts without any sets)
+      const emptyWorkouts = workouts.filter((w) => !workoutsWithSets.has(w.id));
+
+      if (emptyWorkouts.length === 0) return [];
+
+      // Get user profiles for empty workouts
+      const userIds = [...new Set(emptyWorkouts.map((w) => w.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, display_name, avatar")
+        .in("user_id", userIds);
+
+      const profileMap = new Map(
+        profiles?.map((p) => [p.user_id, p]) || []
       );
 
-      // Filter to only empty workouts
-      return workouts.filter((w) => !workoutsWithExercises.has(w.id));
+      // Combine workout data with profile info
+      return emptyWorkouts.map((w) => ({
+        id: w.id,
+        date: w.date,
+        user_id: w.user_id,
+        display_name: profileMap.get(w.user_id)?.display_name || null,
+        avatar: profileMap.get(w.user_id)?.avatar || null,
+      }));
     },
   });
 }
@@ -107,7 +145,7 @@ export function useInactiveUsers(days: number = 30) {
   });
 }
 
-// Get orphaned workout exercises (exercises without valid workout)
+// Get orphaned workout sets (sets without valid workout)
 export function useOrphanedExercises() {
   return useQuery({
     queryKey: ["admin", "orphanedExercises"],
@@ -119,20 +157,35 @@ export function useOrphanedExercises() {
 
       const validWorkoutIds = new Set(workouts?.map((w) => w.id) || []);
 
-      // Get all workout exercises
-      const { data: exercises } = await supabase
-        .from("workout_exercises")
-        .select("id, workout_id");
+      // Get all workout sets (paginate to avoid 1000 row limit)
+      const orphanedSets: string[] = [];
+      let offset = 0;
+      const pageSize = 1000;
 
-      if (!exercises) return 0;
+      while (true) {
+        const { data: sets } = await supabase
+          .from("workout_sets")
+          .select("id, workout_id")
+          .range(offset, offset + pageSize - 1);
 
-      // Count orphaned exercises
-      return exercises.filter((e) => !validWorkoutIds.has(e.workout_id)).length;
+        if (!sets || sets.length === 0) break;
+
+        sets.forEach((s) => {
+          if (!validWorkoutIds.has(s.workout_id)) {
+            orphanedSets.push(s.id);
+          }
+        });
+
+        if (sets.length < pageSize) break;
+        offset += pageSize;
+      }
+
+      return orphanedSets.length;
     },
   });
 }
 
-// Delete orphaned workout exercises
+// Delete orphaned workout sets
 export function useDeleteOrphanedExercises() {
   const queryClient = useQueryClient();
 
@@ -145,26 +198,43 @@ export function useDeleteOrphanedExercises() {
 
       const validWorkoutIds = new Set(workouts?.map((w) => w.id) || []);
 
-      // Get all workout exercises
-      const { data: exercises } = await supabase
-        .from("workout_exercises")
-        .select("id, workout_id");
+      // Get all workout sets (paginate to avoid 1000 row limit)
+      const orphanedIds: string[] = [];
+      let offset = 0;
+      const pageSize = 1000;
 
-      if (!exercises) return 0;
+      while (true) {
+        const { data: sets } = await supabase
+          .from("workout_sets")
+          .select("id, workout_id")
+          .range(offset, offset + pageSize - 1);
 
-      // Find orphaned exercise IDs
-      const orphanedIds = exercises
-        .filter((e) => !validWorkoutIds.has(e.workout_id))
-        .map((e) => e.id);
+        if (!sets || sets.length === 0) break;
+
+        sets.forEach((s) => {
+          if (!validWorkoutIds.has(s.workout_id)) {
+            orphanedIds.push(s.id);
+          }
+        });
+
+        if (sets.length < pageSize) break;
+        offset += pageSize;
+      }
 
       if (orphanedIds.length === 0) return 0;
 
-      const { error } = await supabase
-        .from("workout_exercises")
-        .delete()
-        .in("id", orphanedIds);
+      // Delete in batches to avoid issues with large deletions
+      const batchSize = 100;
+      for (let i = 0; i < orphanedIds.length; i += batchSize) {
+        const batch = orphanedIds.slice(i, i + batchSize);
+        const { error } = await supabase
+          .from("workout_sets")
+          .delete()
+          .in("id", batch);
 
-      if (error) throw error;
+        if (error) throw error;
+      }
+
       return orphanedIds.length;
     },
     onSuccess: () => {

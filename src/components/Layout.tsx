@@ -1,23 +1,34 @@
-import { ReactNode } from "react";
+import { ReactNode, useMemo } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { TrendingUp, ListPlus, LogOut, Activity, Settings, Users } from "lucide-react";
+import { TrendingUp, ListPlus, LogOut, Activity, Settings, Users, Crown, LucideIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { usePendingRequestsCount } from "@/hooks/useFriends";
+import { useProfile } from "@/hooks/useProfile";
+import { useShowAdminNav } from "@/hooks/useShowAdminNav";
 
 interface LayoutProps {
   children: ReactNode;
 }
 
-const navItems = [
+interface NavItem {
+  to: string;
+  icon: LucideIcon;
+  labelKey: string;
+  isAdmin?: boolean;
+}
+
+const baseNavItems: NavItem[] = [
   { to: "/", icon: Activity, labelKey: "nav.workouts" },
   { to: "/progress", icon: TrendingUp, labelKey: "nav.progress" },
   { to: "/friends", icon: Users, labelKey: "nav.friends" },
   { to: "/exercises", icon: ListPlus, labelKey: "nav.exercises" },
-  { to: "/settings", icon: Settings, labelKey: "nav.settings" },
 ];
+
+const adminNavItem: NavItem = { to: "/admin", icon: Crown, labelKey: "nav.admin", isAdmin: true };
+const settingsNavItem: NavItem = { to: "/settings", icon: Settings, labelKey: "nav.settings" };
 
 export default function Layout({ children }: LayoutProps) {
   const { t } = useTranslation();
@@ -28,6 +39,19 @@ export default function Layout({ children }: LayoutProps) {
   const logoSrc = resolvedTheme === "dark" ? "/logo-white.png" : "/logo-black.png";
   const { data: pendingCount = 0 } = usePendingRequestsCount();
   const hasPendingRequests = pendingCount > 0;
+  const { data: profile } = useProfile();
+  const { showAdminNav } = useShowAdminNav();
+
+  // Build nav items based on admin status and settings
+  const navItems = useMemo(() => {
+    const items = [...baseNavItems];
+    // Add admin nav item before settings if user is admin and has it enabled
+    if (profile?.is_admin && showAdminNav) {
+      items.push(adminNavItem);
+    }
+    items.push(settingsNavItem);
+    return items;
+  }, [profile?.is_admin, showAdminNav]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -42,7 +66,10 @@ export default function Layout({ children }: LayoutProps) {
       <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border/50 md:hidden z-50 safe-area-bottom">
         <div className="flex items-center justify-around py-2 px-2">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.to;
+            const isActive = item.to === "/admin"
+              ? location.pathname.startsWith("/admin")
+              : location.pathname === item.to;
+            const isAdminItem = item.isAdmin;
             return (
               <NavLink
                 key={item.to}
@@ -50,13 +77,13 @@ export default function Layout({ children }: LayoutProps) {
                 className={cn(
                   "relative flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 min-w-[56px]",
                   isActive
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground active:scale-95"
+                    ? isAdminItem ? "text-amber-500" : "text-primary"
+                    : isAdminItem ? "text-amber-500/70 hover:text-amber-500" : "text-muted-foreground hover:text-foreground active:scale-95"
                 )}
               >
                 <div className={cn(
                   "relative p-1.5 rounded-xl transition-all duration-200",
-                  isActive && "bg-primary/10"
+                  isActive && (isAdminItem ? "bg-amber-500/10" : "bg-primary/10")
                 )}>
                   <item.icon className={cn(
                     "h-5 w-5 transition-transform duration-200",
@@ -68,12 +95,17 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
                 <span className={cn(
                   "text-[10px] font-medium mt-0.5 transition-all duration-200",
-                  isActive ? "text-primary" : "text-muted-foreground"
+                  isActive
+                    ? isAdminItem ? "text-amber-500" : "text-primary"
+                    : isAdminItem ? "text-amber-500/70" : "text-muted-foreground"
                 )}>
                   {t(item.labelKey)}
                 </span>
                 {isActive && (
-                  <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+                  <span className={cn(
+                    "absolute -top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full",
+                    isAdminItem ? "bg-amber-500" : "bg-primary"
+                  )} />
                 )}
               </NavLink>
             );
@@ -98,7 +130,10 @@ export default function Layout({ children }: LayoutProps) {
 
         <nav className="flex-1 p-4 space-y-1.5">
           {navItems.map((item, index) => {
-            const isActive = location.pathname === item.to;
+            const isActive = item.to === "/admin"
+              ? location.pathname.startsWith("/admin")
+              : location.pathname === item.to;
+            const isAdminItem = item.isAdmin;
             return (
               <NavLink
                 key={item.to}
@@ -107,8 +142,12 @@ export default function Layout({ children }: LayoutProps) {
                 className={cn(
                   "relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
                   isActive
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/80 active:scale-[0.98]"
+                    ? isAdminItem
+                      ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25"
+                      : "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                    : isAdminItem
+                      ? "text-amber-500/80 hover:text-amber-500 hover:bg-amber-500/10 active:scale-[0.98]"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/80 active:scale-[0.98]"
                 )}
               >
                 <div className="relative">
@@ -122,7 +161,10 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
                 <span className="font-medium">{t(item.labelKey)}</span>
                 {isActive && (
-                  <span className="absolute right-3 w-1.5 h-1.5 rounded-full bg-primary-foreground/80" />
+                  <span className={cn(
+                    "absolute right-3 w-1.5 h-1.5 rounded-full",
+                    isAdminItem ? "bg-white/80" : "bg-primary-foreground/80"
+                  )} />
                 )}
               </NavLink>
             );

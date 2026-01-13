@@ -32,6 +32,7 @@
     "progress": "Progrès",
     "friends": "Amis",
     "exercises": "Exercices",
+    "admin": "Admin",
     "settings": "Paramètres",
     "logout": "Déconnexion"
   },
@@ -510,7 +511,10 @@
   "admin": {
     "title": "Panneau Admin",
     "settingsDesc": "Statistiques, nettoyage, gestion",
+    "showInNav": "Afficher admin",
+    "showInNavDesc": "Afficher le menu admin",
     "backToApp": "Retour à l'app",
+    "back": "Retour",
     "dashboardDesc": "Aperçu de la plateforme",
     "cleanupDesc": "Outils de nettoyage de la base de données",
     "usersDesc": "Gestion des utilisateurs",
@@ -536,10 +540,13 @@
     "cleanup": {
       "emptyWorkouts": "Entraînements vides",
       "emptyWorkoutsDesc": "Entraînements sans exercices",
+      "emptyWorkoutsCount": "entraînements vides",
       "orphanedExercises": "Enregistrements orphelins",
       "orphanedExercisesDesc": "Exercices sans entraînement",
       "found": "Trouvés",
       "deleteAll": "Tout supprimer",
+      "deleteSelected": "Supprimer sélection",
+      "selectAll": "Tout sélectionner",
       "confirmTitle": "Confirmer la suppression",
       "confirmEmptyWorkouts": "Supprimer {{count}} entraînements vides ? Cette action est irréversible.",
       "confirmOrphanedExercises": "Supprimer {{count}} enregistrements orphelins ? Cette action est irréversible.",

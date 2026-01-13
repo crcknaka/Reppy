@@ -359,9 +359,9 @@ export function useSingleWorkout(workoutId: string | undefined) {
   });
 }
 
-export function useUserAllTimeBests(userId: string | null | undefined) {
+export function useUserAllTimeBests(userId: string | null | undefined, excludeWorkoutId?: string) {
   return useQuery({
-    queryKey: ["user-all-time-bests", userId],
+    queryKey: ["user-all-time-bests", userId, excludeWorkoutId],
     queryFn: async () => {
       if (!userId) throw new Error("User ID is required");
       if (!navigator.onLine) return {};
@@ -376,6 +376,7 @@ export function useUserAllTimeBests(userId: string | null | undefined) {
           distance_km,
           duration_minutes,
           plank_seconds,
+          workout_id,
           workout:workouts!inner(user_id),
           exercise:exercises(id, name, type, is_preset, name_translations)
         `)
@@ -383,7 +384,7 @@ export function useUserAllTimeBests(userId: string | null | undefined) {
 
       if (error) throw error;
 
-      // Group by exercise and find max values
+      // Group by exercise and find max values (excluding current workout)
       const bestsByExercise: Record<string, {
         exerciseType: string;
         maxWeight?: number;
@@ -393,6 +394,11 @@ export function useUserAllTimeBests(userId: string | null | undefined) {
       }> = {};
 
       data?.forEach((set: any) => {
+        // Skip sets from the current workout to compare against historical data only
+        if (excludeWorkoutId && set.workout_id === excludeWorkoutId) {
+          return;
+        }
+
         const exerciseId = set.exercise_id;
         const exerciseType = set.exercise?.type;
 

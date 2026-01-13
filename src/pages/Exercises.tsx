@@ -122,7 +122,7 @@ export default function Exercises() {
           <DialogTrigger asChild>
             <Button className="gap-2 shadow-lg">
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">{t("common.add")}</span>
+              <span className="hidden sm:inline">{t("exercises.addExercise")}</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="border-border/50 shadow-2xl" aria-describedby="exercise-form-description">

@@ -25,7 +25,8 @@
     "pause": "Pause",
     "continue": "Continue",
     "search": "Search...",
-    "user": "User"
+    "user": "User",
+    "copied": "Copied"
   },
   "nav": {
     "workouts": "Workouts",
@@ -549,7 +550,10 @@
       "topUsers": "Top Users",
       "uses": "uses",
       "last7days": "last 7 days",
-      "last30days": "last 30 days"
+      "last30days": "last 30 days",
+      "uniqueExercises": "Unique Exercises",
+      "user": "user",
+      "usersCount": "users"
     },
     "cleanup": {
       "emptyWorkouts": "Empty Workouts",
@@ -585,7 +589,11 @@
       "confirmMakeAdmin": "Make Administrator?",
       "confirmMakeAdminDesc": "{{name}} will have full access to the admin panel.",
       "confirmRemoveAdmin": "Remove Admin Rights?",
-      "confirmRemoveAdminDesc": "{{name}} will lose access to the admin panel."
+      "confirmRemoveAdminDesc": "{{name}} will lose access to the admin panel.",
+      "deleteUser": "Delete user",
+      "confirmDeleteUser": "Delete user?",
+      "confirmDeleteUserDesc": "User {{name}} and all their data (workouts, sets, friends) will be permanently deleted.",
+      "userDeleted": "User {{name}} deleted"
     },
     "exercises": {
       "preset": "Preset Exercises",

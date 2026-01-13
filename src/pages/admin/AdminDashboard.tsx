@@ -1,7 +1,14 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { useAdminStats } from "@/hooks/admin/useAdminStats";
+import { useAdminStats, useUniqueExercises } from "@/hooks/admin/useAdminStats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Users,
   Activity,
@@ -12,23 +19,31 @@ import {
   UserPlus,
   Hash,
   BarChart3,
+  Loader2,
+  User,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 function StatCard({
   title,
   value,
   icon: Icon,
   description,
+  onClick,
 }: {
   title: string;
   value: string | number;
   icon: React.ElementType;
   description?: string;
+  onClick?: () => void;
 }) {
   return (
-    <Card>
+    <Card
+      className={onClick ? "cursor-pointer hover:bg-muted/50 transition-colors" : ""}
+      onClick={onClick}
+    >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <Icon className="h-4 w-4 text-muted-foreground" />
@@ -61,6 +76,8 @@ function StatCardSkeleton() {
 export default function AdminDashboard() {
   const { t } = useTranslation();
   const { data: stats, isLoading } = useAdminStats();
+  const [exercisesDialogOpen, setExercisesDialogOpen] = useState(false);
+  const { data: uniqueExercises, isLoading: exercisesLoading } = useUniqueExercises();
 
   return (
     <AdminLayout>
@@ -173,6 +190,7 @@ export default function AdminDashboard() {
                   title={t("admin.stats.totalExercises")}
                   value={stats?.totalExercises || 0}
                   icon={Dumbbell}
+                  onClick={() => setExercisesDialogOpen(true)}
                 />
                 <StatCard
                   title={t("admin.stats.avgWorkoutsPerUser")}
@@ -273,7 +291,20 @@ export default function AdminDashboard() {
                           {user.name?.charAt(0)?.toUpperCase() || "?"}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="font-medium">{user.name}</span>
+                      <div className="min-w-0">
+                        <span className="font-medium block truncate">{user.name}</span>
+                        {user.username && (
+                          <span
+                            className="text-xs text-muted-foreground hover:text-primary cursor-pointer transition-colors"
+                            onClick={() => {
+                              navigator.clipboard.writeText(`@${user.username}`);
+                              toast.success(t("common.copied"));
+                            }}
+                          >
+                            @{user.username}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <span className="text-sm text-muted-foreground">
                       {user.workoutCount} {t("admin.users.workouts")}
@@ -289,6 +320,71 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Unique Exercises Dialog */}
+      <Dialog open={exercisesDialogOpen} onOpenChange={setExercisesDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Dumbbell className="h-5 w-5" />
+              {t("admin.stats.uniqueExercises")}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+            {exercisesLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : uniqueExercises && uniqueExercises.length > 0 ? (
+              uniqueExercises.map((exercise) => (
+                <div
+                  key={exercise.exerciseId}
+                  className="p-3 rounded-lg border border-border/50"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <Dumbbell className="h-4 w-4 text-primary" />
+                    <span className="font-medium">{exercise.exerciseName}</span>
+                    <span className="text-xs text-muted-foreground">
+                      ({exercise.users.length} {exercise.users.length === 1 ? t("admin.stats.user") : t("admin.stats.usersCount")})
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {exercise.users.map((user) => (
+                      <div
+                        key={user.userId}
+                        className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-muted/50 text-xs"
+                      >
+                        <Avatar className="h-5 w-5">
+                          <AvatarImage src={user.avatar || undefined} />
+                          <AvatarFallback>
+                            <User className="h-3 w-3" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{user.displayName || t("common.anonymous")}</span>
+                        {user.username && (
+                          <span
+                            className="text-muted-foreground hover:text-primary cursor-pointer"
+                            onClick={() => {
+                              navigator.clipboard.writeText(`@${user.username}`);
+                              toast.success(t("common.copied"));
+                            }}
+                          >
+                            @{user.username}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-muted-foreground text-center py-8">
+                {t("common.noData")}
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }

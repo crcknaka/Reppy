@@ -16,7 +16,7 @@ export interface AdminStats {
   newUsersThisWeek: number;
   newUsersThisMonth: number;
   topExercises: Array<{ name: string; count: number }>;
-  topUsers: Array<{ name: string; avatar: string | null; workoutCount: number }>;
+  topUsers: Array<{ name: string; username: string | null; avatar: string | null; workoutCount: number }>;
 }
 
 export function useAdminStats() {
@@ -141,7 +141,7 @@ export function useAdminStats() {
 
       const { data: topUserProfiles } = await supabase
         .from("profiles")
-        .select("user_id, display_name, avatar")
+        .select("user_id, display_name, username, avatar")
         .in("user_id", topUserIds);
 
       const profileMap = new Map(
@@ -150,6 +150,7 @@ export function useAdminStats() {
 
       const topUsers = topUserIds.map((userId) => ({
         name: profileMap.get(userId)?.display_name || "Unknown",
+        username: profileMap.get(userId)?.username || null,
         avatar: profileMap.get(userId)?.avatar || null,
         workoutCount: userWorkoutCounts.get(userId) || 0,
       }));
@@ -185,5 +186,92 @@ export function useAdminStats() {
       };
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+}
+
+export interface UniqueExerciseWithUsers {
+  exerciseId: string;
+  exerciseName: string;
+  users: Array<{
+    userId: string;
+    displayName: string | null;
+    username: string | null;
+    avatar: string | null;
+  }>;
+}
+
+export function useUniqueExercises() {
+  return useQuery({
+    queryKey: ["admin", "uniqueExercises"],
+    queryFn: async (): Promise<UniqueExerciseWithUsers[]> => {
+      // Get all workout sets with exercise info and workout user
+      const { data: setsData } = await supabase
+        .from("workout_sets")
+        .select(`
+          exercise_id,
+          exercises (
+            name
+          ),
+          workouts (
+            user_id
+          )
+        `);
+
+      if (!setsData) return [];
+
+      // Group exercises with unique users who did them
+      const exerciseUsers = new Map<string, { name: string; userIds: Set<string> }>();
+
+      setsData.forEach((item) => {
+        const exerciseId = item.exercise_id;
+        const exerciseName = (item.exercises as { name: string } | null)?.name || "Unknown";
+        const userId = (item.workouts as { user_id: string } | null)?.user_id;
+
+        if (!userId) return;
+
+        const existing = exerciseUsers.get(exerciseId);
+        if (existing) {
+          existing.userIds.add(userId);
+        } else {
+          exerciseUsers.set(exerciseId, { name: exerciseName, userIds: new Set([userId]) });
+        }
+      });
+
+      // Get all unique user IDs
+      const allUserIds = new Set<string>();
+      exerciseUsers.forEach((data) => {
+        data.userIds.forEach((id) => allUserIds.add(id));
+      });
+
+      // Fetch user profiles
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, display_name, username, avatar")
+        .in("user_id", Array.from(allUserIds));
+
+      const profileMap = new Map(profiles?.map((p) => [p.user_id, p]) || []);
+
+      // Build result
+      const result: UniqueExerciseWithUsers[] = [];
+      exerciseUsers.forEach((data, exerciseId) => {
+        result.push({
+          exerciseId,
+          exerciseName: data.name,
+          users: Array.from(data.userIds).map((userId) => {
+            const profile = profileMap.get(userId);
+            return {
+              userId,
+              displayName: profile?.display_name || null,
+              username: profile?.username || null,
+              avatar: profile?.avatar || null,
+            };
+          }),
+        });
+      });
+
+      // Sort by exercise name
+      return result.sort((a, b) => a.exerciseName.localeCompare(b.exerciseName));
+    },
+    staleTime: 1000 * 60 * 5,
   });
 }

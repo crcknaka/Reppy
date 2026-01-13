@@ -16,8 +16,8 @@ interface AdminLayoutProps {
 
 const adminNavItems = [
   { to: "/admin", icon: LayoutDashboard, labelKey: "admin.nav.dashboard", exact: true },
-  { to: "/admin/cleanup", icon: Trash2, labelKey: "admin.nav.cleanup" },
   { to: "/admin/users", icon: Users, labelKey: "admin.nav.users" },
+  { to: "/admin/cleanup", icon: Trash2, labelKey: "admin.nav.cleanup" },
 ];
 
 export function AdminLayout({ children }: AdminLayoutProps) {

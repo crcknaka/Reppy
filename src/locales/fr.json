@@ -25,7 +25,8 @@
     "pause": "Pause",
     "continue": "Continuer",
     "search": "Rechercher...",
-    "user": "Utilisateur"
+    "user": "Utilisateur",
+    "copied": "Copié"
   },
   "nav": {
     "workouts": "Entraînements",
@@ -548,7 +549,10 @@
       "topUsers": "Top utilisateurs",
       "uses": "utilisations",
       "last7days": "7 derniers jours",
-      "last30days": "30 derniers jours"
+      "last30days": "30 derniers jours",
+      "uniqueExercises": "Exercices uniques",
+      "user": "utilisateur",
+      "usersCount": "utilisateurs"
     },
     "cleanup": {
       "emptyWorkouts": "Entraînements vides",
@@ -584,7 +588,11 @@
       "confirmMakeAdmin": "Rendre administrateur ?",
       "confirmMakeAdminDesc": "{{name}} aura un accès complet au panneau d'administration.",
       "confirmRemoveAdmin": "Retirer les droits d'admin ?",
-      "confirmRemoveAdminDesc": "{{name}} perdra l'accès au panneau d'administration."
+      "confirmRemoveAdminDesc": "{{name}} perdra l'accès au panneau d'administration.",
+      "deleteUser": "Supprimer l'utilisateur",
+      "confirmDeleteUser": "Supprimer l'utilisateur ?",
+      "confirmDeleteUserDesc": "L'utilisateur {{name}} et toutes ses données (entraînements, séries, amis) seront définitivement supprimés.",
+      "userDeleted": "Utilisateur {{name}} supprimé"
     },
     "exercises": {
       "preset": "Exercices prédéfinis",

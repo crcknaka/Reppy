@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { useAdminUsers, useSetAdminStatus } from "@/hooks/admin/useAdminUsers";
+import { useAdminUsers, useSetAdminStatus, useDeleteUser } from "@/hooks/admin/useAdminUsers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Shield, ShieldOff, User, Loader2 } from "lucide-react";
+import { Search, Shield, ShieldOff, User, Loader2, Dumbbell, Trash2, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -32,9 +32,15 @@ export default function AdminUsers() {
     userName: string;
     makeAdmin: boolean;
   }>({ open: false, userId: "", userName: "", makeAdmin: false });
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    userId: string;
+    userName: string;
+  }>({ open: false, userId: "", userName: "" });
 
   const { data: users, isLoading } = useAdminUsers(search);
   const setAdminMutation = useSetAdminStatus();
+  const deleteUserMutation = useDeleteUser();
 
   const handleToggleAdmin = async () => {
     try {
@@ -51,6 +57,16 @@ export default function AdminUsers() {
       toast.error(t("common.error"));
     }
     setAdminDialog({ open: false, userId: "", userName: "", makeAdmin: false });
+  };
+
+  const handleDeleteUser = async () => {
+    try {
+      await deleteUserMutation.mutateAsync(deleteDialog.userId);
+      toast.success(t("admin.users.userDeleted", { name: deleteDialog.userName }));
+    } catch {
+      toast.error(t("common.error"));
+    }
+    setDeleteDialog({ open: false, userId: "", userName: "" });
   };
 
   return (
@@ -105,49 +121,75 @@ export default function AdminUsers() {
                           <span className="font-medium">
                             {user.display_name || t("common.anonymous")}
                           </span>
+                          {user.username && (
+                            <span
+                              className="text-sm text-muted-foreground hover:text-primary cursor-pointer transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(`@${user.username}`);
+                                toast.success(t("common.copied"));
+                              }}
+                            >
+                              @{user.username}
+                            </span>
+                          )}
                           {user.is_admin && (
                             <Badge variant="default" className="text-xs">
                               {t("settings.admin")}
                             </Badge>
                           )}
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          {user.workout_count} {t("admin.users.workouts")}
+                        <div className="text-xs text-muted-foreground flex items-center gap-2">
+                          <span className="flex items-center gap-1">
+                            <Dumbbell className="h-3 w-3" />
+                            {user.workout_count}
+                          </span>
                           {user.last_workout_date && (
-                            <>
-                              {" · "}
-                              {t("admin.users.lastActive")}{" "}
-                              {format(new Date(user.last_workout_date), "dd.MM.yyyy")}
-                            </>
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {format(new Date(user.last_workout_date), "dd.MM.yy")}
+                            </span>
                           )}
                         </div>
                       </div>
                     </div>
-                    <Button
-                      variant={user.is_admin ? "outline" : "secondary"}
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setAdminDialog({
-                          open: true,
-                          userId: user.user_id,
-                          userName: user.display_name || t("common.anonymous"),
-                          makeAdmin: !user.is_admin,
-                        });
-                      }}
-                    >
-                      {user.is_admin ? (
-                        <>
-                          <ShieldOff className="h-4 w-4 mr-1" />
-                          {t("admin.users.removeAdmin")}
-                        </>
-                      ) : (
-                        <>
-                          <Shield className="h-4 w-4 mr-1" />
-                          {t("admin.users.makeAdmin")}
-                        </>
-                      )}
-                    </Button>
+                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant={user.is_admin ? "outline" : "secondary"}
+                        size="icon"
+                        className="h-8 w-8"
+                        title={user.is_admin ? t("admin.users.removeAdmin") : t("admin.users.makeAdmin")}
+                        onClick={() =>
+                          setAdminDialog({
+                            open: true,
+                            userId: user.user_id,
+                            userName: user.display_name || t("common.anonymous"),
+                            makeAdmin: !user.is_admin,
+                          })
+                        }
+                      >
+                        {user.is_admin ? (
+                          <ShieldOff className="h-4 w-4" />
+                        ) : (
+                          <Shield className="h-4 w-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        title={t("admin.users.deleteUser")}
+                        onClick={() =>
+                          setDeleteDialog({
+                            open: true,
+                            userId: user.user_id,
+                            userName: user.display_name || t("common.anonymous"),
+                          })
+                        }
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -187,6 +229,37 @@ export default function AdminUsers() {
               <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
               <AlertDialogAction onClick={handleToggleAdmin}>
                 {t("common.confirm")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete User Dialog */}
+        <AlertDialog
+          open={deleteDialog.open}
+          onOpenChange={(open) =>
+            setDeleteDialog((prev) => ({ ...prev, open }))
+          }
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+                <Trash2 className="h-5 w-5" />
+                {t("admin.users.confirmDeleteUser")}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {t("admin.users.confirmDeleteUserDesc", {
+                  name: deleteDialog.userName,
+                })}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteUser}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {t("common.delete")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -99,9 +99,12 @@ export default function Settings() {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
 
-  // Section states
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [appOpen, setAppOpen] = useState(false);
+  // Section states - default open based on screen size
+  // Desktop (md: 768px+): profile + app open, Mobile: only app open
+  const [profileOpen, setProfileOpen] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth >= 768
+  );
+  const [appOpen, setAppOpen] = useState(true);
   const [dataOpen, setDataOpen] = useState(false);
   const [securityOpen, setSecurityOpen] = useState(false);
 
@@ -179,7 +182,7 @@ export default function Settings() {
           setHeight(feet.toString());
         } else if (prevSystem === "imperial" && unitSystem === "metric") {
           // ft -> cm
-          const cm = Math.round(heightNum * 12 / 0.393701);
+          const cm = Math.round(heightNum * 12 / 0.393701 * 10) / 10;
           setHeight(cm.toString());
         }
       }

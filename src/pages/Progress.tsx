@@ -49,7 +49,7 @@ export default function Progress() {
   const { isOnline } = useOffline();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { units, convertWeight, convertDistance, toMetricWeight } = useUnits();
+  const { units, convertWeight, convertDistance, convertHeight, toMetricWeight } = useUnits();
   const [selectedExercise, setSelectedExercise] = useState<string>("all");
   const [exerciseTypeFilter, setExerciseTypeFilter] = useState<"all" | "weighted" | "bodyweight" | "cardio" | "timed">("all");
   const [metric, setMetric] = useState<"reps" | "weight">("reps");
@@ -1242,7 +1242,13 @@ export default function Progress() {
                     </div>
                     <div className="text-xs text-muted-foreground flex flex-wrap gap-x-2 gap-y-0.5">
                       {entry.current_weight && <span className="whitespace-nowrap">{t("progress.weightTotal")}: {convertWeight(entry.current_weight)} {units.weight}</span>}
-                      {entry.height && <span className="whitespace-nowrap">{t("progress.heightLabel")}: {entry.height} {t("units.cm")}</span>}
+                      {entry.height && <span className="whitespace-nowrap">{t("progress.heightLabel")}: {(() => {
+                        const h = convertHeight(entry.height);
+                        if (typeof h === "object") {
+                          return `${h.feet}'${h.inches}"`;
+                        }
+                        return `${h} ${t("units.cm")}`;
+                      })()}</span>}
                     </div>
                   </div>
 

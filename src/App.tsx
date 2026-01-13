@@ -12,6 +12,10 @@ import Layout from "@/components/Layout";
 import { AdminProtectedRoute } from "@/components/admin/AdminProtectedRoute";
 import { Loader2 } from "lucide-react";
 import { useEffect, lazy, Suspense } from "react";
+import { setupGlobalErrorHandlers } from "@/lib/setupErrorHandlers";
+
+// Initialize global error handlers
+setupGlobalErrorHandlers();
 
 // Lazy load pages for better code splitting
 const Auth = lazy(() => import("@/pages/Auth"));
@@ -30,6 +34,7 @@ const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const AdminCleanup = lazy(() => import("@/pages/admin/AdminCleanup"));
 const AdminUsers = lazy(() => import("@/pages/admin/AdminUsers"));
 const AdminExercises = lazy(() => import("@/pages/admin/AdminExercises"));
+const AdminLogs = lazy(() => import("@/pages/admin/AdminLogs"));
 
 // Schema version - increment this when you make breaking database changes
 const SCHEMA_VERSION = "2"; // Updated for cardio exercise type
@@ -212,6 +217,14 @@ function AppRoutes() {
           element={
             <AdminProtectedRoute>
               <AdminExercises />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/logs"
+          element={
+            <AdminProtectedRoute>
+              <AdminLogs />
             </AdminProtectedRoute>
           }
         />

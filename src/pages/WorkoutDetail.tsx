@@ -1557,9 +1557,6 @@ export default function WorkoutDetail() {
                 <DrawerTrigger asChild>
                   <div
                     className="flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary/50 transition-colors md:hidden"
-                    onClick={(e) => {
-                      // On mobile, let drawer open naturally
-                    }}
                   >
                     {isUploadingPhoto ? (
                       <>

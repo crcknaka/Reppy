@@ -1,11 +1,12 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, memo } from "react";
 import { createPortal } from "react-dom";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format, isToday, parseISO } from "date-fns";
-import { ru, enUS, es, ptBR, de, fr, Locale } from "date-fns/locale";
+import { getDateLocale } from "@/lib/dateLocales";
 import { useTranslation } from "react-i18next";
 import { getExerciseName } from "@/lib/i18n";
-import { ArrowLeft, Plus, Trash2, User, Dumbbell, MessageSquare, Save, Pencil, X, Activity, Timer, Camera, Loader2, ImageIcon, LayoutGrid, Trophy, Search, Share2, Copy, Check, Ban, Lock, Unlock, Star, Maximize2 } from "lucide-react";
+import { getExerciseIcon, getExerciseTypeLabel, ExerciseType } from "@/lib/exerciseUtils";
+import { ArrowLeft, Plus, Trash2, MessageSquare, Save, Pencil, X, Camera, Loader2, ImageIcon, LayoutGrid, Trophy, Search, Share2, Copy, Check, Ban, Lock, Unlock, Star, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -56,18 +57,75 @@ import { ExerciseTimer } from "@/components/ExerciseTimer";
 import { useUnits } from "@/hooks/useUnits";
 import { useAutoFillLastSet } from "@/hooks/useAutoFillLastSet";
 
-const DATE_LOCALES: Record<string, Locale> = {
-  en: enUS,
-  es: es,
-  "pt-BR": ptBR,
-  de: de,
-  fr: fr,
-  ru: ru,
-};
+// Memoized Exercise Selection Card component
+interface ExerciseSelectionCardProps {
+  exercise: Exercise;
+  isFavorite: boolean;
+  onSelect: (exercise: Exercise) => void;
+  onToggleFavorite: (id: string, e: React.MouseEvent) => void;
+}
+
+const ExerciseSelectionCard = memo(function ExerciseSelectionCard({
+  exercise,
+  isFavorite,
+  onSelect,
+  onToggleFavorite,
+}: ExerciseSelectionCardProps) {
+  const Icon = getExerciseIcon(exercise.type as ExerciseType);
+  const { t } = useTranslation();
+
+  return (
+    <div
+      onClick={() => onSelect(exercise)}
+      className="text-left group hover:scale-[1.02] transition-transform cursor-pointer"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === 'Enter' && onSelect(exercise)}
+    >
+      <div className="border rounded-lg overflow-hidden hover:border-primary transition-colors relative">
+        <button
+          onClick={(e) => onToggleFavorite(exercise.id, e)}
+          className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
+        >
+          <Star
+            className={cn(
+              "h-4 w-4 transition-colors",
+              isFavorite
+                ? "fill-primary text-primary"
+                : "text-muted-foreground hover:text-primary"
+            )}
+          />
+        </button>
+
+        {exercise.image_url ? (
+          <div className="w-full aspect-[4/3] overflow-hidden bg-muted">
+            <img
+              src={exercise.image_url}
+              alt={getExerciseName(exercise.name, exercise.name_translations)}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+            />
+          </div>
+        ) : (
+          <div className="w-full aspect-[4/3] bg-muted flex items-center justify-center">
+            <Icon className="h-12 w-12 text-muted-foreground" />
+          </div>
+        )}
+        <div className="p-3 bg-card">
+          <p className="font-medium text-foreground text-center">
+            {getExerciseName(exercise.name, exercise.name_translations)}
+          </p>
+          <p className="text-xs text-muted-foreground text-center">
+            {getExerciseTypeLabel(exercise.type as ExerciseType, t)}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+});
 
 export default function WorkoutDetail() {
   const { t, i18n } = useTranslation();
-  const dateLocale = DATE_LOCALES[i18n.language] || enUS;
+  const dateLocale = getDateLocale(i18n.language);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -936,67 +994,15 @@ export default function WorkoutDetail() {
                   {exerciseTab === "favorites" ? t("workout.noFavorites") : t("exercises.noExercisesFound")}
                 </div>
               ) : (
-                filteredExercises.map((exercise) => {
-                  const isFavorite = favoriteExercises?.has(exercise.id) || false;
-                  return (
-                    <div
-                      key={exercise.id}
-                      onClick={() => handleSelectExercise(exercise)}
-                      className="text-left group hover:scale-[1.02] transition-transform cursor-pointer"
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSelectExercise(exercise)}
-                    >
-                      <div className="border rounded-lg overflow-hidden hover:border-primary transition-colors relative">
-                        {/* Favorite Star Button */}
-                        <button
-                          onClick={(e) => handleToggleFavorite(exercise.id, e)}
-                          className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
-                        >
-                          <Star
-                            className={cn(
-                              "h-4 w-4 transition-colors",
-                              isFavorite
-                                ? "fill-primary text-primary"
-                                : "text-muted-foreground hover:text-primary"
-                            )}
-                          />
-                        </button>
-
-                        {exercise.image_url ? (
-                          <div className="w-full aspect-[4/3] overflow-hidden bg-muted">
-                            <img
-                              src={exercise.image_url}
-                              alt={getExerciseName(exercise.name, exercise.name_translations)}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-full aspect-[4/3] bg-muted flex items-center justify-center">
-                            {exercise.type === "weighted" ? (
-                              <Dumbbell className="h-12 w-12 text-muted-foreground" />
-                            ) : exercise.type === "cardio" ? (
-                              <Activity className="h-12 w-12 text-muted-foreground" />
-                            ) : exercise.type === "timed" ? (
-                              <Timer className="h-12 w-12 text-muted-foreground" />
-                            ) : (
-                              <User className="h-12 w-12 text-muted-foreground" />
-                            )}
-                          </div>
-                        )}
-                        <div className="p-3 bg-card">
-                          <p className="font-medium text-foreground text-center">{getExerciseName(exercise.name, exercise.name_translations)}</p>
-                          <p className="text-xs text-muted-foreground text-center">
-                            {exercise.type === "weighted" ? t("progress.weighted") :
-                             exercise.type === "cardio" ? t("progress.cardio") :
-                             exercise.type === "timed" ? t("progress.timed") :
-                             t("progress.bodyweight")}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
+                filteredExercises.map((exercise) => (
+                  <ExerciseSelectionCard
+                    key={exercise.id}
+                    exercise={exercise}
+                    isFavorite={favoriteExercises?.has(exercise.id) || false}
+                    onSelect={handleSelectExercise}
+                    onToggleFavorite={handleToggleFavorite}
+                  />
+                ))
               )}
             </div>
             </>

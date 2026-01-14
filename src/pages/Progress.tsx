@@ -1,7 +1,7 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { format, subDays, startOfMonth, endOfMonth, startOfDay, endOfDay, parseISO, subMonths, isWithinInterval } from "date-fns";
-import { ru, enUS, es, ptBR, de, fr } from "date-fns/locale";
+import { getDateLocale } from "@/lib/dateLocales";
 import { useTranslation } from "react-i18next";
 import { getExerciseName } from "@/lib/i18n";
 import { Zap, Repeat, Plus, Trophy, Medal, Activity, Clock, Weight, TrendingUp, User, Dumbbell, Timer, LayoutGrid, ChevronDown, Calendar as CalendarIcon, X, Users, FileText, LogIn } from "lucide-react";
@@ -30,18 +30,130 @@ import { useFriends } from "@/hooks/useFriends";
 import { useUnits } from "@/hooks/useUnits";
 import { AuthModal } from "@/components/AuthModal";
 
-const DATE_LOCALES: Record<string, Locale> = {
-  en: enUS,
-  es: es,
-  "pt-BR": ptBR,
-  de: de,
-  fr: fr,
-  ru: ru,
-};
+// Leaderboard entry type
+interface LeaderboardEntry {
+  user_id: string;
+  display_name: string | null;
+  username: string | null;
+  avatar: string | null;
+  current_weight: number | null;
+  height: number | null;
+  max_reps: number;
+  total_reps: number;
+  max_weight: number;
+  max_distance: number;
+  total_distance: number;
+  max_plank_seconds: number;
+  total_plank_seconds: number;
+}
+
+// Memoized Leaderboard Row component
+interface LeaderboardRowProps {
+  entry: LeaderboardEntry;
+  index: number;
+  isCurrentUser: boolean;
+  isFriend: boolean;
+  onNavigate: (userId: string) => void;
+  convertWeight: (val: number) => number;
+  convertDistance: (val: number) => number;
+  convertHeight: (val: number) => number | { feet: number; inches: number };
+  units: { weight: string; distance: string };
+}
+
+const LeaderboardRow = memo(function LeaderboardRow({
+  entry,
+  index,
+  isCurrentUser,
+  isFriend,
+  onNavigate,
+  convertWeight,
+  convertDistance,
+  convertHeight,
+  units,
+}: LeaderboardRowProps) {
+  const { t } = useTranslation();
+  const canViewWorkouts = isCurrentUser || isFriend;
+
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-2 p-2.5 rounded-lg transition-colors",
+        canViewWorkouts && "cursor-pointer hover:bg-muted/50",
+        !canViewWorkouts && "cursor-default",
+        index === 0 && "bg-yellow-500/10 border border-yellow-500/20",
+        index === 0 && canViewWorkouts && "hover:bg-yellow-500/20",
+        index === 1 && "bg-gray-400/10 border border-gray-400/20",
+        index === 1 && canViewWorkouts && "hover:bg-gray-400/20",
+        index === 2 && "bg-orange-600/10 border border-orange-600/20",
+        index === 2 && canViewWorkouts && "hover:bg-orange-600/20",
+        index > 2 && "bg-muted/30"
+      )}
+      onClick={() => canViewWorkouts && onNavigate(entry.user_id)}
+    >
+      {/* Rank */}
+      <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted font-bold text-xs shrink-0">
+        {index === 0 && <Medal className="h-4 w-4 text-yellow-500" />}
+        {index === 1 && <Medal className="h-4 w-4 text-gray-400" />}
+        {index === 2 && <Medal className="h-4 w-4 text-orange-600" />}
+        {index > 2 && <span>{index + 1}</span>}
+      </div>
+
+      {/* Avatar */}
+      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-xl shrink-0">
+        {entry.avatar || "👤"}
+      </div>
+
+      {/* User info */}
+      <div className="flex-1 min-w-0">
+        <div className="font-semibold text-foreground truncate">
+          {entry.display_name || t("common.anonymous")}
+        </div>
+        {entry.username && (
+          <div className="text-xs text-muted-foreground truncate">
+            @{entry.username}
+          </div>
+        )}
+        <div className="text-xs text-muted-foreground flex flex-wrap gap-x-2 gap-y-0.5">
+          {entry.current_weight && (
+            <span className="whitespace-nowrap">
+              {t("progress.weightTotal")}: {convertWeight(entry.current_weight)} {units.weight}
+            </span>
+          )}
+          {entry.height && (
+            <span className="whitespace-nowrap">
+              {t("progress.heightLabel")}: {(() => {
+                const h = convertHeight(entry.height);
+                if (typeof h === "object") {
+                  return `${h.feet}'${h.inches}"`;
+                }
+                return `${h} ${t("units.cm")}`;
+              })()}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="text-right shrink-0 ml-2">
+        <div className="font-bold text-base sm:text-lg text-foreground whitespace-nowrap">
+          {entry.max_plank_seconds > 0 ? `${(entry.max_plank_seconds / 60).toFixed(2)} ${t("units.min")}` :
+           entry.max_distance > 0 ? `${convertDistance(entry.max_distance)} ${units.distance}` :
+           entry.max_weight > 0 ? `${convertWeight(entry.max_weight)} ${units.weight}` :
+           `${entry.max_reps} ${t("units.times")}`}
+        </div>
+        <div className="text-xs text-muted-foreground whitespace-nowrap">
+          {entry.max_plank_seconds > 0 ? `${t("progress.totalLabel")}: ${(entry.total_plank_seconds / 60).toFixed(2)} ${t("units.min")}` :
+           entry.max_distance > 0 ? `${t("progress.totalLabel")}: ${convertDistance(entry.total_distance).toFixed(1)} ${units.distance}` :
+           `${t("progress.totalLabel")}: ${entry.total_reps} ${t("units.times")}`}
+        </div>
+      </div>
+    </div>
+  );
+});
 
 export default function Progress() {
   const { t, i18n } = useTranslation();
-  const dateLocale = DATE_LOCALES[i18n.language] || enUS;
+  const dateLocale = getDateLocale(i18n.language);
   const navigate = useNavigate();
   // Use offline hooks for workouts and exercises (can view progress offline)
   const { data: workouts } = useOfflineWorkouts();
@@ -1266,80 +1378,20 @@ export default function Progress() {
           {/* Leaderboard table */}
           {leaderboardData && leaderboardData.length > 0 ? (
             <div className="space-y-2">
-              {leaderboardData.map((entry, index) => {
-                const isCurrentUser = entry.user_id === effectiveUserId;
-                const isFriend = friendIds.includes(entry.user_id);
-                const canViewWorkouts = isCurrentUser || isFriend;
-
-                return (
-                <div
+              {leaderboardData.map((entry, index) => (
+                <LeaderboardRow
                   key={entry.user_id}
-                  className={cn(
-                    "flex items-center gap-2 p-2.5 rounded-lg transition-colors",
-                    canViewWorkouts && "cursor-pointer hover:bg-muted/50",
-                    !canViewWorkouts && "cursor-default",
-                    index === 0 && "bg-yellow-500/10 border border-yellow-500/20",
-                    index === 0 && canViewWorkouts && "hover:bg-yellow-500/20",
-                    index === 1 && "bg-gray-400/10 border border-gray-400/20",
-                    index === 1 && canViewWorkouts && "hover:bg-gray-400/20",
-                    index === 2 && "bg-orange-600/10 border border-orange-600/20",
-                    index === 2 && canViewWorkouts && "hover:bg-orange-600/20",
-                    index > 2 && "bg-muted/30"
-                  )}
-                  onClick={() => canViewWorkouts && navigate(`/?user=${entry.user_id}`)}
-                >
-                  {/* Rank */}
-                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted font-bold text-xs shrink-0">
-                    {index === 0 && <Medal className="h-4 w-4 text-yellow-500" />}
-                    {index === 1 && <Medal className="h-4 w-4 text-gray-400" />}
-                    {index === 2 && <Medal className="h-4 w-4 text-orange-600" />}
-                    {index > 2 && <span>{index + 1}</span>}
-                  </div>
-
-                  {/* Avatar */}
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-xl shrink-0">
-                    {entry.avatar || "👤"}
-                  </div>
-
-                  {/* User info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-foreground truncate">
-                      {entry.display_name || t("common.anonymous")}
-                    </div>
-                    {entry.username && (
-                      <div className="text-xs text-muted-foreground truncate">
-                        @{entry.username}
-                      </div>
-                    )}
-                    <div className="text-xs text-muted-foreground flex flex-wrap gap-x-2 gap-y-0.5">
-                      {entry.current_weight && <span className="whitespace-nowrap">{t("progress.weightTotal")}: {convertWeight(entry.current_weight)} {units.weight}</span>}
-                      {entry.height && <span className="whitespace-nowrap">{t("progress.heightLabel")}: {(() => {
-                        const h = convertHeight(entry.height);
-                        if (typeof h === "object") {
-                          return `${h.feet}'${h.inches}"`;
-                        }
-                        return `${h} ${t("units.cm")}`;
-                      })()}</span>}
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="text-right shrink-0 ml-2">
-                    <div className="font-bold text-base sm:text-lg text-foreground whitespace-nowrap">
-                      {entry.max_plank_seconds > 0 ? `${(entry.max_plank_seconds / 60).toFixed(2)} ${t("units.min")}` :
-                       entry.max_distance > 0 ? `${convertDistance(entry.max_distance)} ${units.distance}` :
-                       entry.max_weight > 0 ? `${convertWeight(entry.max_weight)} ${units.weight}` :
-                       `${entry.max_reps} ${t("units.times")}`}
-                    </div>
-                    <div className="text-xs text-muted-foreground whitespace-nowrap">
-                      {entry.max_plank_seconds > 0 ? `${t("progress.totalLabel")}: ${(entry.total_plank_seconds / 60).toFixed(2)} ${t("units.min")}` :
-                       entry.max_distance > 0 ? `${t("progress.totalLabel")}: ${convertDistance(entry.total_distance).toFixed(1)} ${units.distance}` :
-                       `${t("progress.totalLabel")}: ${entry.total_reps} ${t("units.times")}`}
-                    </div>
-                  </div>
-                </div>
-              );
-              })}
+                  entry={entry}
+                  index={index}
+                  isCurrentUser={entry.user_id === effectiveUserId}
+                  isFriend={friendIds.includes(entry.user_id)}
+                  onNavigate={(userId) => navigate(`/?user=${userId}`)}
+                  convertWeight={convertWeight}
+                  convertDistance={convertDistance}
+                  convertHeight={convertHeight}
+                  units={units}
+                />
+              ))}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">

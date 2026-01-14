@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { format, isWithinInterval, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, subMonths, parseISO, isToday, eachDayOfInterval, isSameDay, addMonths } from "date-fns";
-import { ru, enUS, es, ptBR, de, fr, Locale } from "date-fns/locale";
+import { getDateLocale } from "@/lib/dateLocales";
 import { Plus, Calendar as CalendarIcon, CalendarPlus, Trash2, Filter, X, Dumbbell, MessageSquare, List, ChevronLeft, ChevronRight, Activity, Timer, User, Layers, Route } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getExerciseName } from "@/lib/i18n";
@@ -40,18 +40,9 @@ import { useAllProfiles } from "@/hooks/useAllProfiles";
 import { useFriends } from "@/hooks/useFriends";
 import { ViewingUserBanner } from "@/components/ViewingUserBanner";
 
-const DATE_LOCALES: Record<string, Locale> = {
-  en: enUS,
-  es: es,
-  "pt-BR": ptBR,
-  de: de,
-  fr: fr,
-  ru: ru,
-};
-
 export default function Workouts() {
   const { t, i18n } = useTranslation();
-  const dateLocale = DATE_LOCALES[i18n.language] || enUS;
+  const dateLocale = getDateLocale(i18n.language);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, isGuest } = useAuth();

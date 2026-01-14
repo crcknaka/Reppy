@@ -170,8 +170,9 @@ export default function Workouts() {
     return day === 0 || day === 6;
   };
 
-  const getIntensity = (workout: typeof workouts extends (infer T)[] | undefined ? T : never) => {
-    const sets = workout?.workout_sets?.length || 0;
+  const getIntensity = (dayWorkouts: (typeof workouts extends (infer T)[] | undefined ? T : never)[] | undefined) => {
+    if (!dayWorkouts || dayWorkouts.length === 0) return 0;
+    const sets = dayWorkouts.reduce((total, w) => total + (w?.workout_sets?.length || 0), 0);
     if (sets === 0) return 0;
     if (sets <= 5) return 1;
     if (sets <= 10) return 2;
@@ -200,21 +201,23 @@ export default function Workouts() {
   ], [t]);
 
   // Memoize workout lookup map for O(1) access instead of O(n) per day
+  // Now stores arrays to support multiple workouts per day
   const workoutsByDate = useMemo(() => {
-    if (!workouts) return new Map<string, typeof workouts[0]>();
-    const map = new Map<string, typeof workouts[0]>();
+    if (!workouts) return new Map<string, typeof workouts>();
+    const map = new Map<string, typeof workouts>();
     workouts.forEach((w) => {
-      map.set(w.date, w);
+      const existing = map.get(w.date) || [];
+      map.set(w.date, [...existing, w]);
     });
     return map;
   }, [workouts]);
 
-  const getWorkoutForDate = (date: Date) => {
+  const getWorkoutsForDate = (date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
     return workoutsByDate.get(dateStr);
   };
 
-  const selectedWorkout = selectedCalendarDate ? getWorkoutForDate(selectedCalendarDate) : null;
+  const selectedWorkouts = selectedCalendarDate ? getWorkoutsForDate(selectedCalendarDate) : null;
 
   // Filter workouts by date range
   const filteredWorkouts = useMemo(() => {
@@ -718,8 +721,9 @@ export default function Workouts() {
 
                 {/* Days of the month */}
                 {calendarDays.map((day) => {
-                  const workout = getWorkoutForDate(day);
-                  const intensity = getIntensity(workout);
+                  const dayWorkouts = getWorkoutsForDate(day);
+                  const hasWorkouts = dayWorkouts && dayWorkouts.length > 0;
+                  const intensity = getIntensity(dayWorkouts);
                   const isTodayDate = isToday(day);
                   const isSelected = selectedCalendarDate && isSameDay(day, selectedCalendarDate);
 
@@ -727,7 +731,7 @@ export default function Workouts() {
                     <button
                       key={day.toISOString()}
                       onClick={() => {
-                        if (workout) {
+                        if (hasWorkouts) {
                           setSelectedCalendarDate(day);
                         }
                       }}
@@ -735,8 +739,8 @@ export default function Workouts() {
                         "aspect-square rounded-md flex flex-col items-center justify-center gap-0.5 transition-all duration-200",
                         isTodayDate && "ring-1 ring-primary ring-offset-1 ring-offset-background",
                         isSelected && "bg-primary/20",
-                        workout && "cursor-pointer hover:bg-muted",
-                        !workout && "cursor-default"
+                        hasWorkouts && "cursor-pointer hover:bg-muted",
+                        !hasWorkouts && "cursor-default"
                       )}
                     >
                       <span
@@ -747,16 +751,35 @@ export default function Workouts() {
                       >
                         {format(day, "d")}
                       </span>
-                      {workout && (
-                        <div
-                          className={cn(
-                            "w-1.5 h-1.5 rounded-full",
-                            intensity === 1 && "bg-primary/30",
-                            intensity === 2 && "bg-primary/50",
-                            intensity === 3 && "bg-primary/75",
-                            intensity >= 4 && "bg-primary"
+                      {hasWorkouts && (
+                        <div className="flex gap-0.5">
+                          {dayWorkouts.length > 1 ? (
+                            // Multiple workouts - show count indicator
+                            <div className="flex items-center gap-0.5">
+                              <div
+                                className={cn(
+                                  "w-1.5 h-1.5 rounded-full",
+                                  intensity === 1 && "bg-primary/30",
+                                  intensity === 2 && "bg-primary/50",
+                                  intensity === 3 && "bg-primary/75",
+                                  intensity >= 4 && "bg-primary"
+                                )}
+                              />
+                              <span className="text-[8px] text-primary font-medium">×{dayWorkouts.length}</span>
+                            </div>
+                          ) : (
+                            // Single workout - just show dot
+                            <div
+                              className={cn(
+                                "w-1.5 h-1.5 rounded-full",
+                                intensity === 1 && "bg-primary/30",
+                                intensity === 2 && "bg-primary/50",
+                                intensity === 3 && "bg-primary/75",
+                                intensity >= 4 && "bg-primary"
+                              )}
+                            />
                           )}
-                        />
+                        </div>
                       )}
                     </button>
                   );
@@ -779,108 +802,115 @@ export default function Workouts() {
 
           {/* Selected workout details */}
           <div className="space-y-4">
-            {selectedWorkout ? (
-              <Card className="animate-scale-in">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="font-semibold">{format(new Date(selectedWorkout.date), "d MMMM", { locale: dateLocale })}</span>
-                    <Button size="sm" onClick={() => navigate(`/workout/${selectedWorkout.id}`)}>
-                      {t("common.open")}
-                    </Button>
-                  </div>
-                  {selectedWorkout.workout_sets && selectedWorkout.workout_sets.length > 0 ? (
-                    <div className="space-y-2">
-                      {Object.values(
-                        selectedWorkout.workout_sets.reduce((acc, set) => {
-                          const exerciseId = set.exercise_id;
-                          if (!acc[exerciseId]) {
-                            acc[exerciseId] = {
-                              name: set.exercise?.name || t("exercises.exercise"),
-                              type: set.exercise?.type || "weighted",
-                              name_translations: set.exercise?.name_translations,
-                              sets: 0,
-                              totalReps: 0,
-                              maxWeight: 0,
-                              totalDistance: 0,
-                              totalDuration: 0,
-                              totalPlankSeconds: 0,
-                            };
-                          }
-                          acc[exerciseId].sets++;
-                          acc[exerciseId].totalReps += set.reps || 0;
-                          if (set.weight && set.weight > acc[exerciseId].maxWeight) {
-                            acc[exerciseId].maxWeight = set.weight;
-                          }
-                          acc[exerciseId].totalDistance += set.distance_km || 0;
-                          acc[exerciseId].totalDuration += set.duration_minutes || 0;
-                          acc[exerciseId].totalPlankSeconds += set.plank_seconds || 0;
-                          return acc;
-                        }, {} as Record<string, {
-                          name: string;
-                          type: string;
-                          name_translations?: any;
-                          sets: number;
-                          totalReps: number;
-                          maxWeight: number;
-                          totalDistance: number;
-                          totalDuration: number;
-                          totalPlankSeconds: number;
-                        }>)
-                      ).map((exercise, i) => (
-                        <div key={i} className="p-2.5 bg-muted/50 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            {exercise.type === "cardio" ? (
-                              <Activity className="h-4 w-4 text-primary flex-shrink-0" />
-                            ) : exercise.type === "weighted" ? (
-                              <Dumbbell className="h-4 w-4 text-primary flex-shrink-0" />
-                            ) : exercise.type === "timed" ? (
-                              <Timer className="h-4 w-4 text-primary flex-shrink-0" />
-                            ) : (
-                              <User className="h-4 w-4 text-primary flex-shrink-0" />
-                            )}
-                            <span className="font-medium text-sm truncate">{getExerciseName(exercise.name, exercise.name_translations)}</span>
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1 ml-6">
-                            {exercise.type === "cardio" ? (
-                              <>{exercise.sets} {t("workouts.sets")} · {exercise.totalDistance.toFixed(1)} {t("units.km")} · {exercise.totalDuration} {t("units.min")}</>
-                            ) : exercise.type === "timed" ? (
-                              <>{exercise.sets} {t("workouts.sets")} · {exercise.totalPlankSeconds} {t("units.sec")}</>
-                            ) : exercise.type === "bodyweight" ? (
-                              <>{exercise.sets} {t("workouts.sets")} · {exercise.totalReps} {t("units.reps")}</>
-                            ) : (
-                              <>{exercise.sets} {t("workouts.sets")} · {exercise.totalReps} {t("units.reps")}{exercise.maxWeight > 0 && ` · ${exercise.maxWeight} ${t("units.kg")}`}</>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-
-                      {/* Workout notes */}
-                      {selectedWorkout.notes && (
-                        <div className="flex items-start gap-2 p-2.5 bg-muted/30 rounded-lg mt-2">
-                          <MessageSquare className="h-3.5 w-3.5 text-primary flex-shrink-0 mt-0.5" />
-                          <p className="text-xs text-muted-foreground line-clamp-2">{selectedWorkout.notes}</p>
-                        </div>
-                      )}
-
-                      {/* Photo */}
-                      {selectedWorkout.photo_url && (
-                        <div className="mt-3">
-                          <img
-                            src={selectedWorkout.photo_url}
-                            alt=""
-                            className="w-full h-32 lg:h-48 rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                            onClick={() => navigate(`/workout/${selectedWorkout.id}`)}
-                          />
-                        </div>
-                      )}
+            {selectedWorkouts && selectedWorkouts.length > 0 ? (
+              selectedWorkouts.map((workout, workoutIndex) => (
+                <Card key={workout.id} className="animate-scale-in">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="font-semibold">
+                        {format(new Date(workout.date), "d MMMM", { locale: dateLocale })}
+                        {selectedWorkouts.length > 1 && (
+                          <span className="text-muted-foreground ml-1">#{workoutIndex + 1}</span>
+                        )}
+                      </span>
+                      <Button size="sm" onClick={() => navigate(`/workout/${workout.id}`)}>
+                        {t("common.open")}
+                      </Button>
                     </div>
-                  ) : (
-                    <p className="text-muted-foreground text-sm text-center py-4">
-                      {t("workouts.noEntries")}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
+                    {workout.workout_sets && workout.workout_sets.length > 0 ? (
+                      <div className="space-y-2">
+                        {Object.values(
+                          workout.workout_sets.reduce((acc, set) => {
+                            const exerciseId = set.exercise_id;
+                            if (!acc[exerciseId]) {
+                              acc[exerciseId] = {
+                                name: set.exercise?.name || t("exercises.exercise"),
+                                type: set.exercise?.type || "weighted",
+                                name_translations: set.exercise?.name_translations,
+                                sets: 0,
+                                totalReps: 0,
+                                maxWeight: 0,
+                                totalDistance: 0,
+                                totalDuration: 0,
+                                totalPlankSeconds: 0,
+                              };
+                            }
+                            acc[exerciseId].sets++;
+                            acc[exerciseId].totalReps += set.reps || 0;
+                            if (set.weight && set.weight > acc[exerciseId].maxWeight) {
+                              acc[exerciseId].maxWeight = set.weight;
+                            }
+                            acc[exerciseId].totalDistance += set.distance_km || 0;
+                            acc[exerciseId].totalDuration += set.duration_minutes || 0;
+                            acc[exerciseId].totalPlankSeconds += set.plank_seconds || 0;
+                            return acc;
+                          }, {} as Record<string, {
+                            name: string;
+                            type: string;
+                            name_translations?: any;
+                            sets: number;
+                            totalReps: number;
+                            maxWeight: number;
+                            totalDistance: number;
+                            totalDuration: number;
+                            totalPlankSeconds: number;
+                          }>)
+                        ).map((exercise, i) => (
+                          <div key={i} className="p-2.5 bg-muted/50 rounded-lg">
+                            <div className="flex items-center gap-2">
+                              {exercise.type === "cardio" ? (
+                                <Activity className="h-4 w-4 text-primary flex-shrink-0" />
+                              ) : exercise.type === "weighted" ? (
+                                <Dumbbell className="h-4 w-4 text-primary flex-shrink-0" />
+                              ) : exercise.type === "timed" ? (
+                                <Timer className="h-4 w-4 text-primary flex-shrink-0" />
+                              ) : (
+                                <User className="h-4 w-4 text-primary flex-shrink-0" />
+                              )}
+                              <span className="font-medium text-sm truncate">{getExerciseName(exercise.name, exercise.name_translations)}</span>
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-1 ml-6">
+                              {exercise.type === "cardio" ? (
+                                <>{exercise.sets} {t("workouts.sets")} · {exercise.totalDistance.toFixed(1)} {t("units.km")} · {exercise.totalDuration} {t("units.min")}</>
+                              ) : exercise.type === "timed" ? (
+                                <>{exercise.sets} {t("workouts.sets")} · {exercise.totalPlankSeconds} {t("units.sec")}</>
+                              ) : exercise.type === "bodyweight" ? (
+                                <>{exercise.sets} {t("workouts.sets")} · {exercise.totalReps} {t("units.reps")}</>
+                              ) : (
+                                <>{exercise.sets} {t("workouts.sets")} · {exercise.totalReps} {t("units.reps")}{exercise.maxWeight > 0 && ` · ${exercise.maxWeight} ${t("units.kg")}`}</>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Workout notes */}
+                        {workout.notes && (
+                          <div className="flex items-start gap-2 p-2.5 bg-muted/30 rounded-lg mt-2">
+                            <MessageSquare className="h-3.5 w-3.5 text-primary flex-shrink-0 mt-0.5" />
+                            <p className="text-xs text-muted-foreground line-clamp-2">{workout.notes}</p>
+                          </div>
+                        )}
+
+                        {/* Photo */}
+                        {workout.photo_url && (
+                          <div className="mt-3">
+                            <img
+                              src={workout.photo_url}
+                              alt=""
+                              className="w-full h-32 lg:h-48 rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => navigate(`/workout/${workout.id}`)}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground text-sm text-center py-4">
+                        {t("workouts.noEntries")}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))
             ) : (
               <Card className="hidden lg:block">
                 <CardContent className="p-8 text-center">

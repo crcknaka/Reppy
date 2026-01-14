@@ -63,6 +63,7 @@
     "resetEmailError": "Fehler beim Senden der E-Mail",
     "orContinueWith": "oder fortfahren mit",
     "continueWithGoogle": "Mit Google fortfahren",
+    "continueAsGuest": "Als Gast fortfahren",
     "googleError": "Fehler bei Google-Anmeldung"
   },
   "settings": {
@@ -661,6 +662,39 @@
       "privacy": "Datenschutzrichtlinie",
       "terms": "Nutzungsbedingungen"
     }
+  },
+  "guest": {
+    "reminder": {
+      "title": "Toll gemacht!",
+      "message": "Du hast {{count}} Trainings absolviert! Erstelle ein Konto, um deinen Fortschritt zu sichern.",
+      "benefits": "Vorteile eines Kontos:",
+      "benefit1": "Cloud-Backup",
+      "benefit2": "Geräte-Synchronisierung",
+      "benefit3": "Mit Freunden verbinden",
+      "benefit4": "Daten nie verlieren",
+      "later": "Vielleicht später",
+      "createAccount": "Kostenloses Konto erstellen"
+    },
+    "friends": {
+      "title": "Mit Freunden verbinden",
+      "description": "Erstelle ein Konto, um Freunde hinzuzufügen, Trainings zu teilen und euch gegenseitig zu motivieren!",
+      "dataPreserved": "Alle deine Trainingsdaten bleiben erhalten",
+      "createAccount": "Kostenloses Konto erstellen",
+      "login": "Ich habe ein Konto",
+      "continueWithGoogle": "Mit Google fortfahren",
+      "benefit1": "Cloud-Backup",
+      "benefit2": "Geräte synchronisieren",
+      "benefit3": "Datensicherheit"
+    },
+    "settings": {
+      "title": "Konto erstellen",
+      "subtitle": "Fortschritt speichern und alle Funktionen freischalten"
+    },
+    "leaderboard": {
+      "title": "Rangliste beitreten",
+      "description": "Erstelle ein Konto, um zu sehen, wie du dich mit anderen Athleten misst und um die Top-Plätze zu kämpfen!"
+    },
+    "createAccount": "Konto erstellen"
   },
   "admin": {
     "title": "Admin-Panel",

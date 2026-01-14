@@ -93,13 +93,14 @@ function PageLoader() {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, isGuest } = useAuth();
 
   if (loading) {
     return <PageLoader />;
   }
 
-  if (!user) {
+  // Allow access if authenticated OR in guest mode
+  if (!user && !isGuest) {
     return <Navigate to="/auth" replace />;
   }
 

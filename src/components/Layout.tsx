@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { usePendingRequestsCount } from "@/hooks/useFriends";
 import { useProfile } from "@/hooks/useProfile";
 import { useShowAdminNav } from "@/hooks/useShowAdminNav";
+import { GuestRegistrationReminder } from "@/components/GuestRegistrationReminder";
 
 interface LayoutProps {
   children: ReactNode;
@@ -32,13 +33,13 @@ const settingsNavItem: NavItem = { to: "/settings", icon: Settings, labelKey: "n
 
 export default function Layout({ children }: LayoutProps) {
   const { t } = useTranslation();
-  const { signOut } = useAuth();
+  const { signOut, isGuest } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const logoSrc = resolvedTheme === "dark" ? "/logo-white.png" : "/logo-black.png";
   const { data: pendingCount = 0 } = usePendingRequestsCount();
-  const hasPendingRequests = pendingCount > 0;
+  const hasPendingRequests = pendingCount > 0 && !isGuest;
   const { data: profile } = useProfile();
   const { showAdminNav } = useShowAdminNav();
 
@@ -55,6 +56,9 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* Guest Registration Reminder Dialog */}
+      <GuestRegistrationReminder />
+
       {/* Main Content */}
       <main className="flex-1 pb-24 md:pb-8 md:ml-64">
         <div className="container max-w-3xl py-6 md:py-8 overflow-x-hidden">

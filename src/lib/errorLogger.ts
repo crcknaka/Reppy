@@ -56,8 +56,14 @@ async function flushLogs(): Promise<void> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
 
+    // Skip logging for unauthenticated users (guests)
+    // RLS policies require authenticated user
+    if (!user) {
+      return;
+    }
+
     const logs = logsToSend.map((entry) => ({
-      user_id: user?.id || null,
+      user_id: user.id,
       level: entry.level,
       message: entry.message.slice(0, 1000), // Limit message length
       stack: entry.stack?.slice(0, 5000) || null, // Limit stack length

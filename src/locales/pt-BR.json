@@ -63,6 +63,7 @@
     "resetEmailError": "Erro ao enviar email",
     "orContinueWith": "ou continuar com",
     "continueWithGoogle": "Continuar com Google",
+    "continueAsGuest": "Continuar como convidado",
     "googleError": "Erro ao entrar com Google"
   },
   "settings": {
@@ -660,6 +661,39 @@
       "privacy": "Política de Privacidade",
       "terms": "Termos de Serviço"
     }
+  },
+  "guest": {
+    "reminder": {
+      "title": "Você está indo muito bem!",
+      "message": "Você completou {{count}} treinos! Crie uma conta para manter seu progresso seguro.",
+      "benefits": "Benefícios de uma conta:",
+      "benefit1": "Backup na nuvem",
+      "benefit2": "Sincronização entre dispositivos",
+      "benefit3": "Conectar com amigos",
+      "benefit4": "Nunca perder dados",
+      "later": "Talvez depois",
+      "createAccount": "Criar Conta Grátis"
+    },
+    "friends": {
+      "title": "Conecte-se com Amigos",
+      "description": "Crie uma conta para adicionar amigos, compartilhar treinos e se manterem motivados juntos!",
+      "dataPreserved": "Todos os seus dados de treino serão preservados",
+      "createAccount": "Criar Conta Grátis",
+      "login": "Tenho uma conta",
+      "continueWithGoogle": "Continuar com Google",
+      "benefit1": "Backup na nuvem",
+      "benefit2": "Sincronizar dispositivos",
+      "benefit3": "Segurança de dados"
+    },
+    "settings": {
+      "title": "Criar uma Conta",
+      "subtitle": "Salve seu progresso e desbloqueie todos os recursos"
+    },
+    "leaderboard": {
+      "title": "Junte-se ao Ranking",
+      "description": "Crie uma conta para ver como você se classifica entre outros atletas e compita pelos primeiros lugares!"
+    },
+    "createAccount": "Criar Conta"
   },
   "admin": {
     "title": "Painel Admin",

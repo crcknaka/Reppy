@@ -43,7 +43,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOffline } from "@/contexts/OfflineContext";
 import { useUserProfile } from "@/hooks/useProfile";
-import { uploadWorkoutPhoto, deleteWorkoutPhoto, validateImageFile } from "@/lib/photoUpload";
+import { uploadWorkoutPhoto, deleteWorkoutPhoto, validateImageFile, compressImage } from "@/lib/photoUpload";
 import { ViewingUserBanner } from "@/components/ViewingUserBanner";
 import { ExerciseTimer } from "@/components/ExerciseTimer";
 import { useUnits } from "@/hooks/useUnits";
@@ -64,7 +64,7 @@ export default function WorkoutDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, effectiveUserId, isGuest } = useAuth();
   const { isOnline } = useOffline();
   // Use offline-first hooks for data
   const { data: workout, isLoading: isWorkoutLoading, isFetching, isError } = useOfflineSingleWorkout(id);
@@ -78,8 +78,8 @@ export default function WorkoutDetail() {
   const updateWorkout = useOfflineUpdateWorkout();
   const { data: allTimeBests } = useUserAllTimeBests(user?.id, id);
 
-  // Check if current user is the owner
-  const isOwner = workout?.user_id === user?.id;
+  // Check if current user is the owner (works for both authenticated users and guests)
+  const isOwner = workout?.user_id === effectiveUserId;
 
   // Fetch workout owner's profile for banner (only when viewing others)
   const { data: workoutOwnerProfile } = useUserProfile(!isOwner && workout ? workout.user_id : null);
@@ -153,8 +153,8 @@ export default function WorkoutDetail() {
         setSelectedExercise(exercise);
         setDialogOpen(true);
         // Auto-fill last set data for all exercise types (if enabled)
-        if (autoFillEnabled && user?.id) {
-          getLastSetForExercise(exercise.id, user.id).then((lastData) => {
+        if (autoFillEnabled && effectiveUserId) {
+          getLastSetForExercise(exercise.id, effectiveUserId).then((lastData) => {
             if (!lastData) return;
             switch (exercise.type) {
               case "weighted":
@@ -178,7 +178,7 @@ export default function WorkoutDetail() {
         navigate(location.pathname, { replace: true, state: {} });
       }
     }
-  }, [location.state, exercises, navigate, location.pathname, user?.id, convertWeight, convertDistance, autoFillEnabled]);
+  }, [location.state, exercises, navigate, location.pathname, effectiveUserId, convertWeight, convertDistance, autoFillEnabled]);
 
   // Group sets by exercise - must be before early returns to follow hooks rules
   const setsByExercise = useMemo(() => {
@@ -321,11 +321,11 @@ export default function WorkoutDetail() {
   const handleSelectExercise = async (exercise: Exercise) => {
     setSelectedExercise(exercise);
 
-    // Skip auto-fill if disabled or no user
-    if (!autoFillEnabled || !user?.id) return;
+    // Skip auto-fill if disabled or no effective user
+    if (!autoFillEnabled || !effectiveUserId) return;
 
     try {
-      const lastData = await getLastSetForExercise(exercise.id, user.id);
+      const lastData = await getLastSetForExercise(exercise.id, effectiveUserId);
       if (!lastData) return;
 
       switch (exercise.type) {
@@ -537,7 +537,7 @@ export default function WorkoutDetail() {
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !workout || !user) return;
+    if (!file || !workout || !effectiveUserId) return;
 
     // Validate file
     const validation = validateImageFile(file);
@@ -548,7 +548,22 @@ export default function WorkoutDetail() {
 
     setIsUploadingPhoto(true);
     try {
-      const photoUrl = await uploadWorkoutPhoto(file, user.id, workout.id);
+      let photoUrl: string;
+
+      if (isGuest) {
+        // For guests: compress and store as base64 data URL locally
+        const compressedFile = await compressImage(file);
+        const reader = new FileReader();
+        photoUrl = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(compressedFile);
+        });
+      } else {
+        // For authenticated users: upload to Supabase Storage
+        photoUrl = await uploadWorkoutPhoto(file, effectiveUserId, workout.id);
+      }
+
       await updateWorkout.mutateAsync({
         workoutId: workout.id,
         photo_url: photoUrl,
@@ -568,7 +583,10 @@ export default function WorkoutDetail() {
     if (!workout?.photo_url) return;
 
     try {
-      await deleteWorkoutPhoto(workout.photo_url);
+      // Only delete from Supabase Storage if it's a URL (not base64 for guests)
+      if (!isGuest && !workout.photo_url.startsWith("data:")) {
+        await deleteWorkoutPhoto(workout.photo_url);
+      }
       await updateWorkout.mutateAsync({
         workoutId: workout.id,
         photo_url: null,
@@ -683,7 +701,7 @@ export default function WorkoutDetail() {
             </span>
           </div>
         </div>
-        {isOwner && (
+        {isOwner && !isGuest && (
           <>
             <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
               <DialogTrigger asChild>
@@ -747,7 +765,12 @@ export default function WorkoutDetail() {
               </DialogContent>
             </Dialog>
 
-            {/* Lock/Unlock Button */}
+          </>
+        )}
+
+        {/* Lock/Unlock Button - available for owner (including guests) */}
+        {isOwner && (
+          <>
             {workout?.is_locked ? (
               <>
                 <Button

@@ -4,7 +4,7 @@ import { format, subDays, startOfMonth, endOfMonth, startOfDay, endOfDay, parseI
 import { ru, enUS, es, ptBR, de, fr } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
 import { getExerciseName } from "@/lib/i18n";
-import { Zap, Repeat, Plus, Trophy, Medal, Activity, Clock, Weight, TrendingUp, User, Dumbbell, Timer, LayoutGrid, ChevronDown, Calendar as CalendarIcon, X, Users, FileText } from "lucide-react";
+import { Zap, Repeat, Plus, Trophy, Medal, Activity, Clock, Weight, TrendingUp, User, Dumbbell, Timer, LayoutGrid, ChevronDown, Calendar as CalendarIcon, X, Users, FileText, LogIn } from "lucide-react";
 import { PdfExportButton } from "@/components/PdfExportButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -47,7 +47,7 @@ export default function Progress() {
   const { data: exercises } = useOfflineExercises();
   const { data: profile } = useOfflineProfile();
   const { isOnline } = useOffline();
-  const { user } = useAuth();
+  const { user, effectiveUserId, isGuest, signInWithGoogle } = useAuth();
   const { toast } = useToast();
   const { units, convertWeight, convertDistance, convertHeight, toMetricWeight } = useUnits();
   const [selectedExercise, setSelectedExercise] = useState<string>("all");
@@ -65,6 +65,8 @@ export default function Progress() {
   const [leaderboardPeriod, setLeaderboardPeriod] = useState<"all" | "month" | "today">("all");
   const [leaderboardFriendsOnly, setLeaderboardFriendsOnly] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  // State for fallback preset exercises (when offline cache is empty)
+  const [fallbackPresetExercises, setFallbackPresetExercises] = useState<typeof exercises>([]);
 
   // Load friends data
   const { data: friends } = useFriends();
@@ -80,15 +82,41 @@ export default function Progress() {
 
   // Get all preset exercises for leaderboard (sorted by translated name)
   const leaderboardExercises = useMemo(() => {
-    if (!exercises) return [];
-    return exercises
+    const exerciseList = exercises && exercises.length > 0 ? exercises : fallbackPresetExercises;
+    if (!exerciseList || exerciseList.length === 0) return [];
+    return exerciseList
       .filter(e => e.is_preset)
       .sort((a, b) => {
         const nameA = getExerciseName(a.name, a.name_translations);
         const nameB = getExerciseName(b.name, b.name_translations);
         return nameA.localeCompare(nameB);
       });
-  }, [exercises, i18n.language]);
+  }, [exercises, fallbackPresetExercises, i18n.language]);
+
+  // Fallback: load preset exercises directly if main exercises list is empty
+  useEffect(() => {
+    if (exercises && exercises.length > 0) return;
+    if (fallbackPresetExercises.length > 0) return;
+    if (!isOnline) return;
+
+    const loadPresets = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("exercises")
+          .select("*")
+          .eq("is_preset", true)
+          .order("name");
+
+        if (!error && data) {
+          setFallbackPresetExercises(data as typeof exercises);
+        }
+      } catch {
+        // Ignore errors
+      }
+    };
+
+    loadPresets();
+  }, [exercises, fallbackPresetExercises.length, isOnline]);
 
   // Set default leaderboard exercise when exercises load
   useEffect(() => {
@@ -1116,13 +1144,48 @@ export default function Progress() {
         <CardHeader className="pb-2 pt-4 px-4">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Trophy className="h-4 w-4 text-primary" />
-            {t("progress.top10")} · {(() => {
+            {t("progress.top10")} {!isGuest && leaderboardExercise && `· ${(() => {
               const ex = exercises?.find(e => e.name === leaderboardExercise);
               return ex ? getExerciseName(ex.name, ex.name_translations) : leaderboardExercise;
-            })()}
+            })()}`}
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 pb-4 space-y-3">
+          {/* Guest CTA */}
+          {isGuest ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="p-4 bg-primary/10 rounded-full mb-4">
+                <Trophy className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">{t("guest.leaderboard.title")}</h3>
+              <p className="text-muted-foreground text-sm mb-4 max-w-[280px]">
+                {t("guest.leaderboard.description")}
+              </p>
+              <div className="space-y-2 w-full max-w-[200px]">
+                <Button
+                  className="w-full gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                  onClick={() => signInWithGoogle().catch(() => {})}
+                >
+                  <svg className="h-4 w-4" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                  {t("auth.continueWithGoogle")}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={() => navigate("/auth")}
+                >
+                  <LogIn className="h-4 w-4" />
+                  {t("guest.friends.loginWithEmail")}
+                </Button>
+              </div>
+            </div>
+          ) : (
+          <>
           {/* Friends filter toggle */}
           {friends && friends.length > 0 && (
             <div className="flex rounded-lg bg-muted p-1 gap-1">
@@ -1201,7 +1264,7 @@ export default function Progress() {
           {leaderboardData && leaderboardData.length > 0 ? (
             <div className="space-y-2">
               {leaderboardData.map((entry, index) => {
-                const isCurrentUser = entry.user_id === user?.id;
+                const isCurrentUser = entry.user_id === effectiveUserId;
                 const isFriend = friendIds.includes(entry.user_id);
                 const canViewWorkouts = isCurrentUser || isFriend;
 
@@ -1286,11 +1349,13 @@ export default function Progress() {
               </p>
             </div>
           )}
+          </>
+          )}
         </CardContent>
       </Card>
 
-      {/* Body Weight Chart */}
-      {currentWeight !== null && (
+      {/* Body Weight Chart (hidden for guests - requires server storage) */}
+      {currentWeight !== null && !isGuest && (
         <Card>
           <CardHeader className="pb-2 pt-4 px-4">
             <div className="flex items-center justify-between">
@@ -1350,7 +1415,8 @@ export default function Progress() {
         </Card>
       )}
 
-      {/* Body Weight Button */}
+      {/* Body Weight Button (hidden for guests - requires server storage) */}
+      {!isGuest && (
       <Dialog open={isWeightDialogOpen} onOpenChange={setIsWeightDialogOpen}>
         <DialogTrigger asChild>
           <Button className="w-full gap-2">
@@ -1389,6 +1455,7 @@ export default function Progress() {
           </div>
         </DialogContent>
       </Dialog>
+      )}
     </div>
   );
 }

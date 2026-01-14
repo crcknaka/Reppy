@@ -8,23 +8,23 @@ import type { Profile } from "@/hooks/useProfile";
 
 // Offline-first profile hook
 export function useOfflineProfile() {
-  const { user } = useAuth();
+  const { user, effectiveUserId, isGuest } = useAuth();
 
   return useQuery({
-    queryKey: ["profile", user?.id],
+    queryKey: ["profile", effectiveUserId],
     queryFn: async () => {
-      if (!user) return null;
+      if (!effectiveUserId) return null;
 
       // Always try cache first for instant display
-      const cachedProfile = await offlineDb.profiles.get(user.id);
+      const cachedProfile = await offlineDb.profiles.get(effectiveUserId);
 
-      // If online, try to refresh from server
-      if (navigator.onLine) {
+      // If online and not guest, try to refresh from server
+      if (navigator.onLine && !isGuest) {
         try {
           const { data, error } = await supabase
             .from("profiles")
             .select("*")
-            .eq("user_id", user.id)
+            .eq("user_id", effectiveUserId)
             .single();
 
           if (!error && data) {
@@ -48,9 +48,23 @@ export function useOfflineProfile() {
         return profile as Profile;
       }
 
+      // For guests, return a minimal profile
+      if (isGuest) {
+        return {
+          user_id: effectiveUserId,
+          display_name: null,
+          current_weight: null,
+          gender: null,
+          date_of_birth: null,
+          height: null,
+          avatar: null,
+          created_at: new Date().toISOString(),
+        } as Profile;
+      }
+
       return null;
     },
-    enabled: !!user,
+    enabled: !!effectiveUserId,
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes
   });
@@ -59,21 +73,21 @@ export function useOfflineProfile() {
 // Offline-first update profile mutation
 export function useOfflineUpdateProfile() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, effectiveUserId, isGuest } = useAuth();
 
   return useMutation({
     mutationFn: async (profileData: Partial<Profile>) => {
-      if (!user) throw new Error("User not authenticated");
+      if (!effectiveUserId) throw new Error("User not authenticated");
 
       // Get current profile from cache
-      const currentProfile = await offlineDb.profiles.get(user.id);
+      const currentProfile = await offlineDb.profiles.get(effectiveUserId);
 
       // Use navigator.onLine directly for most accurate online status
       const online = navigator.onLine;
 
       const updatedProfile: OfflineProfile = {
-        id: currentProfile?.id || user.id,
-        user_id: user.id,
+        id: currentProfile?.id || effectiveUserId,
+        user_id: effectiveUserId,
         display_name: currentProfile?.display_name || null,
         current_weight: currentProfile?.current_weight || null,
         gender: currentProfile?.gender || null,
@@ -90,13 +104,13 @@ export function useOfflineUpdateProfile() {
       // Save to IndexedDB immediately (optimistic update)
       await offlineDb.profiles.put(updatedProfile);
 
-      // If online, try to sync to server
-      if (online) {
+      // If online and not guest, try to sync to server
+      if (online && !isGuest) {
         try {
           const { data, error } = await supabase
             .from("profiles")
             .update(profileData)
-            .eq("user_id", user.id)
+            .eq("user_id", effectiveUserId)
             .select()
             .single();
 
@@ -115,11 +129,13 @@ export function useOfflineUpdateProfile() {
         }
       }
 
-      // Queue for sync when back online (if not already synced)
-      await syncQueue.enqueue("profiles", "update", user.id, {
-        ...profileData,
-        user_id: user.id,
-      });
+      // Queue for sync when back online (only for authenticated users)
+      if (!isGuest) {
+        await syncQueue.enqueue("profiles", "update", effectiveUserId, {
+          ...profileData,
+          user_id: effectiveUserId,
+        });
+      }
 
       // Return the updated profile from cache
       const { _synced, _lastModified, ...profile } = updatedProfile;

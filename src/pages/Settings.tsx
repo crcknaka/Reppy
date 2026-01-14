@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
 import { useNavigate, Link } from "react-router-dom";
-import { User, LogOut, Lock, Eye, EyeOff, ChevronDown, Sun, Moon, Monitor, Download, FileJson, FileSpreadsheet, Check, Loader2, CloudOff, Palette, Globe, Ruler, Sparkles, Settings as SettingsIcon, UserCircle, Calendar, Scale, RulerIcon, Database, KeyRound, ShieldCheck, Crown, AtSign, Trash2, AlertTriangle } from "lucide-react";
+import { User, LogOut, LogIn, Lock, Eye, EyeOff, ChevronDown, Sun, Moon, Monitor, Download, FileJson, FileSpreadsheet, Check, Loader2, CloudOff, Palette, Globe, Ruler, Sparkles, Settings as SettingsIcon, UserCircle, Calendar, Scale, RulerIcon, Database, KeyRound, ShieldCheck, Crown, AtSign, Trash2, AlertTriangle, UserPlus, Cloud, Smartphone, Users, Shield } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useOfflineProfile, useOfflineUpdateProfile, useOfflineWorkouts } from "@/offline";
 import { format } from "date-fns";
@@ -80,7 +80,7 @@ export default function Settings() {
   const { data: profile, isLoading } = useOfflineProfile();
   const { data: workouts } = useOfflineWorkouts();
   const updateProfile = useOfflineUpdateProfile();
-  const { signOut, updatePassword } = useAuth();
+  const { signOut, updatePassword, isGuest, signInWithGoogle } = useAuth();
   const deleteAccount = useDeleteAccount();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { accentColor, setAccentColor } = useAccentColor();
@@ -581,10 +581,86 @@ export default function Settings() {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════
+          GUEST ACCOUNT CTA (only for guests)
+      ═══════════════════════════════════════════════════════════════ */}
+      {isGuest && (
+        <Card className="overflow-hidden border-primary/20 shadow-md relative">
+          {/* Gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-primary/5" />
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative p-4 space-y-4">
+            {/* Header - compact for mobile */}
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10">
+                <UserPlus className="h-6 w-6 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-base">{t("guest.settings.title")}</h3>
+                <p className="text-xs text-muted-foreground">{t("guest.settings.subtitle")}</p>
+              </div>
+            </div>
+
+            {/* Benefits - 2x2 compact grid */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-background/60 border border-border/30">
+                <Cloud className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                <span className="text-[11px] leading-tight">{t("guest.reminder.benefit1")}</span>
+              </div>
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-background/60 border border-border/30">
+                <Smartphone className="h-4 w-4 text-green-500 flex-shrink-0" />
+                <span className="text-[11px] leading-tight">{t("guest.reminder.benefit2")}</span>
+              </div>
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-background/60 border border-border/30">
+                <Users className="h-4 w-4 text-purple-500 flex-shrink-0" />
+                <span className="text-[11px] leading-tight">{t("guest.reminder.benefit3")}</span>
+              </div>
+              <div className="flex items-center gap-2 p-2.5 rounded-lg bg-background/60 border border-border/30">
+                <Shield className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                <span className="text-[11px] leading-tight">{t("guest.reminder.benefit4")}</span>
+              </div>
+            </div>
+
+            {/* Action Buttons - optimized for mobile tap targets */}
+            <div className="space-y-2">
+              <Button
+                className="w-full gap-2 h-11 font-semibold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md shadow-primary/20 active:scale-[0.98] transition-transform"
+                onClick={signInWithGoogle}
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                {t("auth.continueWithGoogle")}
+              </Button>
+
+              <Button
+                variant="outline"
+                className="w-full gap-2 h-10 text-sm bg-background/50 active:scale-[0.98] transition-transform"
+                onClick={() => navigate("/auth")}
+              >
+                <LogIn className="h-4 w-4" />
+                {t("guest.friends.loginWithEmail")}
+              </Button>
+            </div>
+
+            {/* Data preserved note */}
+            <div className="flex items-center justify-center gap-1.5 pt-1">
+              <Check className="h-3.5 w-3.5 text-green-500" />
+              <span className="text-xs text-muted-foreground">{t("guest.friends.dataPreserved")}</span>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════
           ЕДИНЫЙ БЛОК НАСТРОЕК
       ═══════════════════════════════════════════════════════════════ */}
       <Card className="overflow-hidden">
-        {/* ─────────────────── СЕКЦИЯ: ПРОФИЛЬ ─────────────────── */}
+        {/* ─────────────────── СЕКЦИЯ: ПРОФИЛЬ (hidden for guests) ─────────────────── */}
+        {!isGuest && (
         <Collapsible open={profileOpen} onOpenChange={setProfileOpen}>
           <CollapsibleTrigger asChild>
             <div className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors">
@@ -870,9 +946,10 @@ export default function Settings() {
             </div>
           </CollapsibleContent>
         </Collapsible>
+        )}
 
         {/* Разделитель между секциями */}
-        <div className="border-t border-border" />
+        {!isGuest && <div className="border-t border-border" />}
 
         {/* ─────────────────── СЕКЦИЯ: ПРИЛОЖЕНИЕ ─────────────────── */}
         <Collapsible open={appOpen} onOpenChange={setAppOpen}>
@@ -1309,7 +1386,8 @@ export default function Settings() {
                 </div>
               </div>
 
-              {/* Delete Account */}
+              {/* Delete Account (hidden for guests) */}
+              {!isGuest && (
               <div className="border-t border-border/50 pt-4 mt-4">
                 <div className="flex items-center gap-3 py-3">
                   <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-red-500/10">
@@ -1402,14 +1480,16 @@ export default function Settings() {
                   </Dialog>
                 </div>
               </div>
+              )}
             </div>
           </CollapsibleContent>
         </Collapsible>
 
-        {/* Разделитель между секциями */}
-        <div className="border-t border-border" />
+        {/* Разделитель между секциями (only for authenticated users) */}
+        {!isGuest && <div className="border-t border-border" />}
 
-        {/* ─────────────────── СЕКЦИЯ: БЕЗОПАСНОСТЬ ─────────────────── */}
+        {/* ─────────────────── СЕКЦИЯ: БЕЗОПАСНОСТЬ (hidden for guests) ─────────────────── */}
+        {!isGuest && (
         <Collapsible open={securityOpen} onOpenChange={setSecurityOpen}>
           <CollapsibleTrigger asChild>
             <div className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors">
@@ -1506,11 +1586,13 @@ export default function Settings() {
             </div>
           </CollapsibleContent>
         </Collapsible>
+        )}
       </Card>
 
       {/* ═══════════════════════════════════════════════════════════════
-          ВЫХОД ИЗ АККАУНТА
+          ВЫХОД ИЗ АККАУНТА (hidden for guests)
       ═══════════════════════════════════════════════════════════════ */}
+      {!isGuest && (
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button
@@ -1540,6 +1622,7 @@ export default function Settings() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      )}
 
       {/* Legal links */}
       <div className="text-center text-xs text-muted-foreground">

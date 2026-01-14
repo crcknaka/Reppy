@@ -8,21 +8,34 @@ import type { Exercise } from "@/hooks/useExercises";
 
 // Offline-first useExercises hook
 export function useOfflineExercises() {
-  const { user } = useAuth();
+  const { effectiveUserId, isGuest } = useAuth();
   const { isOnline, isInitialized } = useOffline();
 
   return useQuery({
-    queryKey: ["exercises", user?.id],
+    queryKey: ["exercises", effectiveUserId],
     queryFn: async () => {
-      if (!user?.id) throw new Error("User not authenticated");
+      if (!effectiveUserId) throw new Error("User not authenticated");
 
-      // Try online first if available
-      if (isOnline) {
+      // Helper to get exercises from IndexedDB
+      const getFromCache = async (): Promise<Exercise[]> => {
+        const exercises = await offlineDb.exercises
+          .filter(
+            (e) =>
+              e.is_preset ||
+              e.user_id === effectiveUserId ||
+              e.user_id === null
+          )
+          .sortBy("name");
+        return exercises as Exercise[];
+      };
+
+      // For authenticated users: try online first
+      if (isOnline && !isGuest) {
         try {
           const { data, error } = await supabase
             .from("exercises")
             .select("*")
-            .or(`is_preset.eq.true,user_id.eq.${user.id}`)
+            .or(`is_preset.eq.true,user_id.eq.${effectiveUserId}`)
             .order("name");
 
           if (!error && data) {
@@ -42,19 +55,44 @@ export function useOfflineExercises() {
         }
       }
 
-      // Use offline data
-      const exercises = await offlineDb.exercises
-        .filter(
-          (e) =>
-            e.is_preset ||
-            e.user_id === user.id ||
-            e.user_id === null
-        )
-        .sortBy("name");
+      // For guests: load preset exercises from server if cache is empty
+      if (isGuest && isOnline) {
+        const cachedExercises = await getFromCache();
+        const hasPresets = cachedExercises.some(e => e.is_preset);
 
-      return exercises as Exercise[];
+        if (!hasPresets) {
+          try {
+            // Fetch only preset exercises for guests
+            const { data, error } = await supabase
+              .from("exercises")
+              .select("*")
+              .eq("is_preset", true)
+              .order("name");
+
+            if (!error && data) {
+              // Cache preset exercises in IndexedDB
+              await offlineDb.exercises.bulkPut(
+                data.map((e) => ({
+                  ...e,
+                  name_translations: (e as any).name_translations ?? null,
+                  _synced: true,
+                }))
+              );
+
+              // Add user's custom exercises from cache
+              const userExercises = cachedExercises.filter(e => e.user_id === effectiveUserId);
+              return [...data, ...userExercises] as Exercise[];
+            }
+          } catch {
+            // Fall through to cached data
+          }
+        }
+      }
+
+      // Use offline data (for guests offline or when network fails)
+      return await getFromCache();
     },
-    enabled: !!user && isInitialized,
+    enabled: !!effectiveUserId && isInitialized,
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes
   });
@@ -63,7 +101,7 @@ export function useOfflineExercises() {
 // Offline-first createExercise mutation
 export function useOfflineCreateExercise() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { effectiveUserId, isGuest } = useAuth();
   const { isOnline } = useOffline();
 
   return useMutation({
@@ -74,7 +112,7 @@ export function useOfflineCreateExercise() {
       name: string;
       type: "bodyweight" | "weighted" | "cardio" | "timed";
     }) => {
-      if (!user?.id) throw new Error("User not authenticated");
+      if (!effectiveUserId) throw new Error("User not authenticated");
 
       const now = new Date().toISOString();
       const offlineId = generateOfflineId();
@@ -85,7 +123,7 @@ export function useOfflineCreateExercise() {
         name,
         type,
         is_preset: false,
-        user_id: user.id,
+        user_id: effectiveUserId,
         image_url: null,
         created_at: now,
         name_translations: null,
@@ -94,8 +132,8 @@ export function useOfflineCreateExercise() {
 
       await offlineDb.exercises.add(exercise);
 
-      // If online, try to sync immediately
-      if (isOnline) {
+      // If online and not guest, try to sync immediately
+      if (isOnline && !isGuest) {
         try {
           const { data, error } = await supabase
             .from("exercises")
@@ -103,7 +141,7 @@ export function useOfflineCreateExercise() {
               name,
               type,
               is_preset: false,
-              user_id: user.id,
+              user_id: effectiveUserId,
             })
             .select()
             .single();
@@ -122,14 +160,16 @@ export function useOfflineCreateExercise() {
         }
       }
 
-      // Queue for later sync
-      await syncQueue.enqueue("exercises", "create", offlineId, {
-        name,
-        type,
-        is_preset: false,
-        user_id: user.id,
-        _offlineId: offlineId,
-      });
+      // Queue for later sync (only for authenticated users)
+      if (!isGuest) {
+        await syncQueue.enqueue("exercises", "create", offlineId, {
+          name,
+          type,
+          is_preset: false,
+          user_id: effectiveUserId,
+          _offlineId: offlineId,
+        });
+      }
 
       return exercise as unknown as Exercise;
     },
@@ -143,14 +183,15 @@ export function useOfflineCreateExercise() {
 export function useOfflineDeleteExercise() {
   const queryClient = useQueryClient();
   const { isOnline } = useOffline();
+  const { isGuest } = useAuth();
 
   return useMutation({
     mutationFn: async (exerciseId: string) => {
       // Delete locally first
       await offlineDb.exercises.delete(exerciseId);
 
-      // If online, try to sync immediately
-      if (isOnline) {
+      // If online and not guest, try to sync immediately
+      if (isOnline && !isGuest) {
         try {
           const { error } = await supabase
             .from("exercises")
@@ -166,10 +207,12 @@ export function useOfflineDeleteExercise() {
         }
       }
 
-      // Queue for later sync
-      await syncQueue.enqueue("exercises", "delete", exerciseId, {
-        id: exerciseId,
-      });
+      // Queue for later sync (only for authenticated users)
+      if (!isGuest) {
+        await syncQueue.enqueue("exercises", "delete", exerciseId, {
+          id: exerciseId,
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
@@ -179,28 +222,28 @@ export function useOfflineDeleteExercise() {
 
 // Offline-first favorite exercises hook
 export function useOfflineFavoriteExercises() {
-  const { user } = useAuth();
+  const { effectiveUserId, isGuest } = useAuth();
   const { isOnline, isInitialized } = useOffline();
 
   return useQuery({
-    queryKey: ["favoriteExercises", user?.id],
+    queryKey: ["favoriteExercises", effectiveUserId],
     queryFn: async () => {
-      if (!user?.id) throw new Error("User not authenticated");
+      if (!effectiveUserId) throw new Error("User not authenticated");
 
-      // Try online first if available
-      if (isOnline) {
+      // Try online first if available (for authenticated users only)
+      if (isOnline && !isGuest) {
         try {
           const { data, error } = await supabase
             .from("favorite_exercises")
             .select("exercise_id")
-            .eq("user_id", user.id);
+            .eq("user_id", effectiveUserId);
 
           if (!error && data) {
             // Update IndexedDB cache
             const favorites = data.map((f) => ({
               id: f.exercise_id,
               exercise_id: f.exercise_id,
-              user_id: user.id,
+              user_id: effectiveUserId,
               created_at: new Date().toISOString(),
               _synced: true,
             }));
@@ -208,7 +251,7 @@ export function useOfflineFavoriteExercises() {
             // Clear and repopulate
             await offlineDb.favoriteExercises
               .where("user_id")
-              .equals(user.id)
+              .equals(effectiveUserId)
               .delete();
             await offlineDb.favoriteExercises.bulkPut(favorites);
 
@@ -222,12 +265,12 @@ export function useOfflineFavoriteExercises() {
       // Use offline data
       const favorites = await offlineDb.favoriteExercises
         .where("user_id")
-        .equals(user.id)
+        .equals(effectiveUserId)
         .toArray();
 
       return new Set(favorites.map((f) => f.exercise_id));
     },
-    enabled: !!user && isInitialized,
+    enabled: !!effectiveUserId && isInitialized,
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes
   });
@@ -236,7 +279,7 @@ export function useOfflineFavoriteExercises() {
 // Offline-first toggle favorite mutation
 export function useOfflineToggleFavoriteExercise() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { effectiveUserId, isGuest } = useAuth();
   const { isOnline } = useOffline();
 
   return useMutation({
@@ -247,7 +290,7 @@ export function useOfflineToggleFavoriteExercise() {
       exerciseId: string;
       isFavorite: boolean;
     }) => {
-      if (!user?.id) throw new Error("User not authenticated");
+      if (!effectiveUserId) throw new Error("User not authenticated");
 
       if (isFavorite) {
         // Remove from favorites
@@ -259,13 +302,13 @@ export function useOfflineToggleFavoriteExercise() {
         if (existing) {
           await offlineDb.favoriteExercises.delete(existing.id);
 
-          if (isOnline) {
+          if (isOnline && !isGuest) {
             try {
               await supabase
                 .from("favorite_exercises")
                 .delete()
                 .eq("exercise_id", exerciseId)
-                .eq("user_id", user.id);
+                .eq("user_id", effectiveUserId);
 
               await syncQueue.removeByEntity(existing.id);
               return;
@@ -274,9 +317,11 @@ export function useOfflineToggleFavoriteExercise() {
             }
           }
 
-          await syncQueue.enqueue("favorite_exercises", "delete", existing.id, {
-            id: existing.id,
-          });
+          if (!isGuest) {
+            await syncQueue.enqueue("favorite_exercises", "delete", existing.id, {
+              id: existing.id,
+            });
+          }
         }
       } else {
         // Add to favorites
@@ -286,18 +331,18 @@ export function useOfflineToggleFavoriteExercise() {
         await offlineDb.favoriteExercises.add({
           id: offlineId,
           exercise_id: exerciseId,
-          user_id: user.id,
+          user_id: effectiveUserId,
           created_at: now,
           _synced: false,
         });
 
-        if (isOnline) {
+        if (isOnline && !isGuest) {
           try {
             const { data, error } = await supabase
               .from("favorite_exercises")
               .insert({
                 exercise_id: exerciseId,
-                user_id: user.id,
+                user_id: effectiveUserId,
               })
               .select()
               .single();
@@ -315,11 +360,13 @@ export function useOfflineToggleFavoriteExercise() {
           }
         }
 
-        await syncQueue.enqueue("favorite_exercises", "create", offlineId, {
-          exercise_id: exerciseId,
-          user_id: user.id,
-          _offlineId: offlineId,
-        });
+        if (!isGuest) {
+          await syncQueue.enqueue("favorite_exercises", "create", offlineId, {
+            exercise_id: exerciseId,
+            user_id: effectiveUserId,
+            _offlineId: offlineId,
+          });
+        }
       }
     },
     onSuccess: () => {

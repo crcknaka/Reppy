@@ -30,7 +30,7 @@ const OfflineContext = createContext<OfflineContextType | undefined>(undefined);
 
 export function OfflineProvider({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, isGuest, effectiveUserId, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const { isOnline, pendingCount, lastSyncTime, checkConnection } = useOfflineStatus();
 
@@ -41,8 +41,9 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
   const hasHydratedRef = useRef(false);
 
   // Hydrate IndexedDB from Supabase on first load
+  // Only for authenticated users, not guests
   const hydrateFromServer = useCallback(async () => {
-    if (!user || hasHydratedRef.current) return;
+    if (!user || isGuest || hasHydratedRef.current) return;
 
     try {
       // Fetch exercises (all exercises, preset and user's custom)
@@ -171,13 +172,20 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Failed to hydrate offline data:", error);
     }
-  }, [user]);
+  }, [user, isGuest]);
 
   // Initialize offline storage - hydrate from server if needed
+  // For guests, we skip server hydration but still initialize IndexedDB
   useEffect(() => {
     const init = async () => {
-      if (!user) {
+      // Reset hydration flag when user changes (including guest)
+      if (!effectiveUserId) {
         hasHydratedRef.current = false;
+        return;
+      }
+
+      // For guests, no server hydration needed - they start fresh
+      if (isGuest) {
         return;
       }
 
@@ -195,11 +203,12 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     };
 
     init();
-  }, [user, isOnline, hydrateFromServer]);
+  }, [effectiveUserId, isGuest, isOnline, hydrateFromServer]);
 
   // Sync when coming back online
+  // Only for authenticated users, guests don't sync
   useEffect(() => {
-    if (!isInitialized || !user) return;
+    if (!isInitialized || !user || isGuest) return;
 
     if (!isOnline) {
       wasOfflineRef.current = true;
@@ -217,11 +226,12 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
         }
       });
     }
-  }, [isOnline, isInitialized, user, t]);
+  }, [isOnline, isInitialized, user, isGuest, t]);
 
   // Auto-sync when pending count increases and we're online
+  // Only for authenticated users, guests don't sync
   useEffect(() => {
-    if (!isOnline || !isInitialized || isSyncing || pendingCount === 0) return;
+    if (!isOnline || !isInitialized || isSyncing || pendingCount === 0 || isGuest) return;
 
     // Debounce sync to batch rapid changes
     const timeout = setTimeout(() => {
@@ -229,10 +239,16 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     }, 2000);
 
     return () => clearTimeout(timeout);
-  }, [pendingCount, isOnline, isInitialized, isSyncing]);
+  }, [pendingCount, isOnline, isInitialized, isSyncing, isGuest]);
 
   // Trigger sync manually
+  // For guests, this is a no-op
   const triggerSync = useCallback(async (): Promise<SyncResult> => {
+    if (isGuest) {
+      // Guests don't sync to server
+      return { success: true, synced: 0, failed: 0, errors: [] };
+    }
+
     if (isSyncing || !isOnline) {
       return { success: false, synced: 0, failed: 0, errors: ["Cannot sync now"] };
     }
@@ -264,15 +280,18 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsSyncing(false);
     }
-  }, [isSyncing, isOnline, queryClient, t]);
+  }, [isSyncing, isOnline, isGuest, queryClient, t]);
 
   // Clear offline data on logout
+  // But NOT when in guest mode - guest data should persist
+  // IMPORTANT: Wait for auth to finish loading before deciding to clear
   useEffect(() => {
-    if (!user) {
+    if (authLoading) return; // Don't clear while auth is still loading
+    if (!user && !isGuest) {
       clearOfflineData().catch(console.error);
       syncService.clearMappings().catch(console.error);
     }
-  }, [user]);
+  }, [user, isGuest, authLoading]);
 
   return (
     <OfflineContext.Provider

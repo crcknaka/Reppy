@@ -42,7 +42,7 @@ export function useLeaderboard(
   friendsOnly: boolean = false,
   friendIds: string[] = []
 ) {
-  const { user } = useAuth();
+  const { user, effectiveUserId } = useAuth();
 
   return useQuery({
     queryKey: ["leaderboard", exerciseName, timeFilter, friendsOnly, friendIds],
@@ -97,8 +97,8 @@ export function useLeaderboard(
       }
 
       // Filter by friends if friendsOnly is enabled
-      if (friendsOnly && user) {
-        const allowedUserIds = new Set([user.id, ...friendIds]);
+      if (friendsOnly && effectiveUserId) {
+        const allowedUserIds = new Set([effectiveUserId, ...friendIds]);
         filteredSets = filteredSets.filter((set) =>
           allowedUserIds.has(set.workout.user_id)
         );
@@ -206,5 +206,7 @@ export function useLeaderboard(
 
       return leaderboard;
     },
+    // Enable query only when exercise name is provided
+    enabled: !!exerciseName,
   });
 }

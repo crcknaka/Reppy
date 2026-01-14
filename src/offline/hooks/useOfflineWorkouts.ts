@@ -8,19 +8,19 @@ import type { Workout, WorkoutSet } from "@/hooks/useWorkouts";
 
 // Offline-first useWorkouts hook
 export function useOfflineWorkouts() {
-  const { user } = useAuth();
+  const { user, effectiveUserId, isGuest } = useAuth();
   const { isInitialized } = useOffline();
 
   return useQuery({
-    queryKey: ["workouts", user?.id],
+    queryKey: ["workouts", effectiveUserId],
     queryFn: async () => {
-      if (!user?.id) throw new Error("User not authenticated");
+      if (!effectiveUserId) throw new Error("User not authenticated");
 
       // Helper to get workouts from IndexedDB
       const getFromCache = async (): Promise<Workout[] | null> => {
         const workouts = await offlineDb.workouts
           .where("user_id")
-          .equals(user.id)
+          .equals(effectiveUserId)
           .reverse()
           .sortBy("date");
 
@@ -79,8 +79,9 @@ export function useOfflineWorkouts() {
         return workoutsWithSets;
       };
 
-      // If online, fetch from server and sync cache
-      if (navigator.onLine) {
+      // If online and not guest, fetch from server and sync cache
+      // Guests only use local data
+      if (navigator.onLine && !isGuest) {
         try {
           const { data, error } = await supabase
             .from("workouts")
@@ -92,14 +93,14 @@ export function useOfflineWorkouts() {
                 exercise:exercises (id, name, type, image_url, is_preset, name_translations)
               )
             `)
-            .eq("user_id", user.id)
+            .eq("user_id", effectiveUserId)
             .order("date", { ascending: false });
 
           if (!error && data) {
             // Get current cached workout IDs
             const cachedWorkouts = await offlineDb.workouts
               .where("user_id")
-              .equals(user.id)
+              .equals(effectiveUserId)
               .toArray();
             const cachedIds = new Set(cachedWorkouts.map((w) => w.id));
             const serverIds = new Set(data.map((w) => w.id));
@@ -163,6 +164,24 @@ export function useOfflineWorkouts() {
                     _synced: true,
                     _lastModified: Date.now(),
                   });
+
+                  // Cache the exercise data for offline access
+                  if (set.exercise) {
+                    const existingExercise = await offlineDb.exercises.get(set.exercise.id);
+                    if (!existingExercise) {
+                      await offlineDb.exercises.put({
+                        id: set.exercise.id,
+                        name: set.exercise.name,
+                        type: set.exercise.type,
+                        image_url: set.exercise.image_url,
+                        is_preset: set.exercise.is_preset,
+                        user_id: set.exercise.is_preset ? null : effectiveUserId,
+                        name_translations: set.exercise.name_translations || null,
+                        created_at: new Date().toISOString(),
+                        _synced: true,
+                      });
+                    }
+                  }
                 }
               }
             }
@@ -174,11 +193,11 @@ export function useOfflineWorkouts() {
         }
       }
 
-      // Offline or network error - use cache
+      // Offline, guest mode, or network error - use cache
       const cachedData = await getFromCache();
       return cachedData || [];
     },
-    enabled: !!user && isInitialized,
+    enabled: !!effectiveUserId && isInitialized,
     staleTime: 0, // Always refetch on mount to get latest data
     gcTime: 1000 * 60 * 30, // 30 minutes - keep in cache
     refetchOnMount: "always", // Force fresh fetch on every mount/page refresh
@@ -188,12 +207,12 @@ export function useOfflineWorkouts() {
 // Offline-first createWorkout mutation
 export function useOfflineCreateWorkout() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { effectiveUserId, isGuest } = useAuth();
   const { isOnline } = useOffline();
 
   return useMutation({
     mutationFn: async (date: string) => {
-      if (!user?.id) throw new Error("User not authenticated");
+      if (!effectiveUserId) throw new Error("User not authenticated");
 
       const now = new Date().toISOString();
       const offlineId = generateOfflineId();
@@ -201,7 +220,7 @@ export function useOfflineCreateWorkout() {
       // Create local workout first
       const workout = {
         id: offlineId,
-        user_id: user.id,
+        user_id: effectiveUserId,
         date,
         notes: null,
         photo_url: null,
@@ -215,12 +234,13 @@ export function useOfflineCreateWorkout() {
 
       await offlineDb.workouts.add(workout);
 
-      // If online, try to sync immediately
-      if (isOnline) {
+      // If online and not guest, try to sync immediately
+      // Guests only store locally
+      if (isOnline && !isGuest) {
         try {
           const { data, error } = await supabase
             .from("workouts")
-            .insert({ date, user_id: user.id })
+            .insert({ date, user_id: effectiveUserId })
             .select()
             .single();
 
@@ -239,16 +259,18 @@ export function useOfflineCreateWorkout() {
         }
       }
 
-      // Queue for later sync
-      await syncQueue.enqueue("workouts", "create", offlineId, {
-        date,
-        user_id: user.id,
-        _offlineId: offlineId,
-      });
+      // Queue for later sync (only for authenticated users)
+      if (!isGuest) {
+        await syncQueue.enqueue("workouts", "create", offlineId, {
+          date,
+          user_id: effectiveUserId,
+          _offlineId: offlineId,
+        });
+      }
 
       return {
         id: offlineId,
-        user_id: user.id,
+        user_id: effectiveUserId,
         date,
         notes: null,
         photo_url: null,
@@ -267,6 +289,7 @@ export function useOfflineCreateWorkout() {
 export function useOfflineAddSet() {
   const queryClient = useQueryClient();
   const { isOnline } = useOffline();
+  const { isGuest } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -310,8 +333,8 @@ export function useOfflineAddSet() {
 
       await offlineDb.workoutSets.add(set);
 
-      // If online, try to sync immediately
-      if (isOnline) {
+      // If online and not guest, try to sync immediately
+      if (isOnline && !isGuest) {
         try {
           const { data, error } = await supabase
             .from("workout_sets")
@@ -342,18 +365,20 @@ export function useOfflineAddSet() {
         }
       }
 
-      // Queue for later sync
-      await syncQueue.enqueue("workout_sets", "create", offlineId, {
-        workout_id: workoutId,
-        exercise_id: exerciseId,
-        set_number: setNumber,
-        reps: reps ?? null,
-        weight: weight ?? null,
-        distance_km: distance_km ?? null,
-        duration_minutes: duration_minutes ?? null,
-        plank_seconds: plank_seconds ?? null,
-        _offlineId: offlineId,
-      });
+      // Queue for later sync (only for authenticated users)
+      if (!isGuest) {
+        await syncQueue.enqueue("workout_sets", "create", offlineId, {
+          workout_id: workoutId,
+          exercise_id: exerciseId,
+          set_number: setNumber,
+          reps: reps ?? null,
+          weight: weight ?? null,
+          distance_km: distance_km ?? null,
+          duration_minutes: duration_minutes ?? null,
+          plank_seconds: plank_seconds ?? null,
+          _offlineId: offlineId,
+        });
+      }
 
       return set;
     },
@@ -368,6 +393,7 @@ export function useOfflineAddSet() {
 export function useOfflineUpdateSet() {
   const queryClient = useQueryClient();
   const { isOnline } = useOffline();
+  const { isGuest } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -396,8 +422,8 @@ export function useOfflineUpdateSet() {
         _lastModified: Date.now(),
       });
 
-      // If online, try to sync immediately
-      if (isOnline) {
+      // If online and not guest, try to sync immediately
+      if (isOnline && !isGuest) {
         try {
           const { data, error } = await supabase
             .from("workout_sets")
@@ -425,14 +451,16 @@ export function useOfflineUpdateSet() {
         }
       }
 
-      // Queue for later sync
-      await syncQueue.enqueue("workout_sets", "update", setId, {
-        reps: reps ?? null,
-        weight: weight ?? null,
-        distance_km: distance_km ?? null,
-        duration_minutes: duration_minutes ?? null,
-        plank_seconds: plank_seconds ?? null,
-      });
+      // Queue for later sync (only for authenticated users)
+      if (!isGuest) {
+        await syncQueue.enqueue("workout_sets", "update", setId, {
+          reps: reps ?? null,
+          weight: weight ?? null,
+          distance_km: distance_km ?? null,
+          duration_minutes: duration_minutes ?? null,
+          plank_seconds: plank_seconds ?? null,
+        });
+      }
 
       return await offlineDb.workoutSets.get(setId);
     },
@@ -447,6 +475,7 @@ export function useOfflineUpdateSet() {
 export function useOfflineDeleteSet() {
   const queryClient = useQueryClient();
   const { isOnline } = useOffline();
+  const { isGuest } = useAuth();
 
   return useMutation({
     mutationFn: async (setId: string) => {
@@ -456,8 +485,8 @@ export function useOfflineDeleteSet() {
       // Delete locally first
       await offlineDb.workoutSets.delete(setId);
 
-      // If online, try to sync immediately
-      if (isOnline) {
+      // If online and not guest, try to sync immediately
+      if (isOnline && !isGuest) {
         try {
           const { error } = await supabase
             .from("workout_sets")
@@ -474,10 +503,12 @@ export function useOfflineDeleteSet() {
         }
       }
 
-      // Queue for later sync
-      await syncQueue.enqueue("workout_sets", "delete", setId, {
-        id: setId,
-      });
+      // Queue for later sync (only for authenticated users)
+      if (!isGuest) {
+        await syncQueue.enqueue("workout_sets", "delete", setId, {
+          id: setId,
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workouts"] });
@@ -490,6 +521,7 @@ export function useOfflineDeleteSet() {
 export function useOfflineDeleteWorkout() {
   const queryClient = useQueryClient();
   const { isOnline } = useOffline();
+  const { isGuest } = useAuth();
 
   return useMutation({
     mutationFn: async (workoutId: string) => {
@@ -501,14 +533,16 @@ export function useOfflineDeleteWorkout() {
 
       for (const set of sets) {
         await offlineDb.workoutSets.delete(set.id);
-        await syncQueue.removeByEntity(set.id);
+        if (!isGuest) {
+          await syncQueue.removeByEntity(set.id);
+        }
       }
 
       // Delete workout
       await offlineDb.workouts.delete(workoutId);
 
-      // If online, try to sync immediately
-      if (isOnline) {
+      // If online and not guest, try to sync immediately
+      if (isOnline && !isGuest) {
         try {
           const { error } = await supabase
             .from("workouts")
@@ -524,10 +558,12 @@ export function useOfflineDeleteWorkout() {
         }
       }
 
-      // Queue for later sync
-      await syncQueue.enqueue("workouts", "delete", workoutId, {
-        id: workoutId,
-      });
+      // Queue for later sync (only for authenticated users)
+      if (!isGuest) {
+        await syncQueue.enqueue("workouts", "delete", workoutId, {
+          id: workoutId,
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workouts"] });
@@ -538,6 +574,7 @@ export function useOfflineDeleteWorkout() {
 // Offline-first useSingleWorkout hook
 export function useOfflineSingleWorkout(workoutId: string | undefined) {
   const { isInitialized } = useOffline();
+  const { isGuest } = useAuth();
 
   return useQuery({
     queryKey: ["workout", workoutId],
@@ -597,8 +634,8 @@ export function useOfflineSingleWorkout(workoutId: string | undefined) {
       // Check if this is an offline-created workout that hasn't been synced yet
       const isOfflineWorkout = workoutId?.startsWith("offline_");
 
-      // For offline-created workouts, use IndexedDB directly (server doesn't know about them yet)
-      if (isOfflineWorkout) {
+      // For offline-created workouts or guests, use IndexedDB directly
+      if (isOfflineWorkout || isGuest) {
         const cachedData = await getFromIndexedDB();
         if (cachedData) {
           return cachedData;
@@ -606,7 +643,7 @@ export function useOfflineSingleWorkout(workoutId: string | undefined) {
         throw new Error("Workout not found");
       }
 
-      // For server-synced workouts: ALWAYS check server first when online
+      // For server-synced workouts (authenticated users): check server first when online
       if (navigator.onLine) {
         try {
           const { data, error } = await supabase
@@ -664,6 +701,24 @@ export function useOfflineSingleWorkout(workoutId: string | undefined) {
                   _synced: true,
                   _lastModified: Date.now(),
                 });
+
+                // Cache the exercise data for offline access
+                if (set.exercise) {
+                  const existingExercise = await offlineDb.exercises.get(set.exercise.id);
+                  if (!existingExercise) {
+                    await offlineDb.exercises.put({
+                      id: set.exercise.id,
+                      name: set.exercise.name,
+                      type: set.exercise.type,
+                      image_url: set.exercise.image_url,
+                      is_preset: set.exercise.is_preset,
+                      user_id: set.exercise.is_preset ? null : data.user_id,
+                      name_translations: set.exercise.name_translations || null,
+                      created_at: new Date().toISOString(),
+                      _synced: true,
+                    });
+                  }
+                }
               }
             }
             return data as unknown as Workout;
@@ -706,6 +761,7 @@ export function useOfflineSingleWorkout(workoutId: string | undefined) {
 export function useOfflineUpdateWorkout() {
   const queryClient = useQueryClient();
   const { isOnline } = useOffline();
+  const { isGuest } = useAuth();
 
   return useMutation({
     mutationFn: async ({
@@ -728,8 +784,8 @@ export function useOfflineUpdateWorkout() {
         _lastModified: Date.now(),
       });
 
-      // If online, try to sync immediately
-      if (isOnline) {
+      // If online and not guest, try to sync immediately
+      if (isOnline && !isGuest) {
         try {
           const { data, error } = await supabase
             .from("workouts")
@@ -751,8 +807,10 @@ export function useOfflineUpdateWorkout() {
         }
       }
 
-      // Queue for later sync
-      await syncQueue.enqueue("workouts", "update", workoutId, updateData);
+      // Queue for later sync (only for authenticated users)
+      if (!isGuest) {
+        await syncQueue.enqueue("workouts", "update", workoutId, updateData);
+      }
 
       return await offlineDb.workouts.get(workoutId);
     },

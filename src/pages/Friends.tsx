@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { FriendCard } from "@/components/FriendCard";
 import { AddFriendDialog } from "@/components/AddFriendDialog";
+import { GuestFriendsCTA } from "@/components/GuestFriendsCTA";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   useFriends,
   usePendingFriendRequests,
@@ -31,7 +33,13 @@ import { toast } from "sonner";
 export default function Friends() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { isGuest } = useAuth();
   const [friendToRemove, setFriendToRemove] = useState<{ id: string; name: string } | null>(null);
+
+  // Show CTA for guest users
+  if (isGuest) {
+    return <GuestFriendsCTA />;
+  }
 
   const { data: friends, isLoading: friendsLoading } = useFriends();
   const { data: pendingRequests, isLoading: pendingLoading } = usePendingFriendRequests();

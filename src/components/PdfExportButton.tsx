@@ -14,6 +14,7 @@ import { useWorkoutsByMonth, useWorkouts } from "@/hooks/useWorkouts";
 import { useOfflineProfile } from "@/offline/hooks/useOfflineProfile";
 import { useAccentColor } from "@/hooks/useAccentColor";
 import { useUnits } from "@/hooks/useUnits";
+import { useAuth } from "@/contexts/AuthContext";
 import { calculateMonthlyReportData } from "@/features/pdf-export";
 import { createColors } from "@/features/pdf-export/colors";
 import { toast } from "sonner";
@@ -31,9 +32,15 @@ type PeriodType = "week" | "month" | "allTime";
 
 export function PdfExportButton() {
   const { t, i18n } = useTranslation();
+  const { isGuest } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [periodType, setPeriodType] = useState<PeriodType>("month");
+
+  // Don't render for guest users
+  if (isGuest) {
+    return null;
+  }
 
   // Month/year selection state
   const now = new Date();

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface WorkoutShare {
   id: string;
@@ -17,12 +18,22 @@ function generateShareToken(): string {
   return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+// Helper to check if ID is offline-generated
+function isOfflineId(id: string): boolean {
+  return id.startsWith("offline_");
+}
+
 // Получить активный share для тренировки
 export function useWorkoutShare(workoutId: string | undefined) {
+  const { isGuest } = useAuth();
+
   return useQuery({
     queryKey: ["workout-share", workoutId],
     queryFn: async () => {
       if (!workoutId || !navigator.onLine) return null;
+
+      // Skip for offline IDs (they don't exist in Supabase)
+      if (isOfflineId(workoutId)) return null;
 
       const { data, error } = await supabase
         .from("workout_shares")
@@ -34,7 +45,8 @@ export function useWorkoutShare(workoutId: string | undefined) {
       if (error) throw error;
       return data as WorkoutShare | null;
     },
-    enabled: !!workoutId,
+    // Disable for guests and offline IDs
+    enabled: !!workoutId && !isGuest && !isOfflineId(workoutId || ""),
   });
 }
 

@@ -63,6 +63,7 @@
     "resetEmailError": "Error sending email",
     "orContinueWith": "or continue with",
     "continueWithGoogle": "Continue with Google",
+    "continueAsGuest": "Continue as Guest",
     "googleError": "Google sign-in error"
   },
   "settings": {
@@ -661,6 +662,40 @@
       "privacy": "Privacy Policy",
       "terms": "Terms of Service"
     }
+  },
+  "guest": {
+    "reminder": {
+      "title": "You're doing great!",
+      "message": "You've completed {{count}} workouts! Create an account to keep your progress safe.",
+      "benefits": "Benefits of an account:",
+      "benefit1": "Cloud backup",
+      "benefit2": "Sync across devices",
+      "benefit3": "Connect with friends",
+      "benefit4": "Never lose data",
+      "later": "Maybe later",
+      "createAccount": "Create Free Account"
+    },
+    "friends": {
+      "title": "Friends",
+      "description": "Create an account to add friends, share workouts, and stay motivated together!",
+      "dataPreserved": "All your workout data will be preserved",
+      "createAccount": "Create Free Account",
+      "login": "I have an account",
+      "loginWithEmail": "Sign in with Email",
+      "continueWithGoogle": "Continue with Google",
+      "benefit1": "Cloud backup",
+      "benefit2": "Sync devices",
+      "benefit3": "Data security"
+    },
+    "settings": {
+      "title": "Create an Account",
+      "subtitle": "Save your progress and unlock all features"
+    },
+    "leaderboard": {
+      "title": "Join the Leaderboard",
+      "description": "Create an account to see how you rank against other athletes and compete for the top spots!"
+    },
+    "createAccount": "Create Account"
   },
   "admin": {
     "title": "Admin Panel",

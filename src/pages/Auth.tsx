@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, Link } from "react-router-dom";
+import { Navigate, Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
@@ -30,6 +30,11 @@ export default function Auth() {
   const { t, i18n } = useTranslation();
   const { user, signIn, signUp, signInWithGoogle, resetPassword, loading: authLoading } = useAuth();
   const { theme, setTheme, resolvedTheme } = useTheme();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Get initial tab from URL query param (?tab=signup or ?tab=login)
+  const initialTab = searchParams.get("tab") === "signup" ? "signup" : "login";
 
   const currentLanguage = languages.find(l => l.code === i18n.language) || languages[0];
 
@@ -123,64 +128,65 @@ export default function Auth() {
   // Forgot password form
   if (showForgotPassword) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
-        {/* Theme and Language switcher */}
-        <div className="absolute top-4 right-4 flex gap-2">
-          {/* Language switcher */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 gap-1 bg-muted/50">
-                <Globe className="h-4 w-4" />
-                <span className="text-xs">{currentLanguage.flag}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {languages.map((lang) => (
-                <DropdownMenuItem
-                  key={lang.code}
-                  onClick={() => changeLanguage(lang.code)}
-                  className={i18n.language === lang.code ? "bg-accent" : ""}
-                >
-                  <span className="mr-2">{lang.flag}</span>
-                  {lang.name}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Theme switcher */}
-          <div className="flex gap-1 bg-muted/50 rounded-lg p-1">
-            <Button
-              variant={theme === "light" ? "secondary" : "ghost"}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setTheme("light")}
-              title={t("settings.lightTheme")}
-            >
-              <Sun className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={theme === "dark" ? "secondary" : "ghost"}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setTheme("dark")}
-              title={t("settings.darkTheme")}
-            >
-              <Moon className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={theme === "system" ? "secondary" : "ghost"}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setTheme("system")}
-              title={t("settings.systemTheme")}
-            >
-              <Monitor className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="w-full max-w-md animate-fade-in">
+          {/* Theme and Language switcher - above logo */}
+          <div className="flex items-center justify-between mb-4">
+            {/* Theme switcher - left */}
+            <div className="flex gap-1 bg-muted/50 rounded-lg p-1">
+              <Button
+                variant={theme === "light" ? "secondary" : "ghost"}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setTheme("light")}
+                title={t("settings.lightTheme")}
+              >
+                <Sun className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={theme === "dark" ? "secondary" : "ghost"}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setTheme("dark")}
+                title={t("settings.darkTheme")}
+              >
+                <Moon className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={theme === "system" ? "secondary" : "ghost"}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setTheme("system")}
+                title={t("settings.systemTheme")}
+              >
+                <Monitor className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Language switcher - right */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 gap-1 bg-muted/50">
+                  <Globe className="h-4 w-4" />
+                  <span className="text-xs">{currentLanguage.flag}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {languages.map((lang) => (
+                  <DropdownMenuItem
+                    key={lang.code}
+                    onClick={() => changeLanguage(lang.code)}
+                    className={i18n.language === lang.code ? "bg-accent" : ""}
+                  >
+                    <span className="mr-2">{lang.flag}</span>
+                    {lang.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Logo */}
           <div className="flex items-center justify-center mb-8">
             <img
               src={logoSrc}
@@ -230,64 +236,65 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
-      {/* Theme and Language switcher */}
-      <div className="absolute top-4 right-4 flex gap-2">
-        {/* Language switcher */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 gap-1 bg-muted/50">
-              <Globe className="h-4 w-4" />
-              <span className="text-xs">{currentLanguage.flag}</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {languages.map((lang) => (
-              <DropdownMenuItem
-                key={lang.code}
-                onClick={() => changeLanguage(lang.code)}
-                className={i18n.language === lang.code ? "bg-accent" : ""}
-              >
-                <span className="mr-2">{lang.flag}</span>
-                {lang.name}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Theme switcher */}
-        <div className="flex gap-1 bg-muted/50 rounded-lg p-1">
-          <Button
-            variant={theme === "light" ? "secondary" : "ghost"}
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => setTheme("light")}
-            title={t("settings.lightTheme")}
-          >
-            <Sun className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={theme === "dark" ? "secondary" : "ghost"}
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => setTheme("dark")}
-            title={t("settings.darkTheme")}
-          >
-            <Moon className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={theme === "system" ? "secondary" : "ghost"}
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => setTheme("system")}
-            title={t("settings.systemTheme")}
-          >
-            <Monitor className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md animate-fade-in">
+        {/* Theme and Language switcher - above logo */}
+        <div className="flex items-center justify-between mb-4">
+          {/* Theme switcher - left */}
+          <div className="flex gap-1 bg-muted/50 rounded-lg p-1">
+            <Button
+              variant={theme === "light" ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setTheme("light")}
+              title={t("settings.lightTheme")}
+            >
+              <Sun className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={theme === "dark" ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setTheme("dark")}
+              title={t("settings.darkTheme")}
+            >
+              <Moon className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={theme === "system" ? "secondary" : "ghost"}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setTheme("system")}
+              title={t("settings.systemTheme")}
+            >
+              <Monitor className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Language switcher - right */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 gap-1 bg-muted/50">
+                <Globe className="h-4 w-4" />
+                <span className="text-xs">{currentLanguage.flag}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {languages.map((lang) => (
+                <DropdownMenuItem
+                  key={lang.code}
+                  onClick={() => changeLanguage(lang.code)}
+                  className={i18n.language === lang.code ? "bg-accent" : ""}
+                >
+                  <span className="mr-2">{lang.flag}</span>
+                  {lang.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Logo */}
         <div className="flex items-center justify-center mb-8">
           <img
             src={logoSrc}
@@ -304,7 +311,7 @@ export default function Auth() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="login" className="w-full">
+            <Tabs defaultValue={initialTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="login">{t("auth.login")}</TabsTrigger>
                 <TabsTrigger value="signup">{t("auth.register")}</TabsTrigger>
@@ -479,8 +486,19 @@ export default function Auth() {
           </CardContent>
         </Card>
 
+        {/* Continue as Guest */}
+        <div className="mt-4 text-center">
+          <Button
+            variant="ghost"
+            className="text-muted-foreground hover:text-foreground"
+            onClick={() => navigate("/")}
+          >
+            {t("auth.continueAsGuest")}
+          </Button>
+        </div>
+
         {/* Legal links */}
-        <div className="mt-6 text-center text-sm text-muted-foreground">
+        <div className="mt-4 text-center text-sm text-muted-foreground">
           <Link to="/privacy" className="hover:text-primary transition-colors">
             {t("legal.footer.privacy")}
           </Link>

@@ -3,9 +3,9 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.reppymate.app",
+      "package_name": "com.reppymate.twa",
       "sha256_cert_fingerprints": [
-        "YOUR_SHA256_FINGERPRINT_HERE"
+        "30:B1:8E:69:A8:ED:99:90:8D:A5:61:61:CE:3A:7C:A0:D9:36:4E:B5:6F:3C:07:E8:C8:AB:F7:0E:B6:F4:D9:DC"
       ]
     }
   }

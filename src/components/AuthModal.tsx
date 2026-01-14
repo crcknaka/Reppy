@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Loader2, Mail, Lock, User } from "lucide-react";
+import { Loader2, Mail, Lock, User, Check, X, AtSign } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { EmailConfirmationModal } from "@/components/EmailConfirmationModal";
 
 interface AuthModalProps {
   open: boolean;
@@ -27,6 +29,10 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(defaultTab);
 
+  // Email confirmation modal state
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
+
   // Login form
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -35,6 +41,59 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [signupName, setSignupName] = useState("");
+  const [signupUsername, setSignupUsername] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
+  const [usernameError, setUsernameError] = useState<string | null>(null);
+
+  // Check username availability with debounce
+  const checkUsernameAvailability = useCallback(async (username: string) => {
+    // Validate format first
+    const usernameRegex = /^[a-z0-9_]{3,20}$/;
+    if (!usernameRegex.test(username)) {
+      setUsernameStatus("invalid");
+      setUsernameError(t("auth.usernameInvalid"));
+      return;
+    }
+
+    setUsernameStatus("checking");
+    setUsernameError(null);
+
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("username", username)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setUsernameStatus("taken");
+        setUsernameError(t("auth.usernameTaken"));
+      } else {
+        setUsernameStatus("available");
+        setUsernameError(null);
+      }
+    } catch (error) {
+      console.error("Username check error:", error);
+      setUsernameStatus("idle");
+    }
+  }, [t]);
+
+  // Debounced username check
+  useEffect(() => {
+    if (!signupUsername || signupUsername.length < 3) {
+      setUsernameStatus("idle");
+      setUsernameError(null);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      checkUsernameAvailability(signupUsername.toLowerCase());
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [signupUsername, checkUsernameAvailability]);
 
   const resetForms = () => {
     setLoginEmail("");
@@ -42,6 +101,11 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
     setSignupEmail("");
     setSignupPassword("");
     setSignupName("");
+    setSignupUsername("");
+    setUsernameStatus("idle");
+    setUsernameError(null);
+    setShowEmailConfirmation(false);
+    setPendingEmail("");
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -62,12 +126,32 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate username is provided and available
+    if (!signupUsername) {
+      toast.error(t("auth.usernameRequired"));
+      return;
+    }
+    if (usernameStatus === "taken") {
+      toast.error(t("auth.usernameTaken"));
+      return;
+    }
+    if (usernameStatus === "invalid") {
+      toast.error(t("auth.usernameInvalid"));
+      return;
+    }
+    if (usernameStatus === "checking") {
+      toast.error(t("auth.usernameChecking"));
+      return;
+    }
+
     setLoading(true);
     try {
-      await signUp(signupEmail, signupPassword, signupName);
-      toast.success(t("auth.welcome"));
-      resetForms();
-      onOpenChange(false);
+      await signUp(signupEmail, signupPassword, signupName, signupUsername.toLowerCase());
+      toast.success(t("auth.accountCreated"));
+      // Show email confirmation modal instead of closing
+      setPendingEmail(signupEmail);
+      setShowEmailConfirmation(true);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : t("auth.registerError");
       toast.error(errorMessage);
@@ -155,9 +239,45 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
                     className="pl-10"
                     value={signupName}
                     onChange={(e) => setSignupName(e.target.value)}
+                    required
                     autoComplete="name"
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="signup-username">{t("auth.username")}</Label>
+                <div className="relative">
+                  <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="signup-username"
+                    type="text"
+                    placeholder={t("auth.usernamePlaceholder")}
+                    className="pl-10 pr-10"
+                    value={signupUsername}
+                    onChange={(e) => setSignupUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                    required
+                    minLength={3}
+                    maxLength={20}
+                    autoComplete="username"
+                  />
+                  {signupUsername.length >= 3 && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {usernameStatus === "checking" && (
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                      )}
+                      {usernameStatus === "available" && (
+                        <Check className="h-4 w-4 text-green-500" />
+                      )}
+                      {(usernameStatus === "taken" || usernameStatus === "invalid") && (
+                        <X className="h-4 w-4 text-destructive" />
+                      )}
+                    </div>
+                  )}
+                </div>
+                {usernameError && (
+                  <p className="text-xs text-destructive">{usernameError}</p>
+                )}
+                <p className="text-xs text-muted-foreground">{t("auth.usernameHint")}</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="signup-email">{t("auth.email")}</Label>
@@ -192,7 +312,11 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
                   />
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={loading || usernameStatus === "taken" || usernameStatus === "invalid" || usernameStatus === "checking"}
+              >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {t("auth.createAccount")}
               </Button>
@@ -231,6 +355,17 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
           {t("auth.continueWithGoogle")}
         </Button>
       </DialogContent>
+
+      {/* Email Confirmation Modal - shown after signup */}
+      <EmailConfirmationModal
+        email={pendingEmail}
+        open={showEmailConfirmation}
+        onClose={() => {
+          setShowEmailConfirmation(false);
+          resetForms();
+          onOpenChange(false);
+        }}
+      />
     </Dialog>
   );
 }

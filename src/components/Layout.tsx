@@ -11,6 +11,17 @@ import { useShowAdminNav } from "@/hooks/useShowAdminNav";
 import { GuestRegistrationReminder } from "@/components/GuestRegistrationReminder";
 import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 import { GuestDataMigrationDialog } from "@/components/GuestDataMigrationDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface LayoutProps {
   children: ReactNode;
@@ -69,8 +80,8 @@ export default function Layout({ children }: LayoutProps) {
         onDiscard={discardGuestData}
       />
 
-      {/* Email Verification Banner */}
-      <div className="md:ml-64">
+      {/* Email Verification Banner - sticky at top, full width on mobile, offset on desktop */}
+      <div className="md:ml-64 sticky top-0 z-50">
         <EmailVerificationBanner />
       </div>
 
@@ -193,13 +204,33 @@ export default function Layout({ children }: LayoutProps) {
         {/* Hide logout button for guests */}
         {!isGuest && (
           <div className="p-4 border-t border-border/50">
-            <button
-              onClick={() => signOut()}
-              className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200 active:scale-[0.98] group"
-            >
-              <LogOut className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
-              <span className="font-medium">{t("nav.logout")}</span>
-            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200 active:scale-[0.98] group"
+                >
+                  <LogOut className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
+                  <span className="font-medium">{t("nav.logout")}</span>
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t("settings.logoutConfirmTitle")}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t("settings.logoutConfirmDescription")}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => signOut()}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {t("nav.logout")}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         )}
       </aside>

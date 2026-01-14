@@ -18,7 +18,6 @@ import { setupGlobalErrorHandlers } from "@/lib/setupErrorHandlers";
 setupGlobalErrorHandlers();
 
 // Lazy load pages for better code splitting
-const Auth = lazy(() => import("@/pages/Auth"));
 const Workouts = lazy(() => import("@/pages/Workouts"));
 const WorkoutDetail = lazy(() => import("@/pages/WorkoutDetail"));
 const Progress = lazy(() => import("@/pages/Progress"));
@@ -101,7 +100,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   // Allow access if authenticated OR in guest mode
   if (!user && !isGuest) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return <Layout>{children}</Layout>;
@@ -114,7 +113,6 @@ function usePreloadPages() {
     if (navigator.onLine) {
       // Small delay to let critical resources load first
       const timer = setTimeout(() => {
-        import("@/pages/Auth");
         import("@/pages/Workouts");
         import("@/pages/WorkoutDetail");
         import("@/pages/Progress");
@@ -139,7 +137,6 @@ function AppRoutes() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        <Route path="/auth" element={<Auth />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />

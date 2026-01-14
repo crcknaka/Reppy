@@ -442,6 +442,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.setItem("reppy_user_id", currentUser.id);
           localStorage.setItem("reppy_user_email", currentUser.email || "");
 
+          // Sync user metadata to profile (for display_name and username from signup)
+          // This ensures data from signUp options.data is saved to profile
+          // Use retry logic because the profile might not exist yet (trigger creates it async)
+          if (event === "SIGNED_IN" || event === "USER_UPDATED") {
+            const metadata = currentUser.user_metadata;
+            if (metadata?.display_name || metadata?.username) {
+              const updateData: Record<string, string> = {};
+              if (metadata.display_name) updateData.display_name = metadata.display_name;
+              if (metadata.username) updateData.username = metadata.username;
+
+              // Retry function with delay
+              const syncMetadataWithRetry = async (retries = 3, delay = 500) => {
+                // Initial delay to let the database trigger create the profile first
+                await new Promise(r => setTimeout(r, 300));
+
+                for (let i = 0; i < retries; i++) {
+                  // Wait before retrying
+                  if (i > 0) await new Promise(r => setTimeout(r, delay));
+
+                  const { error, data } = await supabase
+                    .from("profiles")
+                    .update(updateData)
+                    .eq("user_id", currentUser.id)
+                    .select()
+                    .single();
+
+                  if (!error && data) {
+                    console.log("[Auth] Synced user metadata to profile:", updateData);
+                    // Invalidate profile query to refresh UI
+                    queryClient.invalidateQueries({ queryKey: ["profile"] });
+                    return;
+                  }
+
+                  console.log(`[Auth] Retry ${i + 1}/${retries} - profile sync failed:`, error?.message);
+                }
+                console.error("[Auth] Failed to sync user metadata to profile after retries");
+              };
+
+              // Run async without blocking
+              syncMetadataWithRetry();
+            }
+          }
+
           // If there's guest data in localStorage and user just signed in
           // Include INITIAL_SESSION for cases when page reloads after OAuth
           if (hasGuestData && (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "INITIAL_SESSION")) {
@@ -495,7 +538,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Generate username from email if not provided
     const generatedUsername = username || email.split("@")[0].toLowerCase().replace(/[^a-z0-9_]/g, "") + Math.floor(Math.random() * 1000);
 
-    const { error } = await supabase.auth.signUp({
+    const { error, data } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -506,6 +549,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     });
     if (error) throw error;
+
+    // If email confirmation is disabled in Supabase, manually send verification email
+    // This allows "soft" confirmation - user can use app but sees banner until confirmed
+    if (data.user && !data.user.email_confirmed_at) {
+      // Send verification email (ignore errors - user is already signed up)
+      supabase.auth.resend({
+        type: "signup",
+        email: email,
+      }).catch(() => {
+        // Silently ignore - verification email is nice-to-have
+        console.log("[Auth] Could not send verification email");
+      });
+    }
   };
 
   const signIn = async (email: string, password: string) => {
@@ -569,17 +625,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Check if email is verified (Google users are always verified)
   // Use session.user for accurate data (cached user from localStorage doesn't have full metadata)
   const sessionUser = session?.user;
+
+  // Email is verified if:
+  // 1. User is a guest (no email to verify)
+  // 2. No user logged in
+  // 3. User confirmed their email (email_confirmed_at is set)
+  // 4. User signed in with Google (always verified)
+  // 5. We're offline and have no session (can't check, don't show banner)
   const isEmailVerified = Boolean(
     isGuest ||
-    // If no user at all, don't show banner (not logged in)
     !user ||
-    // If we have session.user, check verification status
-    (sessionUser && (
-      sessionUser.email_confirmed_at ||
-      sessionUser.app_metadata?.provider === "google"
-    )) ||
-    // If no session but have cached user (offline), don't show banner
-    (!sessionUser && !session)
+    (sessionUser?.email_confirmed_at) ||
+    (sessionUser?.app_metadata?.provider === "google") ||
+    // Offline mode - no session available, don't show banner
+    (!navigator.onLine && !session)
   );
 
   return (

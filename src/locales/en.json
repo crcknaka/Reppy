@@ -65,12 +65,24 @@
     "continueWithGoogle": "Continue with Google",
     "continueAsGuest": "Continue as Guest",
     "googleError": "Google sign-in error",
+    "username": "Username",
+    "usernamePlaceholder": "your_username",
+    "usernameHint": "3-20 characters: letters, numbers, underscore",
+    "usernameRequired": "Username is required",
+    "usernameTaken": "This username is already taken",
+    "usernameInvalid": "Username must be 3-20 characters (letters, numbers, underscore)",
+    "usernameChecking": "Checking username availability...",
     "verification": {
       "banner": "Please verify your email for full account access",
       "resend": "Resend",
       "sent": "Verification email sent! Check your inbox.",
       "sentShort": "Sent",
-      "sendError": "Failed to send verification email"
+      "sendError": "Failed to send verification email",
+      "modalTitle": "Verify Your Email",
+      "modalDescription": "We sent a verification link to your email address.",
+      "modalInstructions": "Click the link in the email to activate your account. Check your spam folder if you don't see it.",
+      "resendFull": "Resend verification email",
+      "closeHint": "You can close this window and verify later"
     }
   },
   "settings": {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Mail, Send, Loader2, Check } from "lucide-react";
+import { Mail, Send, Loader2, Check, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -24,7 +24,7 @@ export function EmailVerificationBanner() {
       toast.success(t("auth.verification.sent"));
       // Reset after 30 seconds to allow resending again
       setTimeout(() => setWasSent(false), 30000);
-    } catch (error) {
+    } catch {
       toast.error(t("auth.verification.sendError"));
     } finally {
       setIsResending(false);
@@ -32,37 +32,40 @@ export function EmailVerificationBanner() {
   };
 
   return (
-    <div className="bg-amber-500/10 border-b border-amber-500/20">
-      <div className="container max-w-3xl py-2.5 px-4">
+    <div className="sticky top-0 z-50 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg">
+      <div className="container max-w-3xl py-3 px-4">
         <div className="flex items-center gap-3">
-          <div className="flex-shrink-0 p-1.5 bg-amber-500/20 rounded-full">
-            <Mail className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <div className="flex-shrink-0 p-2 bg-white/20 rounded-full animate-pulse">
+            <AlertCircle className="h-5 w-5" />
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-amber-800 dark:text-amber-200">
+            <p className="text-sm font-medium">
               {t("auth.verification.banner")}
+            </p>
+            <p className="text-xs opacity-90 hidden sm:block">
+              {user.email}
             </p>
           </div>
 
           <Button
-            variant="ghost"
+            variant="secondary"
             size="sm"
-            className="h-8 px-3 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 hover:text-amber-800 dark:hover:text-amber-200 flex-shrink-0"
+            className="h-9 px-4 bg-white/20 hover:bg-white/30 text-white border-0 font-medium flex-shrink-0"
             onClick={handleResend}
             disabled={isResending || wasSent}
           >
             {isResending ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : wasSent ? (
               <>
-                <Check className="h-3.5 w-3.5 mr-1.5" />
-                {t("auth.verification.sentShort")}
+                <Check className="h-4 w-4 mr-1.5" />
+                <span className="hidden sm:inline">{t("auth.verification.sentShort")}</span>
               </>
             ) : (
               <>
-                <Send className="h-3.5 w-3.5 mr-1.5" />
-                {t("auth.verification.resend")}
+                <Send className="h-4 w-4 sm:mr-1.5" />
+                <span className="hidden sm:inline">{t("auth.verification.resend")}</span>
               </>
             )}
           </Button>

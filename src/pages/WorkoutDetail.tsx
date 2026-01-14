@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   AlertDialog,
@@ -725,6 +725,9 @@ export default function WorkoutDetail() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>{t("workout.shareWorkout")}</DialogTitle>
+                  <DialogDescription className="sr-only">
+                    {t("workout.shareWorkout")}
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 mt-4">
                   {workoutShare ? (
@@ -1536,9 +1539,15 @@ export default function WorkoutDetail() {
             </div>
           ) : isOwner && !workout?.is_locked ? (
             <>
+              {/* Mobile: show drawer with camera/gallery options */}
               <Drawer open={isPhotoSourceOpen} onOpenChange={setIsPhotoSourceOpen}>
                 <DrawerTrigger asChild>
-                  <div className="flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+                  <div
+                    className="flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary/50 transition-colors md:hidden"
+                    onClick={(e) => {
+                      // On mobile, let drawer open naturally
+                    }}
+                  >
                     {isUploadingPhoto ? (
                       <>
                         <Loader2 className="h-8 w-8 text-primary animate-spin" />
@@ -1577,6 +1586,24 @@ export default function WorkoutDetail() {
                   </div>
                 </DrawerContent>
               </Drawer>
+              {/* Desktop: click directly opens file picker */}
+              <div
+                className="hidden md:flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => galleryInputRef.current?.click()}
+              >
+                {isUploadingPhoto ? (
+                  <>
+                    <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                    <span className="text-sm text-muted-foreground">{t("common.loading")}</span>
+                  </>
+                ) : (
+                  <>
+                    <Camera className="h-8 w-8 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">{t("workout.clickToAddPhoto")}</span>
+                    <span className="text-xs text-muted-foreground/70">{t("workout.photoFormat")}</span>
+                  </>
+                )}
+              </div>
               {/* Hidden inputs for camera and gallery */}
               <input
                 ref={cameraInputRef}

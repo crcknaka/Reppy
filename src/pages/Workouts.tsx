@@ -22,6 +22,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -964,6 +965,9 @@ export default function Workouts() {
         <DialogContent className="sm:max-w-[350px] p-0">
           <DialogHeader className="p-4 pb-0">
             <DialogTitle>{t("workouts.otherDate")}</DialogTitle>
+            <DialogDescription className="sr-only">
+              {t("workouts.otherDate")}
+            </DialogDescription>
           </DialogHeader>
           <div className="p-4 pt-2 flex flex-col items-center">
             <Calendar

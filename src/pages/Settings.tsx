@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -722,6 +722,9 @@ export default function Settings() {
                   <DialogContent className="max-w-sm max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>{t("settings.selectAvatar")}</DialogTitle>
+                      <DialogDescription className="sr-only">
+                        {t("settings.selectAvatar")}
+                      </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 pt-2">
                       {AVATAR_CATEGORIES.map((category) => (
@@ -1423,6 +1426,9 @@ export default function Settings() {
                           <AlertTriangle className="h-5 w-5" />
                           {t("settings.deleteAccount.dialogTitle")}
                         </DialogTitle>
+                        <DialogDescription className="sr-only">
+                          {t("settings.deleteAccount.warning")}
+                        </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4 py-4">
                         <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">

@@ -4,6 +4,7 @@ import { Loader2, Mail, Lock, User, Check, X, AtSign } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -177,6 +178,9 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center">{t("auth.title")}</DialogTitle>
+          <DialogDescription className="sr-only">
+            {activeTab === "login" ? t("auth.login") : t("auth.register")}
+          </DialogDescription>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "signup")} className="w-full">

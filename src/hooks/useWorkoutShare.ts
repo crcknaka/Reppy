@@ -124,27 +124,17 @@ export function useCreateWorkoutShare() {
   });
 }
 
-// Деактивировать share ссылку
+// Деактивировать share ссылку (удаляем запись вместо обновления is_active)
 export function useDeactivateWorkoutShare() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (shareId: string) => {
-      // First check if already deactivated to avoid unnecessary calls
-      const { data: existing } = await supabase
-        .from("workout_shares")
-        .select("is_active")
-        .eq("id", shareId)
-        .single();
-
-      // Already deactivated, nothing to do
-      if (existing && !existing.is_active) {
-        return;
-      }
-
+      // Delete the share record instead of updating is_active
+      // This avoids conflicts with DB triggers that may prevent updates
       const { error } = await supabase
         .from("workout_shares")
-        .update({ is_active: false })
+        .delete()
         .eq("id", shareId);
 
       if (error) throw error;

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search, UserPlus, Check, Clock, Users } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useSearchUsers, useSendFriendRequest, useFriendshipStatus } from "@/hooks/useFriends";
@@ -135,6 +135,9 @@ export function AddFriendDialog({ trigger }: AddFriendDialogProps) {
             <Users className="h-5 w-5 text-primary" />
             {t("friends.findFriend")}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            {t("friends.searchByName")}
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           {/* Search input */}

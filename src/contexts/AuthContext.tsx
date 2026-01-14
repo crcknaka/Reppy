@@ -40,20 +40,42 @@ function getCachedUser(): User | null {
   return null;
 }
 
+// Initialize guest state synchronously to prevent flash of auth screen
+function getInitialGuestState(): { isGuest: boolean; guestUserId: string | null } {
+  const cachedUserId = localStorage.getItem("reppy_user_id");
+  const existingGuestId = getGuestUserId();
+
+  // If we have a cached real user, don't start in guest mode
+  if (cachedUserId && !isGuestUserId(cachedUserId)) {
+    return { isGuest: false, guestUserId: null };
+  }
+
+  // If we have an existing guest ID, restore guest mode immediately
+  if (existingGuestId) {
+    return { isGuest: true, guestUserId: existingGuestId };
+  }
+
+  return { isGuest: false, guestUserId: null };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
+
+  // Get initial guest state synchronously
+  const initialGuestState = getInitialGuestState();
 
   // Start with cached user for immediate offline access
   const [user, setUser] = useState<User | null>(getCachedUser);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isGuest, setIsGuest] = useState(false);
-  const [guestUserId, setGuestUserId] = useState<string | null>(null);
+  const [isGuest, setIsGuest] = useState(initialGuestState.isGuest);
+  const [guestUserId, setGuestUserId] = useState<string | null>(initialGuestState.guestUserId);
   const [isMigrating, setIsMigrating] = useState(false);
 
   // Refs to keep track of guest state for migration (avoids stale closure issues)
-  const guestUserIdRef = useRef<string | null>(null);
-  const isGuestRef = useRef<boolean>(false);
+  // Initialize with initial values to avoid stale closure issues
+  const guestUserIdRef = useRef<string | null>(initialGuestState.guestUserId);
+  const isGuestRef = useRef<boolean>(initialGuestState.isGuest);
   const migrationInProgressRef = useRef<boolean>(false);
 
   // Keep refs in sync with state

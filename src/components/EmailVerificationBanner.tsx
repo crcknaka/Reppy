@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Mail, X, Send, Loader2, Check } from "lucide-react";
+import { Mail, Send, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -8,12 +8,11 @@ import { toast } from "sonner";
 export function EmailVerificationBanner() {
   const { t } = useTranslation();
   const { user, isEmailVerified, resendVerificationEmail } = useAuth();
-  const [isDismissed, setIsDismissed] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [wasSent, setWasSent] = useState(false);
 
-  // Don't show if verified, dismissed, or no user
-  if (isEmailVerified || isDismissed || !user) {
+  // Don't show if verified or no user
+  if (isEmailVerified || !user) {
     return null;
   }
 
@@ -46,38 +45,27 @@ export function EmailVerificationBanner() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-3 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 hover:text-amber-800 dark:hover:text-amber-200"
-              onClick={handleResend}
-              disabled={isResending || wasSent}
-            >
-              {isResending ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : wasSent ? (
-                <>
-                  <Check className="h-3.5 w-3.5 mr-1.5" />
-                  {t("auth.verification.sentShort")}
-                </>
-              ) : (
-                <>
-                  <Send className="h-3.5 w-3.5 mr-1.5" />
-                  {t("auth.verification.resend")}
-                </>
-              )}
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20"
-              onClick={() => setIsDismissed(true)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-3 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 hover:text-amber-800 dark:hover:text-amber-200 flex-shrink-0"
+            onClick={handleResend}
+            disabled={isResending || wasSent}
+          >
+            {isResending ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : wasSent ? (
+              <>
+                <Check className="h-3.5 w-3.5 mr-1.5" />
+                {t("auth.verification.sentShort")}
+              </>
+            ) : (
+              <>
+                <Send className="h-3.5 w-3.5 mr-1.5" />
+                {t("auth.verification.resend")}
+              </>
+            )}
+          </Button>
         </div>
       </div>
     </div>

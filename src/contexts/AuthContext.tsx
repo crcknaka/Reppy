@@ -144,15 +144,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       const currentUser = session?.user ?? null;
       setUser(currentUser);
+
+      // Check for guest data that needs migration
+      const storedGuestId = getGuestUserId();
+      const hasGuestData = storedGuestId && isGuestUserId(storedGuestId);
 
       // Cache user ID for offline access
       if (currentUser) {
         localStorage.setItem("reppy_user_id", currentUser.id);
         localStorage.setItem("reppy_user_email", currentUser.email || "");
+
+        // If there's guest data, migrate it to the authenticated user
+        if (hasGuestData) {
+          console.log("[Auth] Found guest data on initial load, migrating from", storedGuestId, "to", currentUser.id);
+          await migrateGuestData(currentUser.id, storedGuestId);
+        }
+
         // Clear guest mode if user is authenticated
         setIsGuest(false);
         setGuestUserId(null);
@@ -206,9 +217,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         const currentUser = session?.user ?? null;
-        // Use refs to get current guest state (avoids stale closure)
-        const previousGuestId = guestUserIdRef.current;
-        const wasGuest = isGuestRef.current;
+
+        // Check for guest data in localStorage BEFORE any state changes
+        // This is more reliable than refs which can be stale
+        const storedGuestId = getGuestUserId();
+        const hasGuestData = storedGuestId && isGuestUserId(storedGuestId);
 
         setSession(session);
         setUser(currentUser);
@@ -218,14 +231,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.setItem("reppy_user_id", currentUser.id);
           localStorage.setItem("reppy_user_email", currentUser.email || "");
 
-          // If user was a guest and now signed in, migrate guest data
-          if (wasGuest && previousGuestId && (event === "SIGNED_IN" || event === "USER_UPDATED")) {
-            await migrateGuestData(currentUser.id, previousGuestId);
+          // If there's guest data in localStorage and user just signed in, migrate it
+          if (hasGuestData && (event === "SIGNED_IN" || event === "USER_UPDATED")) {
+            console.log("[Auth] Detected guest data during sign in, migrating from", storedGuestId, "to", currentUser.id);
+            await migrateGuestData(currentUser.id, storedGuestId);
           }
 
           // Clear guest mode
           setIsGuest(false);
           setGuestUserId(null);
+          // Also clear refs
+          guestUserIdRef.current = null;
+          isGuestRef.current = false;
         }
 
         setLoading(false);

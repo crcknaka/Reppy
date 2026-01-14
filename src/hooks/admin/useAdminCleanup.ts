@@ -97,13 +97,30 @@ export function useDeleteEmptyWorkouts() {
     mutationFn: async (workoutIds: string[]): Promise<number> => {
       if (workoutIds.length === 0) return 0;
 
-      const { error } = await supabase
-        .from("workouts")
-        .delete()
-        .in("id", workoutIds);
+      // Get the current session for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("No active session");
 
-      if (error) throw error;
-      return workoutIds.length;
+      // Call the admin-cleanup edge function
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-cleanup`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ action: "deleteEmptyWorkouts", ids: workoutIds }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to delete workouts");
+      }
+
+      return result.count;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin"] });
@@ -202,51 +219,30 @@ export function useDeleteOrphanedExercises() {
 
   return useMutation({
     mutationFn: async (): Promise<number> => {
-      // Get all workout IDs
-      const { data: workouts } = await supabase
-        .from("workouts")
-        .select("id");
+      // Get the current session for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("No active session");
 
-      const validWorkoutIds = new Set(workouts?.map((w) => w.id) || []);
+      // Call the admin-cleanup edge function
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-cleanup`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ action: "deleteOrphanedSets" }),
+        }
+      );
 
-      // Get all workout sets (paginate to avoid 1000 row limit)
-      const orphanedIds: string[] = [];
-      let offset = 0;
-      const pageSize = 1000;
+      const result = await response.json();
 
-      while (true) {
-        const { data: sets } = await supabase
-          .from("workout_sets")
-          .select("id, workout_id")
-          .range(offset, offset + pageSize - 1);
-
-        if (!sets || sets.length === 0) break;
-
-        sets.forEach((s) => {
-          if (!validWorkoutIds.has(s.workout_id)) {
-            orphanedIds.push(s.id);
-          }
-        });
-
-        if (sets.length < pageSize) break;
-        offset += pageSize;
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to delete orphaned sets");
       }
 
-      if (orphanedIds.length === 0) return 0;
-
-      // Delete in batches to avoid issues with large deletions
-      const batchSize = 100;
-      for (let i = 0; i < orphanedIds.length; i += batchSize) {
-        const batch = orphanedIds.slice(i, i + batchSize);
-        const { error } = await supabase
-          .from("workout_sets")
-          .delete()
-          .in("id", batch);
-
-        if (error) throw error;
-      }
-
-      return orphanedIds.length;
+      return result.count;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin"] });
@@ -366,19 +362,30 @@ export function useDeleteUnusedExercises() {
     mutationFn: async (exerciseIds: string[]): Promise<number> => {
       if (exerciseIds.length === 0) return 0;
 
-      // Delete in batches
-      const batchSize = 100;
-      for (let i = 0; i < exerciseIds.length; i += batchSize) {
-        const batch = exerciseIds.slice(i, i + batchSize);
-        const { error } = await supabase
-          .from("exercises")
-          .delete()
-          .in("id", batch);
+      // Get the current session for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("No active session");
 
-        if (error) throw error;
+      // Call the admin-cleanup edge function
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-cleanup`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ action: "deleteUnusedExercises", ids: exerciseIds }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to delete exercises");
       }
 
-      return exerciseIds.length;
+      return result.count;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin"] });

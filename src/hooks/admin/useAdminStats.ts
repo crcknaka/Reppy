@@ -299,12 +299,28 @@ export function useDeleteUserExercise() {
 
   return useMutation({
     mutationFn: async (exerciseId: string): Promise<void> => {
-      const { error } = await supabase
-        .from("exercises")
-        .delete()
-        .eq("id", exerciseId);
+      // Get the current session for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("No active session");
 
-      if (error) throw error;
+      // Call the admin-delete-exercise edge function
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-delete-exercise`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ exerciseId }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to delete exercise");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin"] });

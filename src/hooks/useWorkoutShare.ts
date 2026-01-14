@@ -82,6 +82,20 @@ export function useCreateWorkoutShare() {
         .select()
         .single();
 
+      // Handle race condition - if duplicate key error, fetch existing share
+      if (error?.code === "23505") {
+        const { data: raceShare } = await supabase
+          .from("workout_shares")
+          .select("*")
+          .eq("workout_id", workoutId)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (raceShare) {
+          return raceShare as WorkoutShare;
+        }
+      }
+
       if (error) throw error;
       return data as WorkoutShare;
     },
@@ -97,6 +111,18 @@ export function useDeactivateWorkoutShare() {
 
   return useMutation({
     mutationFn: async (shareId: string) => {
+      // First check if already deactivated to avoid unnecessary calls
+      const { data: existing } = await supabase
+        .from("workout_shares")
+        .select("is_active")
+        .eq("id", shareId)
+        .single();
+
+      // Already deactivated, nothing to do
+      if (existing && !existing.is_active) {
+        return;
+      }
+
       const { error } = await supabase
         .from("workout_shares")
         .update({ is_active: false })
@@ -104,10 +130,12 @@ export function useDeactivateWorkoutShare() {
 
       if (error) throw error;
     },
-    onSuccess: (_, shareId) => {
+    onSuccess: () => {
       // Инвалидируем кэш для всех share запросов
       queryClient.invalidateQueries({ queryKey: ["workout-share"] });
     },
+    // Don't retry on failure
+    retry: false,
   });
 }
 

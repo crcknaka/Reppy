@@ -18,6 +18,7 @@ interface AuthContextType {
   guestUserId: string | null;
   effectiveUserId: string | null;
   isEmailVerified: boolean;
+  isMigrating: boolean; // True while guest data is being migrated
   signUp: (email: string, password: string, displayName?: string, username?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -48,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isGuest, setIsGuest] = useState(false);
   const [guestUserId, setGuestUserId] = useState<string | null>(null);
+  const [isMigrating, setIsMigrating] = useState(false);
 
   // Refs to keep track of guest state for migration (avoids stale closure issues)
   const guestUserIdRef = useRef<string | null>(null);
@@ -83,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     migrationInProgressRef.current = true;
+    setIsMigrating(true);
 
     try {
       console.log("[Auth] Migrating guest data from", oldGuestId, "to", newUserId);
@@ -157,6 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("[Auth] Failed to migrate guest data:", error);
     } finally {
       migrationInProgressRef.current = false;
+      setIsMigrating(false);
     }
   }, [queryClient]);
 
@@ -389,6 +393,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       guestUserId,
       effectiveUserId,
       isEmailVerified,
+      isMigrating,
       signUp,
       signIn,
       signInWithGoogle,

@@ -30,7 +30,7 @@ const OfflineContext = createContext<OfflineContextType | undefined>(undefined);
 
 export function OfflineProvider({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
-  const { user, isGuest, effectiveUserId, loading: authLoading } = useAuth();
+  const { user, isGuest, effectiveUserId, loading: authLoading, isMigrating } = useAuth();
   const queryClient = useQueryClient();
   const { isOnline, pendingCount, lastSyncTime, checkConnection } = useOfflineStatus();
 
@@ -39,6 +39,7 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
   const [isSyncing, setIsSyncing] = useState(false);
   const wasOfflineRef = useRef(false);
   const hasHydratedRef = useRef(false);
+  const wasMigratingRef = useRef(false);
 
   // Hydrate IndexedDB from Supabase on first load
   // Only for authenticated users, not guests
@@ -189,12 +190,28 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      // IMPORTANT: Wait for migration to complete before checking data
+      // This prevents race condition where we hydrate from server before guest data is migrated
+      if (isMigrating) {
+        console.log("[Offline] Waiting for migration to complete before hydration check");
+        return;
+      }
+
       try {
         // Check if we have data and need to hydrate
-        const workoutCount = await offlineDb.workouts.count();
+        // If workoutCount > 0, it means either:
+        // 1. User already has local data (migrated from guest)
+        // 2. User already has synced data from previous session
+        const workoutCount = await offlineDb.workouts
+          .where("user_id")
+          .equals(effectiveUserId)
+          .count();
+
+        console.log("[Offline] Workout count for user", effectiveUserId, ":", workoutCount);
 
         if (workoutCount === 0 && isOnline) {
-          // First time - hydrate from server
+          // First time or no migrated data - hydrate from server
+          console.log("[Offline] No local data, hydrating from server");
           await hydrateFromServer();
         }
       } catch (error) {
@@ -203,7 +220,7 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     };
 
     init();
-  }, [effectiveUserId, isGuest, isOnline, hydrateFromServer]);
+  }, [effectiveUserId, isGuest, isOnline, isMigrating, hydrateFromServer]);
 
   // Sync when coming back online
   // Only for authenticated users, guests don't sync
@@ -282,16 +299,38 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     }
   }, [isSyncing, isOnline, isGuest, queryClient, t]);
 
+  // Trigger sync after migration completes
+  // This syncs the migrated guest data to the server
+  useEffect(() => {
+    // Track when migration ends
+    if (isMigrating) {
+      wasMigratingRef.current = true;
+      return;
+    }
+
+    // Migration just finished, trigger sync
+    if (wasMigratingRef.current && user && isOnline && !isSyncing) {
+      wasMigratingRef.current = false;
+      console.log("[Offline] Migration complete, triggering sync of migrated data");
+      // Small delay to allow React Query cache to update
+      setTimeout(() => {
+        triggerSync();
+      }, 500);
+    }
+  }, [isMigrating, user, isOnline, isSyncing, triggerSync]);
+
   // Clear offline data on logout
   // But NOT when in guest mode - guest data should persist
-  // IMPORTANT: Wait for auth to finish loading before deciding to clear
+  // IMPORTANT: Wait for auth to finish loading and migration to complete before deciding to clear
   useEffect(() => {
     if (authLoading) return; // Don't clear while auth is still loading
+    if (isMigrating) return; // Don't clear during migration
     if (!user && !isGuest) {
+      console.log("[Offline] Clearing offline data on logout");
       clearOfflineData().catch(console.error);
       syncService.clearMappings().catch(console.error);
     }
-  }, [user, isGuest, authLoading]);
+  }, [user, isGuest, authLoading, isMigrating]);
 
   return (
     <OfflineContext.Provider

@@ -26,6 +26,7 @@ import { useDeleteAccount } from "@/hooks/useDeleteAccount";
 import { LANGUAGES } from "@/lib/i18n";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { AuthModal } from "@/components/AuthModal";
 
 const AVATAR_CATEGORIES = [
   {
@@ -109,6 +110,9 @@ export default function Settings() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const deleteConfirmWord = i18n.language === "ru" ? "УДАЛИТЬ" : "DELETE";
+
+  // Auth modal state
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   // Section states - default open based on screen size
   // Desktop (md: 768px+): profile + app open, Mobile: only app open
@@ -639,7 +643,7 @@ export default function Settings() {
               <Button
                 variant="outline"
                 className="w-full gap-2 h-10 text-sm bg-background/50 active:scale-[0.98] transition-transform"
-                onClick={() => navigate("/auth")}
+                onClick={() => setAuthModalOpen(true)}
               >
                 <LogIn className="h-4 w-4" />
                 {t("guest.friends.loginWithEmail")}
@@ -1634,6 +1638,9 @@ export default function Settings() {
           {t("legal.footer.terms")}
         </Link>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </div>
   );
 }

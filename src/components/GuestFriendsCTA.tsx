@@ -1,14 +1,15 @@
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Users, UserPlus, LogIn, Cloud, Smartphone, Shield } from "lucide-react";
+import { Users, LogIn, Cloud, Smartphone, Shield } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { AuthModal } from "@/components/AuthModal";
 
 export function GuestFriendsCTA() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { signInWithGoogle } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -80,7 +81,7 @@ export function GuestFriendsCTA() {
             <Button
               variant="outline"
               className="w-full h-11 gap-2"
-              onClick={() => navigate("/auth")}
+              onClick={() => setAuthModalOpen(true)}
             >
               <LogIn className="h-4 w-4" />
               {t("guest.friends.loginWithEmail")}
@@ -92,6 +93,9 @@ export function GuestFriendsCTA() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Auth Modal */}
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </div>
   );
 }

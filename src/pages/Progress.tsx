@@ -28,6 +28,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { cn } from "@/lib/utils";
 import { useFriends } from "@/hooks/useFriends";
 import { useUnits } from "@/hooks/useUnits";
+import { AuthModal } from "@/components/AuthModal";
 
 const DATE_LOCALES: Record<string, Locale> = {
   en: enUS,
@@ -65,6 +66,7 @@ export default function Progress() {
   const [leaderboardPeriod, setLeaderboardPeriod] = useState<"all" | "month" | "today">("all");
   const [leaderboardFriendsOnly, setLeaderboardFriendsOnly] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   // State for fallback preset exercises (when offline cache is empty)
   const [fallbackPresetExercises, setFallbackPresetExercises] = useState<typeof exercises>([]);
 
@@ -1177,12 +1179,13 @@ export default function Progress() {
                 <Button
                   variant="outline"
                   className="w-full gap-2"
-                  onClick={() => navigate("/auth")}
+                  onClick={() => setAuthModalOpen(true)}
                 >
                   <LogIn className="h-4 w-4" />
                   {t("guest.friends.loginWithEmail")}
                 </Button>
               </div>
+              <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
             </div>
           ) : (
           <>

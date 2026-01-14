@@ -6,7 +6,7 @@ import { getDateLocale } from "@/lib/dateLocales";
 import { useTranslation } from "react-i18next";
 import { getExerciseName } from "@/lib/i18n";
 import { getExerciseIcon, getExerciseTypeLabel, ExerciseType } from "@/lib/exerciseUtils";
-import { ArrowLeft, Plus, Trash2, MessageSquare, Save, Pencil, X, Camera, Loader2, ImageIcon, LayoutGrid, Trophy, Search, Share2, Copy, Check, Ban, Lock, Unlock, Star, Maximize2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, MessageSquare, Save, Pencil, X, Camera, Loader2, ImageIcon, LayoutGrid, Trophy, Search, Share2, Copy, Check, Ban, Lock, Unlock, Star, Maximize2, User, Dumbbell, Activity, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";

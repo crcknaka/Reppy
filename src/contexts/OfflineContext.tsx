@@ -309,7 +309,9 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     }
 
     // Migration just finished, trigger sync
-    if (wasMigratingRef.current && user && isOnline && !isSyncing) {
+    // IMPORTANT: Also check !isGuest to ensure guest mode is fully cleared
+    // before attempting sync (isGuest affects triggerSync behavior)
+    if (wasMigratingRef.current && user && isOnline && !isSyncing && !isGuest) {
       wasMigratingRef.current = false;
       console.log("[Offline] Migration complete, triggering sync of migrated data");
       // Small delay to allow React Query cache to update
@@ -317,7 +319,7 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
         triggerSync();
       }, 500);
     }
-  }, [isMigrating, user, isOnline, isSyncing, triggerSync]);
+  }, [isMigrating, user, isOnline, isSyncing, isGuest, triggerSync]);
 
   // Clear offline data on logout
   // But NOT when in guest mode - guest data should persist

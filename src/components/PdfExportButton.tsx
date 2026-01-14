@@ -37,11 +37,6 @@ export function PdfExportButton() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [periodType, setPeriodType] = useState<PeriodType>("month");
 
-  // Don't render for guest users
-  if (isGuest) {
-    return null;
-  }
-
   // Month/year selection state
   const now = new Date();
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
@@ -79,6 +74,16 @@ export function PdfExportButton() {
       return workoutDate >= selectedWeekStart && workoutDate <= weekEnd;
     });
   }, [allWorkouts, selectedWeekStart, periodType]);
+
+  const formattedWeek = useMemo(() => {
+    const weekEnd = endOfWeek(selectedWeekStart, { weekStartsOn: 1 });
+    return `${format(selectedWeekStart, "d MMM", { locale: dateLocale })} - ${format(weekEnd, "d MMM", { locale: dateLocale })}`;
+  }, [selectedWeekStart, dateLocale]);
+
+  // Don't render for guest users (after all hooks)
+  if (isGuest) {
+    return null;
+  }
 
   // Select workouts based on period type
   const workouts = periodType === "allTime"
@@ -265,11 +270,6 @@ export function PdfExportButton() {
     "LLLL yyyy",
     { locale: dateLocale }
   );
-
-  const formattedWeek = useMemo(() => {
-    const weekEnd = endOfWeek(selectedWeekStart, { weekStartsOn: 1 });
-    return `${format(selectedWeekStart, "d MMM", { locale: dateLocale })} - ${format(weekEnd, "d MMM", { locale: dateLocale })}`;
-  }, [selectedWeekStart, dateLocale]);
 
   const workoutCount = workouts?.length || 0;
 

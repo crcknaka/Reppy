@@ -702,6 +702,14 @@
       "title": "Join the Leaderboard",
       "description": "Create an account to see how you rank against other athletes and compete for the top spots!"
     },
+    "migration": {
+      "title": "Guest Workouts Found",
+      "description": "You have {{count}} workout(s) saved as a guest. Would you like to add them to your account?",
+      "hint": "If you discard, the guest workouts will be deleted and cannot be recovered.",
+      "merge": "Add to Account",
+      "discard": "Discard"
+    },
+    "mode": "Guest",
     "createAccount": "Create Account"
   },
   "admin": {

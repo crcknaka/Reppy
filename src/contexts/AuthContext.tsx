@@ -9,6 +9,7 @@ import {
   isGuestUserId
 } from "@/lib/guestUser";
 import { offlineDb } from "@/offline/db";
+import { syncQueue } from "@/offline/syncQueue";
 
 interface AuthContextType {
   user: User | null;
@@ -19,6 +20,11 @@ interface AuthContextType {
   effectiveUserId: string | null;
   isEmailVerified: boolean;
   isMigrating: boolean; // True while guest data is being migrated
+  // Migration dialog state
+  showMigrationDialog: boolean;
+  pendingMigrationWorkoutCount: number;
+  confirmMigration: () => void;
+  discardGuestData: () => void;
   signUp: (email: string, password: string, displayName?: string, username?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -72,6 +78,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [guestUserId, setGuestUserId] = useState<string | null>(initialGuestState.guestUserId);
   const [isMigrating, setIsMigrating] = useState(false);
 
+  // Migration dialog state
+  const [showMigrationDialog, setShowMigrationDialog] = useState(false);
+  const [pendingMigrationWorkoutCount, setPendingMigrationWorkoutCount] = useState(0);
+  const [pendingMigrationUserId, setPendingMigrationUserId] = useState<string | null>(null);
+  const [pendingMigrationGuestId, setPendingMigrationGuestId] = useState<string | null>(null);
+
   // Refs to keep track of guest state for migration (avoids stale closure issues)
   // Initialize with initial values to avoid stale closure issues
   const guestUserIdRef = useRef<string | null>(initialGuestState.guestUserId);
@@ -112,7 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log("[Auth] Migrating guest data from", oldGuestId, "to", newUserId);
 
-      // 1. Update all workouts with new user_id
+      // 1. Update all workouts with new user_id and add to sync queue
       const workouts = await offlineDb.workouts
         .where("user_id")
         .equals(oldGuestId)
@@ -121,13 +133,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const workoutIds = workouts.map(w => w.id);
 
       for (const workout of workouts) {
+        // Update local data
         await offlineDb.workouts.update(workout.id, {
           user_id: newUserId,
           _synced: false,
         });
+
+        // Add to sync queue for upload to server
+        await syncQueue.enqueue("workouts", "create", workout.id, {
+          id: workout.id,
+          user_id: newUserId,
+          date: workout.date,
+          notes: workout.notes,
+          photo_url: workout.photo_url,
+          is_locked: workout.is_locked,
+        });
       }
 
-      // 2. Update all workout_sets for migrated workouts (mark as unsynced)
+      // 2. Update all workout_sets for migrated workouts and add to sync queue
       let setsCount = 0;
       if (workoutIds.length > 0) {
         const workoutSets = await offlineDb.workoutSets
@@ -136,36 +159,71 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .toArray();
 
         for (const set of workoutSets) {
+          // Update local data
           await offlineDb.workoutSets.update(set.id, {
             _synced: false,
+          });
+
+          // Add to sync queue for upload to server
+          await syncQueue.enqueue("workout_sets", "create", set.id, {
+            id: set.id,
+            workout_id: set.workout_id,
+            exercise_id: set.exercise_id,
+            set_number: set.set_number,
+            reps: set.reps,
+            weight: set.weight,
+            distance_km: set.distance_km,
+            duration_minutes: set.duration_minutes,
+            plank_seconds: set.plank_seconds,
           });
         }
         setsCount = workoutSets.length;
       }
 
-      // 3. Update all custom exercises created by guest
+      // 3. Update all custom exercises created by guest and add to sync queue
       const exercises = await offlineDb.exercises
         .where("user_id")
         .equals(oldGuestId)
         .toArray();
 
       for (const exercise of exercises) {
+        // Update local data
         await offlineDb.exercises.update(exercise.id, {
           user_id: newUserId,
           _synced: false,
         });
+
+        // Add to sync queue for upload to server (only custom exercises, not presets)
+        if (!exercise.is_preset) {
+          await syncQueue.enqueue("exercises", "create", exercise.id, {
+            id: exercise.id,
+            user_id: newUserId,
+            name: exercise.name,
+            type: exercise.type,
+            image_url: exercise.image_url,
+            is_preset: false,
+          });
+        }
       }
 
-      // 4. Update favorite exercises
+      // 4. Update favorite exercises and add to sync queue
       const favorites = await offlineDb.favoriteExercises
         .where("user_id")
         .equals(oldGuestId)
         .toArray();
 
       for (const fav of favorites) {
+        // Update local data
         await offlineDb.favoriteExercises.update(fav.id, {
           user_id: newUserId,
           _synced: false,
+        });
+
+        // Add to sync queue for upload to server
+        await syncQueue.enqueue("favorite_exercises", "create", fav.id, {
+          id: fav.id,
+          user_id: newUserId,
+          exercise_id: fav.exercise_id,
         });
       }
 
@@ -177,7 +235,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await queryClient.invalidateQueries({ queryKey: ["exercises"] });
       await queryClient.invalidateQueries({ queryKey: ["favoriteExercises"] });
 
-      console.log("[Auth] Guest data migration complete. Workouts:", workouts.length, "Sets:", setsCount, "Exercises:", exercises.length, "Favorites:", favorites.length);
+      console.log("[Auth] Guest data migration complete and queued for sync. Workouts:", workouts.length, "Sets:", setsCount, "Exercises:", exercises.length, "Favorites:", favorites.length);
     } catch (error) {
       console.error("[Auth] Failed to migrate guest data:", error);
     } finally {
@@ -185,6 +243,91 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsMigrating(false);
     }
   }, [queryClient]);
+
+  // Confirm migration - merge guest data with account
+  const confirmMigration = useCallback(async () => {
+    if (pendingMigrationUserId && pendingMigrationGuestId) {
+      await migrateGuestData(pendingMigrationUserId, pendingMigrationGuestId);
+    }
+    // Clear dialog state
+    setShowMigrationDialog(false);
+    setPendingMigrationUserId(null);
+    setPendingMigrationGuestId(null);
+    setPendingMigrationWorkoutCount(0);
+    // Clear guest mode
+    setIsGuest(false);
+    setGuestUserId(null);
+    guestUserIdRef.current = null;
+    isGuestRef.current = false;
+  }, [pendingMigrationUserId, pendingMigrationGuestId, migrateGuestData]);
+
+  // Discard guest data - just clear it without migrating
+  const discardGuestData = useCallback(async () => {
+    if (pendingMigrationGuestId) {
+      // Delete guest workouts and related data from IndexedDB
+      const workouts = await offlineDb.workouts
+        .where("user_id")
+        .equals(pendingMigrationGuestId)
+        .toArray();
+
+      const workoutIds = workouts.map(w => w.id);
+
+      // Delete workout sets for guest workouts
+      if (workoutIds.length > 0) {
+        await offlineDb.workoutSets
+          .where("workout_id")
+          .anyOf(workoutIds)
+          .delete();
+      }
+
+      // Delete guest workouts
+      await offlineDb.workouts
+        .where("user_id")
+        .equals(pendingMigrationGuestId)
+        .delete();
+
+      // Delete guest exercises
+      await offlineDb.exercises
+        .where("user_id")
+        .equals(pendingMigrationGuestId)
+        .delete();
+
+      // Delete guest favorites
+      await offlineDb.favoriteExercises
+        .where("user_id")
+        .equals(pendingMigrationGuestId)
+        .delete();
+
+      // Clear guest localStorage
+      clearGuestData();
+
+      console.log("[Auth] Guest data discarded");
+    }
+
+    // Clear dialog state
+    setShowMigrationDialog(false);
+    setPendingMigrationUserId(null);
+    setPendingMigrationGuestId(null);
+    setPendingMigrationWorkoutCount(0);
+    // Clear guest mode
+    setIsGuest(false);
+    setGuestUserId(null);
+    guestUserIdRef.current = null;
+    isGuestRef.current = false;
+  }, [pendingMigrationGuestId]);
+
+  // Check if user already has workouts on the server (existing account)
+  const checkExistingAccountData = useCallback(async (userId: string): Promise<boolean> => {
+    try {
+      const { count } = await supabase
+        .from("workouts")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId);
+      return (count ?? 0) > 0;
+    } catch {
+      return false;
+    }
+  }, []);
 
   useEffect(() => {
     // Get initial session
@@ -299,11 +442,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.setItem("reppy_user_id", currentUser.id);
           localStorage.setItem("reppy_user_email", currentUser.email || "");
 
-          // If there's guest data in localStorage and user just signed in, migrate it
+          // If there's guest data in localStorage and user just signed in
           // Include INITIAL_SESSION for cases when page reloads after OAuth
           if (hasGuestData && (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "INITIAL_SESSION")) {
-            console.log("[Auth] Triggering migration from", storedGuestId, "to", currentUser.id, "on event:", event);
-            await migrateGuestData(currentUser.id, storedGuestId);
+            // Count guest workouts
+            const guestWorkoutCount = await offlineDb.workouts
+              .where("user_id")
+              .equals(storedGuestId)
+              .count();
+
+            if (guestWorkoutCount > 0) {
+              // Check if this is an existing account with data
+              const isExistingAccount = await checkExistingAccountData(currentUser.id);
+
+              if (isExistingAccount) {
+                // Existing account - show dialog to ask user
+                console.log("[Auth] Existing account detected, showing migration dialog");
+                setPendingMigrationUserId(currentUser.id);
+                setPendingMigrationGuestId(storedGuestId);
+                setPendingMigrationWorkoutCount(guestWorkoutCount);
+                setShowMigrationDialog(true);
+                // Don't clear guest mode yet - wait for user decision
+                setLoading(false);
+                return;
+              } else {
+                // New account - auto-migrate
+                console.log("[Auth] New account, auto-migrating guest data");
+                await migrateGuestData(currentUser.id, storedGuestId);
+              }
+            } else {
+              // No guest workouts - just clear guest data
+              clearGuestData();
+            }
           }
 
           // Clear guest mode
@@ -319,7 +489,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     return () => subscription.unsubscribe();
-  }, [initGuestMode, migrateGuestData]);
+  }, [initGuestMode, migrateGuestData, checkExistingAccountData]);
 
   const signUp = async (email: string, password: string, displayName?: string, username?: string) => {
     // Generate username from email if not provided
@@ -401,9 +571,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const sessionUser = session?.user;
   const isEmailVerified = Boolean(
     isGuest ||
-    !sessionUser || // If no session (offline/cached), don't show banner
-    sessionUser.email_confirmed_at ||
-    sessionUser.app_metadata?.provider === "google"
+    // If no user at all, don't show banner (not logged in)
+    !user ||
+    // If we have session.user, check verification status
+    (sessionUser && (
+      sessionUser.email_confirmed_at ||
+      sessionUser.app_metadata?.provider === "google"
+    )) ||
+    // If no session but have cached user (offline), don't show banner
+    (!sessionUser && !session)
   );
 
   return (
@@ -416,6 +592,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       effectiveUserId,
       isEmailVerified,
       isMigrating,
+      showMigrationDialog,
+      pendingMigrationWorkoutCount,
+      confirmMigration,
+      discardGuestData,
       signUp,
       signIn,
       signInWithGoogle,

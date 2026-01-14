@@ -53,7 +53,7 @@ export default function Workouts() {
   const dateLocale = DATE_LOCALES[i18n.language] || enUS;
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
   const { isOnline } = useOffline();
 
   const viewingUserId = searchParams.get("user");
@@ -269,12 +269,19 @@ export default function Workouts() {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      {/* Header row: title + user selector */}
+      {/* Header row: title + user indicator/selector */}
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">{t("workouts.title")}</h1>
 
-        {/* User selector - for admins (all users) or regular users (friends only) */}
-        {currentUserProfile?.is_admin ? (
+        {/* User indicator/selector */}
+        {isGuest ? (
+          /* Guest mode - show guest label */
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/50">
+            <span className="text-sm">👤</span>
+            <span className="text-sm text-muted-foreground">{t("guest.mode")}</span>
+          </div>
+        ) : currentUserProfile?.is_admin ? (
+          /* Admin - show all users selector */
           <Select value={targetUserId || ""} onValueChange={handleUserChange}>
             <SelectTrigger className="w-auto min-w-[140px] max-w-[180px] h-9 text-xs">
               <SelectValue placeholder={t("common.select")} />
@@ -302,7 +309,8 @@ export default function Workouts() {
               ))}
             </SelectContent>
           </Select>
-        ) : friends && friends.length > 0 && (
+        ) : friends && friends.length > 0 ? (
+          /* User with friends - show friends selector */
           <Select value={targetUserId || ""} onValueChange={handleUserChange}>
             <SelectTrigger className="w-auto min-w-[140px] max-w-[180px] h-9 text-xs">
               <SelectValue placeholder={t("common.select")} />
@@ -330,6 +338,14 @@ export default function Workouts() {
               ))}
             </SelectContent>
           </Select>
+        ) : (
+          /* User without friends - show user label */
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/50">
+            <span className="text-sm">{currentUserProfile?.avatar || "👤"}</span>
+            <span className="text-sm text-muted-foreground truncate max-w-[120px]">
+              {currentUserProfile?.display_name || user?.email?.split("@")[0] || t("common.you")}
+            </span>
+          </div>
         )}
       </div>
 

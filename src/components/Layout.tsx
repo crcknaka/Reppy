@@ -10,6 +10,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useShowAdminNav } from "@/hooks/useShowAdminNav";
 import { GuestRegistrationReminder } from "@/components/GuestRegistrationReminder";
 import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
+import { GuestDataMigrationDialog } from "@/components/GuestDataMigrationDialog";
 
 interface LayoutProps {
   children: ReactNode;
@@ -34,7 +35,7 @@ const settingsNavItem: NavItem = { to: "/settings", icon: Settings, labelKey: "n
 
 export default function Layout({ children }: LayoutProps) {
   const { t } = useTranslation();
-  const { signOut, isGuest } = useAuth();
+  const { signOut, isGuest, showMigrationDialog, pendingMigrationWorkoutCount, confirmMigration, discardGuestData } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
@@ -59,6 +60,14 @@ export default function Layout({ children }: LayoutProps) {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Guest Registration Reminder Dialog */}
       <GuestRegistrationReminder />
+
+      {/* Guest Data Migration Dialog */}
+      <GuestDataMigrationDialog
+        open={showMigrationDialog}
+        guestWorkoutCount={pendingMigrationWorkoutCount}
+        onMigrate={confirmMigration}
+        onDiscard={discardGuestData}
+      />
 
       {/* Email Verification Banner */}
       <div className="md:ml-64">

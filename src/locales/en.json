@@ -37,6 +37,12 @@
     "settings": "Settings",
     "logout": "Logout"
   },
+  "pwa": {
+    "installTitle": "Install Reppy",
+    "installDescription": "Add to home screen for the best experience",
+    "install": "Install",
+    "notNow": "Not now"
+  },
   "auth": {
     "title": "Workout Tracker",
     "subtitle": "Track progress. Achieve goals.",

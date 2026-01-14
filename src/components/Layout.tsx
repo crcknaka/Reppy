@@ -11,6 +11,7 @@ import { useShowAdminNav } from "@/hooks/useShowAdminNav";
 import { GuestRegistrationReminder } from "@/components/GuestRegistrationReminder";
 import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 import { GuestDataMigrationDialog } from "@/components/GuestDataMigrationDialog";
+import { PWAInstallBanner } from "@/components/PWAInstallBanner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -91,6 +92,9 @@ export default function Layout({ children }: LayoutProps) {
           {children}
         </div>
       </main>
+
+      {/* PWA Install Banner */}
+      <PWAInstallBanner />
 
       {/* Mobile Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border/50 md:hidden z-50 safe-area-bottom">

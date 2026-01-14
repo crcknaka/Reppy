@@ -44,6 +44,9 @@
   "lang": "en",
   "dir": "ltr",
   "prefer_related_applications": false,
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
   "screenshots": [
     {
       "src": "/screenshots/workout-list.png",

@@ -11,11 +11,30 @@ export interface WorkoutShare {
   created_at: string;
 }
 
-// Генерация криптографически стойкого токена
+// Base62 alphabet for short, URL-safe tokens
+const BASE62_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+// Convert bytes to base62 string
+function bytesToBase62(bytes: Uint8Array): string {
+  let result = "";
+  // Convert each byte to base62 (gives ~1.3 chars per byte)
+  let num = 0n;
+  for (const byte of bytes) {
+    num = num * 256n + BigInt(byte);
+  }
+  while (num > 0n) {
+    result = BASE62_CHARS[Number(num % 62n)] + result;
+    num = num / 62n;
+  }
+  return result || "0";
+}
+
+// Генерация криптографически стойкого короткого токена
+// 8 bytes = ~11 chars in base62 = 62^11 ≈ 52 trillion combinations
 function generateShareToken(): string {
-  const array = new Uint8Array(32);
+  const array = new Uint8Array(8);
   crypto.getRandomValues(array);
-  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return bytesToBase62(array);
 }
 
 // Helper to check if ID is offline-generated

@@ -1,11 +1,18 @@
 {
-  "rewrites": [
+  "headers": [
     {
       "source": "/.well-known/(.*)",
-      "destination": "/.well-known/$1"
-    },
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!.well-known).*)",
       "destination": "/index.html"
     }
   ]

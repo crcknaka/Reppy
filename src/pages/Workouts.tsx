@@ -267,11 +267,14 @@ export default function Workouts() {
 
         {/* User indicator/selector */}
         {isGuest ? (
-          /* Guest mode - show guest label */
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/50">
+          /* Guest mode - show guest label, clickable to go to Friends page for login */
+          <button
+            onClick={() => navigate("/friends")}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/50 hover:bg-muted/70 hover:border-primary/50 transition-colors cursor-pointer"
+          >
             <span className="text-sm">👤</span>
             <span className="text-sm text-muted-foreground">{t("guest.mode")}</span>
-          </div>
+          </button>
         ) : currentUserProfile?.is_admin ? (
           /* Admin - show all users selector */
           <Select value={targetUserId || ""} onValueChange={handleUserChange}>

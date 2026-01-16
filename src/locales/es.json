@@ -145,7 +145,8 @@
       "tech": "Tecnología",
       "music": "Música",
       "magic": "Magia",
-      "misc": "Varios"
+      "misc": "Varios",
+      "professions": "Profesiones"
     },
     "deleteAccount": {
       "title": "Eliminar cuenta",

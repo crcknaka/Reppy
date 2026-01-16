@@ -170,7 +170,8 @@
       "tech": "Tech",
       "music": "Music",
       "magic": "Magic",
-      "misc": "Misc"
+      "misc": "Misc",
+      "professions": "Professions"
     },
     "deleteAccount": {
       "title": "Delete Account",

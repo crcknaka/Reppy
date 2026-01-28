@@ -21,6 +21,7 @@ export function useFavoriteExercises() {
       return new Set(data.map(f => f.exercise_id));
     },
     enabled: !!user,
+    staleTime: 1000 * 60 * 15, // 15 minutes - favorites change infrequently
   });
 }
 

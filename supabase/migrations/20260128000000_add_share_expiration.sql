@@ -20,13 +20,13 @@ RETURNS INTEGER AS $$
 DECLARE
   deleted_count INTEGER;
 BEGIN
-  DELETE FROM workout_shares
+  DELETE FROM public.workout_shares
   WHERE expires_at < NOW();
 
   GET DIAGNOSTICS deleted_count = ROW_COUNT;
   RETURN deleted_count;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Grant execute permission
 GRANT EXECUTE ON FUNCTION cleanup_expired_shares() TO authenticated;

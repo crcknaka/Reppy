@@ -34,6 +34,7 @@ export function useProfile() {
       return data as Profile;
     },
     enabled: !!user,
+    staleTime: 1000 * 60 * 15, // 15 minutes - profile rarely changes
   });
 }
 
@@ -77,5 +78,6 @@ export function useUserProfile(userId: string | null | undefined) {
       return data as Profile;
     },
     enabled: !!userId,
+    staleTime: 1000 * 60 * 15, // 15 minutes - profile rarely changes
   });
 }

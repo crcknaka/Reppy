@@ -76,6 +76,7 @@ export function useFriends() {
       });
     },
     enabled: !!user,
+    staleTime: 1000 * 60 * 15, // 15 minutes - friends list rarely changes
   });
 }
 
@@ -120,6 +121,7 @@ export function usePendingFriendRequests() {
       });
     },
     enabled: !!user,
+    staleTime: 1000 * 60 * 5, // 5 minutes - pending requests should update relatively quickly
   });
 }
 
@@ -164,6 +166,7 @@ export function useSentFriendRequests() {
       });
     },
     enabled: !!user,
+    staleTime: 1000 * 60 * 5, // 5 minutes - sent requests should update relatively quickly
   });
 }
 
@@ -325,6 +328,7 @@ export function useFriendshipStatus(targetUserId: string | null) {
       return data as Friendship | null;
     },
     enabled: !!user && !!targetUserId && targetUserId !== user.id,
+    staleTime: 1000 * 60 * 10, // 10 minutes
   });
 }
 
@@ -347,5 +351,6 @@ export function usePendingRequestsCount() {
       return count || 0;
     },
     enabled: !!user,
+    staleTime: 1000 * 60 * 5, // 5 minutes - badge count should update relatively quickly
   });
 }

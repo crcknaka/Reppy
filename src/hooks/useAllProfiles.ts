@@ -23,5 +23,6 @@ export function useAllProfiles() {
       if (error) throw error;
       return data as UserProfile[];
     },
+    staleTime: 1000 * 60 * 30, // 30 minutes - all profiles list rarely changes
   });
 }

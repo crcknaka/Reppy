@@ -9,7 +9,11 @@ export interface WorkoutShare {
   share_token: string;
   is_active: boolean;
   created_at: string;
+  expires_at: string;
 }
+
+// Share links expire after 30 days
+const SHARE_EXPIRATION_DAYS = 30;
 
 // Base62 alphabet for short, URL-safe tokens
 const BASE62_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -59,6 +63,7 @@ export function useWorkoutShare(workoutId: string | undefined) {
         .select("*")
         .eq("workout_id", workoutId)
         .eq("is_active", true)
+        .gt("expires_at", new Date().toISOString())
         .maybeSingle();
 
       if (error) throw error;
@@ -75,20 +80,23 @@ export function useCreateWorkoutShare() {
 
   return useMutation({
     mutationFn: async ({ workoutId, userId }: { workoutId: string; userId: string }) => {
-      // Сначала проверяем, есть ли уже активный share
+      // Сначала проверяем, есть ли уже активный и не истёкший share
       const { data: existingShare } = await supabase
         .from("workout_shares")
         .select("*")
         .eq("workout_id", workoutId)
         .eq("is_active", true)
+        .gt("expires_at", new Date().toISOString())
         .maybeSingle();
 
       if (existingShare) {
         return existingShare as WorkoutShare;
       }
 
-      // Создаём новый share
+      // Создаём новый share с датой истечения через 30 дней
       const shareToken = generateShareToken();
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + SHARE_EXPIRATION_DAYS);
 
       const { data, error } = await supabase
         .from("workout_shares")
@@ -97,6 +105,7 @@ export function useCreateWorkoutShare() {
           user_id: userId,
           share_token: shareToken,
           is_active: true,
+          expires_at: expiresAt.toISOString(),
         })
         .select()
         .single();
@@ -108,6 +117,7 @@ export function useCreateWorkoutShare() {
           .select("*")
           .eq("workout_id", workoutId)
           .eq("is_active", true)
+          .gt("expires_at", new Date().toISOString())
           .maybeSingle();
 
         if (raceShare) {
@@ -155,12 +165,13 @@ export function useSharedWorkout(shareToken: string | undefined) {
     queryFn: async () => {
       if (!shareToken || !navigator.onLine) return null;
 
-      // Сначала получаем share запись
+      // Сначала получаем share запись (проверяем что активна и не истекла)
       const { data: share, error: shareError } = await supabase
         .from("workout_shares")
         .select("*")
         .eq("share_token", shareToken)
         .eq("is_active", true)
+        .gt("expires_at", new Date().toISOString())
         .maybeSingle();
 
       if (shareError) throw shareError;

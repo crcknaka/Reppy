@@ -938,6 +938,11 @@ export default function WorkoutDetail() {
                         <p className="text-xs text-muted-foreground">
                           {t("workout.anyoneWithLink")}
                         </p>
+                        {workoutShare.expires_at && (
+                          <p className="text-xs text-muted-foreground">
+                            {t("workout.linkExpiresAt", { date: format(new Date(workoutShare.expires_at), "d MMM yyyy", { locale: dateLocale }) })}
+                          </p>
+                        )}
                       </div>
                       <Button
                         variant="destructive"

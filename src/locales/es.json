@@ -261,6 +261,7 @@
     "shareWorkout": "Compartir entrenamiento",
     "publicLink": "Enlace público",
     "anyoneWithLink": "Cualquiera con este enlace puede ver tu entrenamiento",
+    "linkExpiresAt": "El enlace expira: {{date}}",
     "deactivateLink": "Desactivar enlace",
     "createLinkDescription": "Crea un enlace público para compartir tu entrenamiento con amigos",
     "createLink": "Crear enlace",

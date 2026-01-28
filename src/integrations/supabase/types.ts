@@ -238,6 +238,7 @@ export type Database = {
           share_token: string
           is_active: boolean
           created_at: string
+          expires_at: string
         }
         Insert: {
           id?: string
@@ -246,11 +247,13 @@ export type Database = {
           share_token: string
           is_active?: boolean
           created_at?: string
+          expires_at?: string
         }
         Update: {
           id?: string
           workout_id?: string
           user_id?: string
+          expires_at?: string
           share_token?: string
           is_active?: boolean
           created_at?: string

@@ -286,6 +286,7 @@
     "shareWorkout": "Share workout",
     "publicLink": "Public link",
     "anyoneWithLink": "Anyone with this link can view your workout",
+    "linkExpiresAt": "Link expires: {{date}}",
     "deactivateLink": "Deactivate link",
     "createLinkDescription": "Create a public link to share your workout with friends",
     "createLink": "Create link",

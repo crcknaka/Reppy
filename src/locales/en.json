@@ -219,6 +219,8 @@
     "selectDayWithWorkout": "Select a day with workout on calendar",
     "noEntries": "No entries",
     "workoutsCount": "workouts",
+    "loadMore": "Load more",
+    "remaining": "remaining",
     "deleteWorkout": "Delete workout?",
     "deleteWorkoutConfirm": "Are you sure you want to delete this workout? This action cannot be undone.",
     "unlockWorkout": "Unlock workout?",

@@ -194,6 +194,8 @@
     "selectDayWithWorkout": "Selecciona un día con entrenamiento en el calendario",
     "noEntries": "Sin entradas",
     "workoutsCount": "entrenamientos",
+    "loadMore": "Cargar más",
+    "remaining": "restantes",
     "deleteWorkout": "¿Eliminar entrenamiento?",
     "deleteWorkoutConfirm": "¿Estás seguro de que quieres eliminar este entrenamiento? Esta acción no se puede deshacer.",
     "unlockWorkout": "¿Desbloquear entrenamiento?",

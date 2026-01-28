@@ -194,6 +194,8 @@
     "selectDayWithWorkout": "Selecione um dia com treino no calendário",
     "noEntries": "Sem registros",
     "workoutsCount": "treinos",
+    "loadMore": "Carregar mais",
+    "remaining": "restantes",
     "deleteWorkout": "Excluir treino?",
     "deleteWorkoutConfirm": "Tem certeza de que deseja excluir este treino? Esta ação não pode ser desfeita.",
     "unlockWorkout": "Desbloquear treino?",

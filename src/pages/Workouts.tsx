@@ -30,6 +30,8 @@ import { useUserWorkouts } from "@/hooks/useWorkouts";
 import { useOfflineWorkouts, useOfflineCreateWorkout, useOfflineDeleteWorkout } from "@/offline";
 import { useUnits } from "@/hooks/useUnits";
 import { LIMITS } from "@/lib/limits";
+
+const WORKOUTS_PER_PAGE = 10;
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -78,6 +80,7 @@ export default function Workouts() {
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(WORKOUTS_PER_PAGE);
 
   const handleUserChange = (userId: string) => {
     if (userId === user?.id) {
@@ -87,6 +90,7 @@ export default function Workouts() {
       setSearchParams({ user: userId });
     }
     setDateRange(undefined);
+    setVisibleCount(WORKOUTS_PER_PAGE);
   };
 
   const handleBackToMyWorkouts = () => {
@@ -255,8 +259,25 @@ export default function Workouts() {
     });
   }, [workouts, dateRange]);
 
+  // Apply pagination only when no filter is active
+  const visibleWorkouts = useMemo(() => {
+    if (dateRange?.from) {
+      // When filter is active, show all filtered results
+      return filteredWorkouts;
+    }
+    // When no filter, apply pagination
+    return filteredWorkouts.slice(0, visibleCount);
+  }, [filteredWorkouts, visibleCount, dateRange]);
+
+  const hasMore = !dateRange?.from && filteredWorkouts.length > visibleCount;
+
+  const handleLoadMore = () => {
+    setVisibleCount(prev => prev + WORKOUTS_PER_PAGE);
+  };
+
   const handleClearFilter = () => {
     setDateRange(undefined);
+    setVisibleCount(WORKOUTS_PER_PAGE); // Reset pagination when clearing filter
   };
 
   const handleQuickFilter = (days: number | "current-month" | "last-month") => {
@@ -589,7 +610,7 @@ export default function Workouts() {
             </Card>
           ))}
         </div>
-      ) : filteredWorkouts.length === 0 ? (
+      ) : visibleWorkouts.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <div className="p-4 bg-muted rounded-full mb-4">
@@ -607,7 +628,7 @@ export default function Workouts() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {filteredWorkouts.map((workout, index) => (
+          {visibleWorkouts.map((workout, index) => (
             <Card
               key={workout.id}
               className={cn(
@@ -701,6 +722,17 @@ export default function Workouts() {
               </CardContent>
             </Card>
           ))}
+
+          {/* Load More Button */}
+          {hasMore && (
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleLoadMore}
+            >
+              {t("workouts.loadMore")} ({filteredWorkouts.length - visibleCount} {t("workouts.remaining")})
+            </Button>
+          )}
           </div>
         )}
         </>

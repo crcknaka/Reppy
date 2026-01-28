@@ -565,6 +565,18 @@
     "unsupportedImageFormat": "Неподдерживаемый формат. Используйте JPG, PNG или WebP.",
     "fileTooLarge": "Файл слишком большой. Максимум 20 МБ."
   },
+  "limits": {
+    "maxWorkoutsPerDay": "Максимум {{max}} тренировок в день",
+    "maxExercisesPerWorkout": "Максимум {{max}} упражнений в тренировке",
+    "maxSetsPerExercise": "Максимум {{max}} подходов на упражнение",
+    "maxTotalSetsPerWorkout": "Максимум {{max}} подходов в тренировке",
+    "maxNotesLength": "Максимум {{max}} символов в комментарии",
+    "weightRange": "Вес должен быть от {{min}} до {{max}} кг",
+    "repsRange": "Повторения должны быть от {{min}} до {{max}}",
+    "distanceRange": "Дистанция должна быть от {{min}} до {{max}} км",
+    "durationRange": "Время должно быть от {{min}} до {{max}} минут",
+    "timeRange": "Время должно быть от {{min}} до {{max}} секунд"
+  },
   "legal": {
     "privacy": {
       "title": "Политика конфиденциальности",

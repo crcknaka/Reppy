@@ -538,6 +538,18 @@
     "unsupportedImageFormat": "Nicht unterstütztes Format. Verwenden Sie JPG, PNG oder WebP.",
     "fileTooLarge": "Datei zu groß. Maximal 20 MB."
   },
+  "limits": {
+    "maxWorkoutsPerDay": "Maximal {{max}} Trainings pro Tag",
+    "maxExercisesPerWorkout": "Maximal {{max}} Übungen pro Training",
+    "maxSetsPerExercise": "Maximal {{max}} Sätze pro Übung",
+    "maxTotalSetsPerWorkout": "Maximal {{max}} Sätze pro Training",
+    "maxNotesLength": "Maximal {{max}} Zeichen in Notizen",
+    "weightRange": "Gewicht muss zwischen {{min}} und {{max}} kg liegen",
+    "repsRange": "Wiederholungen müssen zwischen {{min}} und {{max}} liegen",
+    "distanceRange": "Distanz muss zwischen {{min}} und {{max}} km liegen",
+    "durationRange": "Dauer muss zwischen {{min}} und {{max}} Minuten liegen",
+    "timeRange": "Zeit muss zwischen {{min}} und {{max}} Sekunden liegen"
+  },
   "legal": {
     "privacy": {
       "title": "Datenschutzrichtlinie",

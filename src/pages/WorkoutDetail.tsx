@@ -56,6 +56,7 @@ import { ViewingUserBanner } from "@/components/ViewingUserBanner";
 import { ExerciseTimer } from "@/components/ExerciseTimer";
 import { useUnits } from "@/hooks/useUnits";
 import { useAutoFillLastSet } from "@/hooks/useAutoFillLastSet";
+import { LIMITS } from "@/lib/limits";
 
 // Memoized Exercise Selection Card component
 interface ExerciseSelectionCardProps {
@@ -439,6 +440,30 @@ export default function WorkoutDetail() {
       return;
     }
 
+    // Check limits
+    const existingSets = setsByExercise[selectedExercise.id]?.sets.length || 0;
+    const totalSets = workout?.workout_sets?.length || 0;
+    const uniqueExercises = Object.keys(setsByExercise).length;
+    const isNewExercise = !setsByExercise[selectedExercise.id];
+
+    // Max exercises per workout
+    if (isNewExercise && uniqueExercises >= LIMITS.MAX_EXERCISES_PER_WORKOUT) {
+      toast.error(t("limits.maxExercisesPerWorkout", { max: LIMITS.MAX_EXERCISES_PER_WORKOUT }));
+      return;
+    }
+
+    // Max sets per exercise
+    if (existingSets >= LIMITS.MAX_SETS_PER_EXERCISE) {
+      toast.error(t("limits.maxSetsPerExercise", { max: LIMITS.MAX_SETS_PER_EXERCISE }));
+      return;
+    }
+
+    // Max total sets per workout
+    if (totalSets >= LIMITS.MAX_TOTAL_SETS_PER_WORKOUT) {
+      toast.error(t("limits.maxTotalSetsPerWorkout", { max: LIMITS.MAX_TOTAL_SETS_PER_WORKOUT }));
+      return;
+    }
+
     // Cardio validation
     if (selectedExercise.type === "cardio") {
       if (!distance || !duration) {
@@ -447,12 +472,12 @@ export default function WorkoutDetail() {
       }
       const distanceNum = parseFloat(distance);
       const durationNum = parseInt(duration);
-      if (isNaN(distanceNum) || distanceNum <= 0 || distanceNum > 500) {
-        toast.error(t("workout.distanceRange"));
+      if (isNaN(distanceNum) || distanceNum < LIMITS.MIN_DISTANCE_KM || distanceNum > LIMITS.MAX_DISTANCE_KM) {
+        toast.error(t("limits.distanceRange", { min: LIMITS.MIN_DISTANCE_KM, max: LIMITS.MAX_DISTANCE_KM }));
         return;
       }
-      if (isNaN(durationNum) || durationNum <= 0 || durationNum > 1440) {
-        toast.error(t("workout.durationRange"));
+      if (isNaN(durationNum) || durationNum < LIMITS.MIN_DURATION_MINUTES || durationNum > LIMITS.MAX_DURATION_MINUTES) {
+        toast.error(t("limits.durationRange", { min: LIMITS.MIN_DURATION_MINUTES, max: LIMITS.MAX_DURATION_MINUTES }));
         return;
       }
     } else if (selectedExercise.type === "timed") {
@@ -462,8 +487,8 @@ export default function WorkoutDetail() {
         return;
       }
       const durationNum = parseInt(duration);
-      if (isNaN(durationNum) || durationNum <= 0 || durationNum > 3600) {
-        toast.error(t("workout.timeRange"));
+      if (isNaN(durationNum) || durationNum < LIMITS.MIN_TIME_SECONDS || durationNum > LIMITS.MAX_TIME_SECONDS) {
+        toast.error(t("limits.timeRange", { min: LIMITS.MIN_TIME_SECONDS, max: LIMITS.MAX_TIME_SECONDS }));
         return;
       }
     } else if (selectedExercise.type === "weighted") {
@@ -472,15 +497,28 @@ export default function WorkoutDetail() {
         toast.error(t("workout.weightedRequired"));
         return;
       }
+      const repsNum = parseInt(reps);
+      const weightNum = parseFloat(weight);
+      if (isNaN(repsNum) || repsNum < LIMITS.MIN_REPS || repsNum > LIMITS.MAX_REPS) {
+        toast.error(t("limits.repsRange", { min: LIMITS.MIN_REPS, max: LIMITS.MAX_REPS }));
+        return;
+      }
+      if (isNaN(weightNum) || weightNum < LIMITS.MIN_WEIGHT_KG || weightNum > LIMITS.MAX_WEIGHT_KG) {
+        toast.error(t("limits.weightRange", { min: LIMITS.MIN_WEIGHT_KG, max: LIMITS.MAX_WEIGHT_KG }));
+        return;
+      }
     } else if (selectedExercise.type === "bodyweight") {
       // Bodyweight exercises validation
       if (!reps) {
         toast.error(t("workout.enterReps"));
         return;
       }
+      const repsNum = parseInt(reps);
+      if (isNaN(repsNum) || repsNum < LIMITS.MIN_REPS || repsNum > LIMITS.MAX_REPS) {
+        toast.error(t("limits.repsRange", { min: LIMITS.MIN_REPS, max: LIMITS.MAX_REPS }));
+        return;
+      }
     }
-
-    const existingSets = setsByExercise[selectedExercise.id]?.sets.length || 0;
 
     try {
       // Convert from user's unit system to metric for storage
@@ -590,6 +628,11 @@ export default function WorkoutDetail() {
 
   const handleSaveNotes = async () => {
     if (!workout) return;
+
+    if (notes.trim().length > LIMITS.MAX_NOTES_LENGTH) {
+      toast.error(t("limits.maxNotesLength", { max: LIMITS.MAX_NOTES_LENGTH }));
+      return;
+    }
 
     try {
       await updateWorkout.mutateAsync({
@@ -1479,6 +1522,7 @@ export default function WorkoutDetail() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
+                maxLength={LIMITS.MAX_NOTES_LENGTH}
                 className="resize-none text-sm"
               />
               <div className="flex gap-2">

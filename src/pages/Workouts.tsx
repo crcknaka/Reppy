@@ -29,6 +29,7 @@ import {
 import { useUserWorkouts } from "@/hooks/useWorkouts";
 import { useOfflineWorkouts, useOfflineCreateWorkout, useOfflineDeleteWorkout } from "@/offline";
 import { useUnits } from "@/hooks/useUnits";
+import { LIMITS } from "@/lib/limits";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -93,10 +94,23 @@ export default function Workouts() {
     setSearchParams(searchParams);
   };
 
+  const getWorkoutsCountForDate = (targetDate: Date) => {
+    const dateStr = format(targetDate, "yyyy-MM-dd");
+    return workouts?.filter(w => w.date === dateStr).length || 0;
+  };
+
   const handleCreateWorkoutToday = async () => {
+    const today = new Date();
+    const workoutsToday = getWorkoutsCountForDate(today);
+
+    if (workoutsToday >= LIMITS.MAX_WORKOUTS_PER_DAY) {
+      toast.error(t("limits.maxWorkoutsPerDay", { max: LIMITS.MAX_WORKOUTS_PER_DAY }));
+      return;
+    }
+
     try {
       const workout = await createWorkout.mutateAsync(
-        format(new Date(), "yyyy-MM-dd")
+        format(today, "yyyy-MM-dd")
       );
       toast.success(t("workouts.workoutCreated"));
       navigate(`/workout/${workout.id}`);
@@ -107,6 +121,13 @@ export default function Workouts() {
 
   const handleCreateWorkoutForDate = async () => {
     if (!date) return;
+
+    const workoutsOnDate = getWorkoutsCountForDate(date);
+
+    if (workoutsOnDate >= LIMITS.MAX_WORKOUTS_PER_DAY) {
+      toast.error(t("limits.maxWorkoutsPerDay", { max: LIMITS.MAX_WORKOUTS_PER_DAY }));
+      return;
+    }
 
     try {
       const workout = await createWorkout.mutateAsync(

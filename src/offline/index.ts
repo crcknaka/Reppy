@@ -1,6 +1,6 @@
 // Database
-export { offlineDb, generateOfflineId, isOfflineId, clearOfflineData, getLastWeightForExercise, getLastSetForExercise } from "./db";
-export type { LastSetData } from "./db";
+export { offlineDb, generateOfflineId, isOfflineId, clearOfflineData, getLastWeightForExercise, getLastSetForExercise, getRecentSetsForExercise } from "./db";
+export type { LastSetData, RecentSetData } from "./db";
 
 // Types
 export type * from "./types";

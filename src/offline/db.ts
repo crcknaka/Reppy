@@ -158,6 +158,67 @@ export async function getLastSetForExercise(
   }
 }
 
+// Get recent sets for exercise history display
+export interface RecentSetData {
+  weight?: number;
+  reps?: number;
+  distance_km?: number;
+  duration_minutes?: number;
+  plank_seconds?: number;
+  date: string;
+  created_at: string;
+}
+
+export async function getRecentSetsForExercise(
+  exerciseId: string,
+  userId: string,
+  limit: number = 3
+): Promise<RecentSetData[]> {
+  try {
+    // Get all sets for this exercise
+    const sets = await offlineDb.workoutSets
+      .where("exercise_id")
+      .equals(exerciseId)
+      .toArray();
+
+    if (sets.length === 0) return [];
+
+    // Get user's workouts with dates
+    const userWorkouts = await offlineDb.workouts
+      .where("user_id")
+      .equals(userId)
+      .toArray();
+    const workoutMap = new Map(userWorkouts.map((w) => [w.id, w.date]));
+
+    const userSets = sets
+      .filter((s) => workoutMap.has(s.workout_id))
+      .map((s) => ({
+        ...s,
+        date: workoutMap.get(s.workout_id) || "",
+      }))
+      .sort((a, b) => {
+        // Sort by created_at descending (newest first)
+        const dateA = new Date(a.created_at || 0).getTime();
+        const dateB = new Date(b.created_at || 0).getTime();
+        return dateB - dateA;
+      })
+      .slice(0, limit);
+
+    return userSets.map((s) => ({
+      weight: s.weight || undefined,
+      reps: s.reps || undefined,
+      distance_km: s.distance_km || undefined,
+      duration_minutes: s.duration_minutes || undefined,
+      plank_seconds: s.plank_seconds || undefined,
+      date: s.date,
+      created_at: s.created_at,
+    }));
+  } catch (error) {
+    console.error("[getRecentSetsForExercise] Error:", error);
+    return [];
+  }
+}
+
 // Legacy alias for backward compatibility
 export async function getLastWeightForExercise(
   exerciseId: string,

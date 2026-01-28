@@ -6,12 +6,13 @@ import { getDateLocale } from "@/lib/dateLocales";
 import { useTranslation } from "react-i18next";
 import { getExerciseName } from "@/lib/i18n";
 import { getExerciseIcon, getExerciseTypeLabel, ExerciseType } from "@/lib/exerciseUtils";
-import { ArrowLeft, Plus, Trash2, MessageSquare, Save, Pencil, X, Camera, Loader2, ImageIcon, LayoutGrid, Trophy, Search, Share2, Copy, Check, Ban, Lock, Unlock, Star, Maximize2, User, Dumbbell, Activity, Timer } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, MessageSquare, Save, Pencil, X, Camera, Loader2, ImageIcon, LayoutGrid, Trophy, Search, Share2, Copy, Check, Ban, Lock, Unlock, Star, Maximize2, User, Dumbbell, Activity, Timer, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   AlertDialog,
@@ -45,6 +46,8 @@ import {
   useOfflineFavoriteExercises,
   useOfflineToggleFavoriteExercise,
   getLastSetForExercise,
+  getRecentSetsForExercise,
+  RecentSetData,
 } from "@/offline";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -177,6 +180,11 @@ export default function WorkoutDetail() {
   const [showTimer, setShowTimer] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [recentSets, setRecentSets] = useState<RecentSetData[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [historyLimit, setHistoryLimit] = useState(3);
+  const [hasMoreHistory, setHasMoreHistory] = useState(false);
+  const [isLoadingMoreHistory, setIsLoadingMoreHistory] = useState(false);
 
   // Share hooks
   const { data: workoutShare } = useWorkoutShare(workout?.id);
@@ -389,9 +397,31 @@ export default function WorkoutDetail() {
   // Handle exercise selection with auto-fill of last set data
   const handleSelectExercise = async (exercise: Exercise) => {
     setSelectedExercise(exercise);
+    setRecentSets([]);
+    setHistoryLimit(3);
+    setHasMoreHistory(false);
 
-    // Skip auto-fill if disabled or no effective user
-    if (!autoFillEnabled || !effectiveUserId) return;
+    if (!effectiveUserId) return;
+
+    // Load recent sets history (load 4 to check if there are more)
+    setIsLoadingHistory(true);
+    try {
+      const history = await getRecentSetsForExercise(exercise.id, effectiveUserId, 4);
+      if (history.length > 3) {
+        setRecentSets(history.slice(0, 3));
+        setHasMoreHistory(true);
+      } else {
+        setRecentSets(history);
+        setHasMoreHistory(false);
+      }
+    } catch (error) {
+      console.error("Failed to load recent sets:", error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+
+    // Skip auto-fill if disabled
+    if (!autoFillEnabled) return;
 
     try {
       const lastData = await getLastSetForExercise(exercise.id, effectiveUserId);
@@ -431,6 +461,29 @@ export default function WorkoutDetail() {
     } catch (error) {
       // Silently fail - not critical for UX
       console.error("Failed to get last set data:", error);
+    }
+  };
+
+  const loadMoreHistory = async () => {
+    if (!selectedExercise || !effectiveUserId || isLoadingMoreHistory) return;
+
+    setIsLoadingMoreHistory(true);
+    const newLimit = historyLimit + 3;
+    try {
+      // Load one extra to check if there are more
+      const history = await getRecentSetsForExercise(selectedExercise.id, effectiveUserId, newLimit + 1);
+      if (history.length > newLimit) {
+        setRecentSets(history.slice(0, newLimit));
+        setHasMoreHistory(true);
+      } else {
+        setRecentSets(history);
+        setHasMoreHistory(false);
+      }
+      setHistoryLimit(newLimit);
+    } catch (error) {
+      console.error("Failed to load more history:", error);
+    } finally {
+      setIsLoadingMoreHistory(false);
     }
   };
 
@@ -558,6 +611,9 @@ export default function WorkoutDetail() {
       setDuration("");
       setShowTimer(false);
       setExerciseSearchQuery("");
+      setRecentSets([]);
+      setHistoryLimit(3);
+      setHasMoreHistory(false);
     }
   };
 
@@ -1059,16 +1115,81 @@ export default function WorkoutDetail() {
           ) : (
             <div className="space-y-4 mt-4">
               {!(selectedExercise.type === "timed" && showTimer) && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDialogChange(false)}
-                  className="mb-2"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  {t("common.back")}
-                </Button>
+                <div className="flex items-center justify-between mb-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDialogChange(false)}
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    {t("common.back")}
+                  </Button>
+
+                  {/* History button */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1.5"
+                        disabled={isLoadingHistory}
+                      >
+                        <History className="h-4 w-4" />
+                        <span className="hidden sm:inline">{t("workout.history")}</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 p-3" align="end">
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium">{t("workout.recentSets")}</p>
+                        {isLoadingHistory ? (
+                          <div className="flex items-center justify-center py-4">
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          </div>
+                        ) : recentSets.length === 0 ? (
+                          <p className="text-sm text-muted-foreground py-2">{t("workout.noHistory")}</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {recentSets.map((set, i) => (
+                              <div key={i} className="text-sm p-2 bg-muted/50 rounded-md">
+                                <div className="text-xs text-muted-foreground mb-1">
+                                  {format(parseISO(set.date), "d MMM yyyy", { locale: dateLocale })}
+                                </div>
+                                <div className="font-medium">
+                                  {selectedExercise?.type === "cardio" ? (
+                                    <>{convertDistance(set.distance_km || 0)} {units.distance} · {set.duration_minutes} {t("units.min")}</>
+                                  ) : selectedExercise?.type === "timed" ? (
+                                    <>{set.plank_seconds} {t("units.sec")}</>
+                                  ) : selectedExercise?.type === "bodyweight" ? (
+                                    <>{set.reps} {t("units.reps")}</>
+                                  ) : (
+                                    <>{set.reps} {t("units.reps")} × {convertWeight(set.weight || 0)} {units.weight}</>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                            {hasMoreHistory && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="w-full text-xs"
+                                onClick={loadMoreHistory}
+                                disabled={isLoadingMoreHistory}
+                              >
+                                {isLoadingMoreHistory ? (
+                                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                ) : null}
+                                {t("workout.loadMoreHistory")}
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
               )}
 
               <form onSubmit={(e) => { e.preventDefault(); handleAddSet(); }}>

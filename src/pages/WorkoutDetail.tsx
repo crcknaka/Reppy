@@ -153,6 +153,16 @@ export default function WorkoutDetail() {
   const { data: workoutOwnerProfile } = useUserProfile(!isOwner && workout ? workout.user_id : null);
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showStickyAdd, setShowStickyAdd] = useState(false);
+
+  // Show sticky "+" button when scrolled down past 200px
+  useEffect(() => {
+    const check = () => setShowStickyAdd(window.scrollY > 200);
+    window.addEventListener("scroll", check, { passive: true });
+    check();
+    return () => window.removeEventListener("scroll", check);
+  }, []);
+
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [reps, setReps] = useState("");
   const [weight, setWeight] = useState("");
@@ -869,7 +879,21 @@ export default function WorkoutDetail() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in relative">
+      {/* Fixed "+" button — appears top-right when scrolled past main Add Exercise button */}
+      {isOwner && !workout?.is_locked && createPortal(
+        <Button
+          onClick={() => setDialogOpen(true)}
+          className={cn(
+            "fixed bottom-24 right-4 md:right-8 shadow-lg z-[9999] transition-all duration-200",
+            showStickyAdd ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+          )}
+          size="icon"
+        >
+          <Plus className="h-5 w-5" />
+        </Button>,
+        document.body
+      )}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => {
           // If viewing someone else's workout, go back to their workouts list
@@ -1033,13 +1057,12 @@ export default function WorkoutDetail() {
       )}
 
       {isOwner && !workout?.is_locked && (
+        <>
+        <Button onClick={() => setDialogOpen(true)} className="w-full gap-2 shadow-lg">
+          <Plus className="h-4 w-4" />
+          {t("workout.addExercise")}
+        </Button>
         <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
-          <DialogTrigger asChild>
-            <Button className="w-full gap-2 shadow-lg">
-              <Plus className="h-4 w-4" />
-              {t("workout.addExercise")}
-            </Button>
-          </DialogTrigger>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="exercise-dialog-description">
           <DialogHeader>
             <DialogTitle>
@@ -1346,6 +1369,7 @@ export default function WorkoutDetail() {
           )}
         </DialogContent>
       </Dialog>
+      </>
       )}
 
       {Object.keys(setsByExercise).length === 0 ? (
@@ -2002,6 +2026,7 @@ export default function WorkoutDetail() {
           </div>
         </DrawerContent>
       </Drawer>
+
     </div>
   );
 }

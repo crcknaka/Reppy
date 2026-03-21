@@ -37,9 +37,12 @@ const storedAccent = localStorage.getItem(ACCENT_STORAGE_KEY);
 const accentToApply = storedAccent && VALID_ACCENTS.includes(storedAccent) ? storedAccent : "coral";
 document.documentElement.setAttribute("data-accent", accentToApply);
 
-// Disable context menu (long press) for PWA - makes it feel like a native app
-document.addEventListener("contextmenu", (e) => {
-  e.preventDefault();
-});
+// Disable context menu (long press) for PWA in production.
+// Keep right-click enabled during local development for easier debugging.
+if (!import.meta.env.DEV) {
+  document.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+  });
+}
 
 createRoot(document.getElementById("root")!).render(<App />);

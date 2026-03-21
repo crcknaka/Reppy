@@ -269,6 +269,8 @@
     "setAddError": "Erreur d'ajout de série",
     "setDeleted": "Série supprimée",
     "setDeleteError": "Erreur de suppression de série",
+    "setCopied": "Série copiée",
+    "setCopyError": "Erreur de copie de série",
     "setUpdated": "Série mise à jour",
     "setUpdateError": "Erreur de mise à jour de série",
     "commentSaved": "Commentaire enregistré",

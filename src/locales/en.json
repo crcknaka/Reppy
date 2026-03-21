@@ -294,6 +294,8 @@
     "setAddError": "Error adding set",
     "setDeleted": "Set deleted",
     "setDeleteError": "Error deleting set",
+    "setCopied": "Set copied",
+    "setCopyError": "Error copying set",
     "setUpdated": "Set updated",
     "setUpdateError": "Error updating set",
     "commentSaved": "Comment saved",

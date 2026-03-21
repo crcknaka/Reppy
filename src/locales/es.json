@@ -269,6 +269,8 @@
     "setAddError": "Error al añadir serie",
     "setDeleted": "Serie eliminada",
     "setDeleteError": "Error al eliminar serie",
+    "setCopied": "Serie copiada",
+    "setCopyError": "Error al copiar serie",
     "setUpdated": "Serie actualizada",
     "setUpdateError": "Error al actualizar serie",
     "commentSaved": "Comentario guardado",

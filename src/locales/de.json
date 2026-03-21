@@ -269,6 +269,8 @@
     "setAddError": "Fehler beim Hinzufügen des Satzes",
     "setDeleted": "Satz gelöscht",
     "setDeleteError": "Fehler beim Löschen des Satzes",
+    "setCopied": "Satz kopiert",
+    "setCopyError": "Fehler beim Kopieren des Satzes",
     "setUpdated": "Satz aktualisiert",
     "setUpdateError": "Fehler beim Aktualisieren des Satzes",
     "commentSaved": "Kommentar gespeichert",

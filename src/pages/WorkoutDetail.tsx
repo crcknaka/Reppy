@@ -665,7 +665,36 @@ export default function WorkoutDetail() {
     }
   };
 
-  const handleEditSet = (set: any) => {
+  const handleCopySet = async (set: NonNullable<typeof workout>["workout_sets"][number]) => {
+    if (!workout) return;
+
+    try {
+      const exerciseSets = workout.workout_sets?.filter(
+        (workoutSet) => workoutSet.exercise_id === set.exercise_id
+      ) || [];
+
+      const nextSetNumber = exerciseSets.length > 0
+        ? Math.max(...exerciseSets.map((workoutSet) => workoutSet.set_number)) + 1
+        : 1;
+
+      await addSet.mutateAsync({
+        workoutId: workout.id,
+        exerciseId: set.exercise_id,
+        setNumber: nextSetNumber,
+        reps: set.reps ?? undefined,
+        weight: set.weight ?? undefined,
+        distance_km: set.distance_km ?? undefined,
+        duration_minutes: set.duration_minutes ?? undefined,
+        plank_seconds: set.plank_seconds ?? undefined,
+      });
+
+      toast.success(t("workout.setCopied"));
+    } catch (error) {
+      toast.error(t("workout.setCopyError"));
+    }
+  };
+
+  const handleEditSet = (set: NonNullable<typeof workout>["workout_sets"][number]) => {
     setEditingSetId(set.id);
     setEditReps(set.reps?.toString() || "");
     // Convert from metric to user's unit system for display
@@ -1448,8 +1477,8 @@ export default function WorkoutDetail() {
                 <div className={cn(
                   "grid gap-1 px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide",
                   exercise?.type === "bodyweight" || exercise?.type === "timed"
-                    ? "grid-cols-[44px_1fr_48px]"
-                    : "grid-cols-[44px_1fr_1fr_48px]"
+                    ? "grid-cols-[44px_1fr_84px]"
+                    : "grid-cols-[44px_1fr_1fr_84px]"
                 )}>
                   <div className="text-center">#</div>
                   <div className="text-center">
@@ -1478,8 +1507,8 @@ export default function WorkoutDetail() {
                         className={cn(
                           "relative grid gap-1 items-center py-2 px-2 rounded-md cursor-pointer select-none",
                           exercise?.type === "bodyweight" || exercise?.type === "timed"
-                            ? "grid-cols-[44px_1fr_48px]"
-                            : "grid-cols-[44px_1fr_1fr_48px]",
+                            ? "grid-cols-[44px_1fr_84px]"
+                            : "grid-cols-[44px_1fr_1fr_84px]",
                           recordSetIds.has(set.id)
                             ? "bg-yellow-100 dark:bg-yellow-900/30"
                             : "bg-muted/30"
@@ -1633,6 +1662,14 @@ export default function WorkoutDetail() {
                         )}
                         {isOwner && !workout?.is_locked ? (
                           <div className="flex gap-0 justify-end -mr-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                              onClick={() => handleCopySet(set)}
+                            >
+                              <Copy className="h-3.5 w-3.5" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="icon"

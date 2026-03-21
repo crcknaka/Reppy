@@ -1,12 +1,11 @@
-import { useState, useEffect, useMemo, useRef, memo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format, isToday, parseISO } from "date-fns";
 import { getDateLocale } from "@/lib/dateLocales";
 import { useTranslation } from "react-i18next";
 import { getExerciseName } from "@/lib/i18n";
-import { getExerciseIcon, getExerciseTypeLabel, ExerciseType } from "@/lib/exerciseUtils";
-import { ArrowLeft, Plus, Trash2, MessageSquare, Save, Pencil, X, Camera, Loader2, ImageIcon, LayoutGrid, Trophy, Search, Share2, Copy, Check, Ban, Lock, Unlock, Star, Maximize2, User, Dumbbell, Activity, Timer, History } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, MessageSquare, Save, Pencil, X, Camera, Loader2, ImageIcon, Trophy, Share2, Copy, Check, Ban, Lock, Unlock, Maximize2, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,7 +32,6 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { useUserAllTimeBests, useLockWorkout, useUnlockWorkout } from "@/hooks/useWorkouts";
-import { Exercise } from "@/hooks/useExercises";
 import { useWorkoutShare, useCreateWorkoutShare, useDeactivateWorkoutShare } from "@/hooks/useWorkoutShare";
 import {
   useOfflineSingleWorkout,
@@ -55,77 +53,11 @@ import { useOffline } from "@/contexts/OfflineContext";
 import { useUserProfile } from "@/hooks/useProfile";
 import { uploadWorkoutPhoto, deleteWorkoutPhoto, validateImageFile, compressImage } from "@/lib/photoUpload";
 import { ViewingUserBanner } from "@/components/ViewingUserBanner";
-import { ExerciseTimer } from "@/components/ExerciseTimer";
 import { useUnits } from "@/hooks/useUnits";
 import { useAutoFillLastSet } from "@/hooks/useAutoFillLastSet";
 import { LIMITS } from "@/lib/limits";
 import { WorkoutExerciseCard } from "@/components/WorkoutExerciseCard";
-
-// Memoized Exercise Selection Card component
-interface ExerciseSelectionCardProps {
-  exercise: Exercise;
-  isFavorite: boolean;
-  onSelect: (exercise: Exercise) => void;
-  onToggleFavorite: (id: string, e: React.MouseEvent) => void;
-}
-
-const ExerciseSelectionCard = memo(function ExerciseSelectionCard({
-  exercise,
-  isFavorite,
-  onSelect,
-  onToggleFavorite,
-}: ExerciseSelectionCardProps) {
-  const Icon = getExerciseIcon(exercise.type as ExerciseType);
-  const { t } = useTranslation();
-
-  return (
-    <div
-      onClick={() => onSelect(exercise)}
-      className="text-left group hover:scale-[1.02] transition-transform cursor-pointer"
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && onSelect(exercise)}
-    >
-      <div className="border rounded-lg overflow-hidden hover:border-primary transition-colors relative">
-        <button
-          onClick={(e) => onToggleFavorite(exercise.id, e)}
-          className="absolute top-2 right-2 z-10 p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
-        >
-          <Star
-            className={cn(
-              "h-4 w-4 transition-colors",
-              isFavorite
-                ? "fill-primary text-primary"
-                : "text-muted-foreground hover:text-primary"
-            )}
-          />
-        </button>
-
-        {exercise.image_url ? (
-          <div className="w-full aspect-[4/3] overflow-hidden bg-muted">
-            <img
-              src={exercise.image_url}
-              alt={getExerciseName(exercise.name, exercise.name_translations)}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-            />
-          </div>
-        ) : (
-          <div className="w-full aspect-[4/3] bg-muted flex items-center justify-center">
-            <Icon className="h-12 w-12 text-muted-foreground" />
-          </div>
-        )}
-        <div className="p-3 bg-card">
-          <p className="font-medium text-foreground text-center">
-            {getExerciseName(exercise.name, exercise.name_translations)}
-          </p>
-          <p className="text-xs text-muted-foreground text-center">
-            {getExerciseTypeLabel(exercise.type as ExerciseType, t)}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-});
+import { AddSetDialog } from "@/components/AddSetDialog";
 
 export default function WorkoutDetail() {
   const { t, i18n } = useTranslation();
@@ -164,14 +96,7 @@ export default function WorkoutDetail() {
     return () => window.removeEventListener("scroll", check);
   }, []);
 
-  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
-  const [reps, setReps] = useState("");
-  const [weight, setWeight] = useState("");
-  const [distance, setDistance] = useState("");
-  const [duration, setDuration] = useState("");
-  const [exerciseTypeFilter, setExerciseTypeFilter] = useState<"all" | "bodyweight" | "weighted" | "cardio" | "timed">("all");
-  const [exerciseSearchQuery, setExerciseSearchQuery] = useState("");
-  const [exerciseTab, setExerciseTab] = useState<"all" | "favorites">("all");
+  const [initialExerciseId, setInitialExerciseId] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -180,7 +105,6 @@ export default function WorkoutDetail() {
   const [isPhotoSourceOpen, setIsPhotoSourceOpen] = useState(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
-  const [showTimer, setShowTimer] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [recentSets, setRecentSets] = useState<RecentSetData[]>([]);
@@ -231,35 +155,13 @@ export default function WorkoutDetail() {
     if (state?.autoAddExerciseId && exercises) {
       const exercise = exercises.find((e) => e.id === state.autoAddExerciseId);
       if (exercise) {
-        setSelectedExercise(exercise);
+        setInitialExerciseId(exercise.id);
         setDialogOpen(true);
-        // Auto-fill last set data for all exercise types (if enabled)
-        if (autoFillEnabled && effectiveUserId) {
-          getLastSetForExercise(exercise.id, effectiveUserId).then((lastData) => {
-            if (!lastData) return;
-            switch (exercise.type) {
-              case "weighted":
-                if (lastData.weight) setWeight(convertWeight(lastData.weight).toString());
-                if (lastData.reps) setReps(lastData.reps.toString());
-                break;
-              case "bodyweight":
-                if (lastData.reps) setReps(lastData.reps.toString());
-                break;
-              case "cardio":
-                if (lastData.distance_km) setDistance(convertDistance(lastData.distance_km).toString());
-                if (lastData.duration_minutes) setDuration(lastData.duration_minutes.toString());
-                break;
-              case "timed":
-                if (lastData.plank_seconds) setDuration(lastData.plank_seconds.toString());
-                break;
-            }
-          });
-        }
         // Clear the state to prevent reopening on re-render
         navigate(location.pathname, { replace: true, state: {} });
       }
     }
-  }, [location.state, exercises, navigate, location.pathname, effectiveUserId, convertWeight, convertDistance, autoFillEnabled]);
+  }, [location.state, exercises, navigate, location.pathname]);
 
   // Group sets by exercise - must be before early returns to follow hooks rules
   const setsByExercise = useMemo(() => {
@@ -329,32 +231,24 @@ export default function WorkoutDetail() {
     return result;
   }, [setsByExercise, allTimeBests]);
 
-  // Filter exercises based on tab, type filter, and search query
-  const filteredExercises = useMemo(() => {
-    if (!exercises) return [];
+  const orderedExerciseEntries = useMemo(() => {
+    const toTimestamp = (value: string | null | undefined) => {
+      if (!value) return Number.POSITIVE_INFINITY;
+      const timestamp = new Date(value).getTime();
+      return Number.isNaN(timestamp) ? Number.POSITIVE_INFINITY : timestamp;
+    };
 
-    let filtered = exercises;
+    return Object.entries(setsByExercise).sort(([, a], [, b]) => {
+      const aFirst = Math.min(...a.sets.map((set) => toTimestamp(set.created_at)));
+      const bFirst = Math.min(...b.sets.map((set) => toTimestamp(set.created_at)));
 
-    // Filter by favorites tab
-    if (exerciseTab === "favorites" && favoriteExercises) {
-      filtered = filtered.filter(e => favoriteExercises.has(e.id));
-    }
+      if (aFirst !== bFirst) return aFirst - bFirst;
 
-    // Filter by exercise type
-    if (exerciseTypeFilter !== "all") {
-      filtered = filtered.filter(e => e.type === exerciseTypeFilter);
-    }
-
-    // Filter by search query (uses translated name)
-    if (exerciseSearchQuery) {
-      filtered = filtered.filter(e => {
-        const translatedName = getExerciseName(e.name, e.name_translations);
-        return translatedName.toLowerCase().includes(exerciseSearchQuery.toLowerCase());
-      });
-    }
-
-    return filtered;
-  }, [exercises, exerciseTab, favoriteExercises, exerciseTypeFilter, exerciseSearchQuery]);
+      const aSetNumber = Math.min(...a.sets.map((set) => set.set_number));
+      const bSetNumber = Math.min(...b.sets.map((set) => set.set_number));
+      return aSetNumber - bSetNumber;
+    });
+  }, [setsByExercise]);
 
   // Show loader while loading or fetching (includes retries)
   if (isWorkoutLoading || (isFetching && !workout)) {
@@ -386,90 +280,8 @@ export default function WorkoutDetail() {
     );
   }
 
-  const handleToggleFavorite = async (exerciseId: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent exercise selection when clicking star
-    const isFavorite = favoriteExercises?.has(exerciseId) || false;
-
-    try {
-      await toggleFavorite.mutateAsync({ exerciseId, isFavorite });
-      toast.success(isFavorite ? t("workout.removedFromFavorites") : t("workout.addedToFavorites"));
-    } catch (error) {
-      toast.error(t("workout.favoriteError"));
-    }
-  };
-
-  // Handle exercise selection with auto-fill of last set data
-  const handleSelectExercise = async (exercise: Exercise) => {
-    setSelectedExercise(exercise);
-    setRecentSets([]);
-    setHistoryLimit(5);
-    setHasMoreHistory(false);
-
-    if (!effectiveUserId) return;
-
-    // Load first 5 sets (load 6 to check if there are more)
-    setIsLoadingHistory(true);
-    try {
-      const history = await getRecentSetsForExercise(exercise.id, effectiveUserId, 6);
-      if (history.length > 5) {
-        setRecentSets(history.slice(0, 5));
-        setHasMoreHistory(true);
-      } else {
-        setRecentSets(history);
-        setHasMoreHistory(false);
-      }
-    } catch (error) {
-      console.error("Failed to load recent sets:", error);
-    } finally {
-      setIsLoadingHistory(false);
-    }
-
-    // Skip auto-fill if disabled
-    if (!autoFillEnabled) return;
-
-    try {
-      const lastData = await getLastSetForExercise(exercise.id, effectiveUserId);
-      if (!lastData) return;
-
-      switch (exercise.type) {
-        case "weighted":
-          if (lastData.weight) {
-            setWeight(convertWeight(lastData.weight).toString());
-          }
-          if (lastData.reps) {
-            setReps(lastData.reps.toString());
-          }
-          break;
-
-        case "bodyweight":
-          if (lastData.reps) {
-            setReps(lastData.reps.toString());
-          }
-          break;
-
-        case "cardio":
-          if (lastData.distance_km) {
-            setDistance(convertDistance(lastData.distance_km).toString());
-          }
-          if (lastData.duration_minutes) {
-            setDuration(lastData.duration_minutes.toString());
-          }
-          break;
-
-        case "timed":
-          if (lastData.plank_seconds) {
-            setDuration(lastData.plank_seconds.toString());
-          }
-          break;
-      }
-    } catch (error) {
-      // Silently fail - not critical for UX
-      console.error("Failed to get last set data:", error);
-    }
-  };
-
   const loadMoreHistory = async () => {
-    const exerciseId = selectedExercise?.id || historyExercise?.id;
+    const exerciseId = historyExercise?.id;
     if (!exerciseId || !effectiveUserId) return;
 
     const newLimit = historyLimit + 5;
@@ -514,136 +326,6 @@ export default function WorkoutDetail() {
     }
   };
 
-  const handleAddSet = async () => {
-    if (!selectedExercise) {
-      toast.error(t("workout.enterExercise"));
-      return;
-    }
-
-    // Check limits
-    const existingSets = setsByExercise[selectedExercise.id]?.sets.length || 0;
-    const totalSets = workout?.workout_sets?.length || 0;
-    const uniqueExercises = Object.keys(setsByExercise).length;
-    const isNewExercise = !setsByExercise[selectedExercise.id];
-
-    // Max exercises per workout
-    if (isNewExercise && uniqueExercises >= LIMITS.MAX_EXERCISES_PER_WORKOUT) {
-      toast.error(t("limits.maxExercisesPerWorkout", { max: LIMITS.MAX_EXERCISES_PER_WORKOUT }));
-      return;
-    }
-
-    // Max sets per exercise
-    if (existingSets >= LIMITS.MAX_SETS_PER_EXERCISE) {
-      toast.error(t("limits.maxSetsPerExercise", { max: LIMITS.MAX_SETS_PER_EXERCISE }));
-      return;
-    }
-
-    // Max total sets per workout
-    if (totalSets >= LIMITS.MAX_TOTAL_SETS_PER_WORKOUT) {
-      toast.error(t("limits.maxTotalSetsPerWorkout", { max: LIMITS.MAX_TOTAL_SETS_PER_WORKOUT }));
-      return;
-    }
-
-    // Cardio validation
-    if (selectedExercise.type === "cardio") {
-      if (!distance || !duration) {
-        toast.error(t("workout.cardioRequired"));
-        return;
-      }
-      const distanceNum = parseFloat(distance);
-      const durationNum = parseInt(duration);
-      if (isNaN(distanceNum) || distanceNum < LIMITS.MIN_DISTANCE_KM || distanceNum > LIMITS.MAX_DISTANCE_KM) {
-        toast.error(t("limits.distanceRange", { min: LIMITS.MIN_DISTANCE_KM, max: LIMITS.MAX_DISTANCE_KM }));
-        return;
-      }
-      if (isNaN(durationNum) || durationNum < LIMITS.MIN_DURATION_MINUTES || durationNum > LIMITS.MAX_DURATION_MINUTES) {
-        toast.error(t("limits.durationRange", { min: LIMITS.MIN_DURATION_MINUTES, max: LIMITS.MAX_DURATION_MINUTES }));
-        return;
-      }
-    } else if (selectedExercise.type === "timed") {
-      // Timed exercises validation
-      if (!duration) {
-        toast.error(t("workout.enterTime"));
-        return;
-      }
-      const durationNum = parseInt(duration);
-      if (isNaN(durationNum) || durationNum < LIMITS.MIN_TIME_SECONDS || durationNum > LIMITS.MAX_TIME_SECONDS) {
-        toast.error(t("limits.timeRange", { min: LIMITS.MIN_TIME_SECONDS, max: LIMITS.MAX_TIME_SECONDS }));
-        return;
-      }
-    } else if (selectedExercise.type === "weighted") {
-      // Weighted exercises validation
-      if (!reps || !weight) {
-        toast.error(t("workout.weightedRequired"));
-        return;
-      }
-      const repsNum = parseInt(reps);
-      const weightNum = parseFloat(weight);
-      if (isNaN(repsNum) || repsNum < LIMITS.MIN_REPS || repsNum > LIMITS.MAX_REPS) {
-        toast.error(t("limits.repsRange", { min: LIMITS.MIN_REPS, max: LIMITS.MAX_REPS }));
-        return;
-      }
-      if (isNaN(weightNum) || weightNum < LIMITS.MIN_WEIGHT_KG || weightNum > LIMITS.MAX_WEIGHT_KG) {
-        toast.error(t("limits.weightRange", { min: LIMITS.MIN_WEIGHT_KG, max: LIMITS.MAX_WEIGHT_KG }));
-        return;
-      }
-    } else if (selectedExercise.type === "bodyweight") {
-      // Bodyweight exercises validation
-      if (!reps) {
-        toast.error(t("workout.enterReps"));
-        return;
-      }
-      const repsNum = parseInt(reps);
-      if (isNaN(repsNum) || repsNum < LIMITS.MIN_REPS || repsNum > LIMITS.MAX_REPS) {
-        toast.error(t("limits.repsRange", { min: LIMITS.MIN_REPS, max: LIMITS.MAX_REPS }));
-        return;
-      }
-    }
-
-    try {
-      // Convert from user's unit system to metric for storage
-      const weightInKg = weight ? toMetricWeight(parseFloat(weight)) : undefined;
-      const distanceInKm = distance ? toMetricDistance(parseFloat(distance)) : undefined;
-
-      await addSet.mutateAsync({
-        workoutId: workout.id,
-        exerciseId: selectedExercise.id,
-        setNumber: existingSets + 1,
-        reps: reps ? parseInt(reps) : undefined,
-        weight: weightInKg,
-        distance_km: distanceInKm,
-        duration_minutes: selectedExercise.type === "cardio" && duration ? parseInt(duration) : undefined,
-        plank_seconds: selectedExercise.type === "timed" && duration ? parseInt(duration) : undefined,
-      });
-      toast.success(t("workout.setAdded"));
-      setReps("");
-      setWeight("");
-      setDistance("");
-      setDuration("");
-      setSelectedExercise(null);
-      setDialogOpen(false);
-    } catch (error) {
-      toast.error(t("workout.setAddError"));
-    }
-  };
-
-  const handleDialogChange = (open: boolean) => {
-    setDialogOpen(open);
-    if (!open) {
-      // Сбросить форму при закрытии
-      setSelectedExercise(null);
-      setReps("");
-      setWeight("");
-      setDistance("");
-      setDuration("");
-      setShowTimer(false);
-      setExerciseSearchQuery("");
-      setRecentSets([]);
-      setHistoryLimit(5);
-      setHasMoreHistory(false);
-    }
-  };
-
   const createSetForWorkout = async (payload: {
     exerciseId: string;
     setNumber: number;
@@ -677,11 +359,12 @@ export default function WorkoutDetail() {
   };
 
   const handleAddAnotherSet = async (exerciseId: string) => {
-    const fullExercise = exercises?.find(e => e.id === exerciseId);
-    if (fullExercise) {
-      await handleSelectExercise(fullExercise);
-      setDialogOpen(true);
-    }
+    setInitialExerciseId(exerciseId);
+    setDialogOpen(true);
+  };
+
+  const handleToggleFavoriteForDialog = async (exerciseId: string, isFavorite: boolean) => {
+    await toggleFavorite.mutateAsync({ exerciseId, isFavorite });
   };
 
   const handleSaveNotes = async () => {
@@ -1027,318 +710,36 @@ export default function WorkoutDetail() {
 
       {isOwner && !workout?.is_locked && (
         <>
-        <Button onClick={() => setDialogOpen(true)} className="w-full gap-2 shadow-lg">
-          <Plus className="h-4 w-4" />
-          {t("workout.addExercise")}
-        </Button>
-        <Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="exercise-dialog-description">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedExercise ? getExerciseName(selectedExercise.name, selectedExercise.name_translations) : t("workout.selectExercise")}
-            </DialogTitle>
-            <p id="exercise-dialog-description" className="sr-only">
-              {selectedExercise ? t("workout.addingSetFor") : t("workout.selectingExercise")}
-            </p>
-          </DialogHeader>
-          
-          {!selectedExercise ? (
-            <>
-              {/* Tabs: All / Favorites */}
-              <div className="flex gap-2 mt-4">
-                <Button
-                  variant={exerciseTab === "all" ? "default" : "outline"}
-                  className="flex-1"
-                  onClick={() => setExerciseTab("all")}
-                >
-                  {t("common.all")}
-                </Button>
-                <Button
-                  variant={exerciseTab === "favorites" ? "default" : "outline"}
-                  className="flex-1 gap-2"
-                  onClick={() => setExerciseTab("favorites")}
-                >
-                  <Star className="h-4 w-4" />
-                  {t("workout.favorites")}
-                </Button>
-              </div>
-
-              {/* Filter and Search */}
-              <div className="mt-4 space-y-3">
-                <Select value={exerciseTypeFilter} onValueChange={(v) => setExerciseTypeFilter(v as "all" | "bodyweight" | "weighted" | "cardio" | "timed")}>
-                  <SelectTrigger className="w-full h-12">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">
-                      <div className="flex items-center gap-2">
-                        <LayoutGrid className="h-4 w-4" />
-                        {t("progress.allTypes")}
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="bodyweight">
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        {t("progress.bodyweight")}
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="weighted">
-                      <div className="flex items-center gap-2">
-                        <Dumbbell className="h-4 w-4" />
-                        {t("progress.weighted")}
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="cardio">
-                      <div className="flex items-center gap-2">
-                        <Activity className="h-4 w-4" />
-                        {t("progress.cardio")}
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="timed">
-                      <div className="flex items-center gap-2">
-                        <Timer className="h-4 w-4" />
-                        {t("progress.timed")}
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder={t("workout.exerciseSearch")}
-                    value={exerciseSearchQuery}
-                    onChange={(e) => setExerciseSearchQuery(e.target.value)}
-                    className="pl-9 h-12"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 mt-4">
-              {filteredExercises.length === 0 ? (
-                <div className="col-span-2 text-center py-12 text-muted-foreground">
-                  {exerciseTab === "favorites" ? t("workout.noFavorites") : t("exercises.noExercisesFound")}
-                </div>
-              ) : (
-                filteredExercises.map((exercise) => (
-                  <ExerciseSelectionCard
-                    key={exercise.id}
-                    exercise={exercise}
-                    isFavorite={favoriteExercises?.has(exercise.id) || false}
-                    onSelect={handleSelectExercise}
-                    onToggleFavorite={handleToggleFavorite}
-                  />
-                ))
-              )}
-            </div>
-            </>
-          ) : (
-            <div className="space-y-4 mt-4">
-              {!(selectedExercise.type === "timed" && showTimer) && (
-                <div className="flex items-center justify-between mb-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDialogChange(false)}
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    {t("common.back")}
-                  </Button>
-
-                  {/* History button - Drawer for mobile */}
-                  <Drawer>
-                    <DrawerTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="gap-1.5"
-                        disabled={isLoadingHistory}
-                      >
-                        <History className="h-4 w-4" />
-                        <span className="hidden sm:inline">{t("workout.history")}</span>
-                      </Button>
-                    </DrawerTrigger>
-                    <DrawerContent>
-                      <DrawerHeader>
-                        <DrawerTitle>{t("workout.recentSets")}</DrawerTitle>
-                      </DrawerHeader>
-                      <div className="px-4 pb-6 max-h-[60vh] overflow-y-auto">
-                        {isLoadingHistory ? (
-                          <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                          </div>
-                        ) : recentSets.length === 0 ? (
-                          <p className="text-sm text-muted-foreground text-center py-8">{t("workout.noHistory")}</p>
-                        ) : (
-                          <div className="space-y-2">
-                            {recentSets.map((set, i) => {
-                              const showDate = i === 0 || set.date !== recentSets[i - 1].date;
-                              return (
-                                <div key={i}>
-                                  {showDate && (
-                                    <div className="text-xs text-muted-foreground mb-1 mt-2 first:mt-0">
-                                      {format(parseISO(set.date), "d MMM yyyy", { locale: dateLocale })}
-                                    </div>
-                                  )}
-                                  <div className="text-sm p-3 bg-muted/50 rounded-md">
-                                    <div className="font-medium">
-                                      {selectedExercise?.type === "cardio" ? (
-                                        <>{convertDistance(set.distance_km || 0)} {units.distance} · {set.duration_minutes} {t("units.min")}</>
-                                      ) : selectedExercise?.type === "timed" ? (
-                                        <>{set.plank_seconds} {t("units.sec")}</>
-                                      ) : selectedExercise?.type === "bodyweight" ? (
-                                        <>{set.reps} {t("units.reps")}</>
-                                      ) : (
-                                        <>{set.reps} {t("units.reps")} × {convertWeight(set.weight || 0)} {units.weight}</>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                            {hasMoreHistory && (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                className="w-full mt-3"
-                                onClick={(e) => {
-                                  e.currentTarget.blur();
-                                  loadMoreHistory();
-                                }}
-                              >
-                                {t("workout.loadMoreHistory")}
-                              </Button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </DrawerContent>
-                  </Drawer>
-                </div>
-              )}
-
-              <form onSubmit={(e) => { e.preventDefault(); handleAddSet(); }}>
-                {selectedExercise.type === "cardio" ? (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>{t("workout.distance")} ({units.distance})</Label>
-                      <Input
-                        id="add-distance"
-                        type="number"
-                        inputMode="decimal"
-                        enterKeyHint="next"
-                        step="0.1"
-                        placeholder="5.5"
-                        value={distance}
-                        onChange={(e) => setDistance(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); document.getElementById('add-duration')?.focus(); } }}
-                        autoFocus
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{t("workout.timeMin")}</Label>
-                      <Input
-                        id="add-duration"
-                        type="number"
-                        inputMode="numeric"
-                        enterKeyHint="done"
-                        placeholder="30"
-                        value={duration}
-                        onChange={(e) => setDuration(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                ) : selectedExercise.type === "timed" ? (
-                  showTimer ? (
-                    <ExerciseTimer
-                      onSave={(seconds) => {
-                        setDuration(seconds.toString());
-                        setShowTimer(false);
-                      }}
-                      onCancel={() => setShowTimer(false)}
-                    />
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>{t("workout.timeSec")}</Label>
-                        <Input
-                          type="number"
-                          inputMode="numeric"
-                          enterKeyHint="done"
-                          placeholder="60"
-                          value={duration}
-                          onChange={(e) => setDuration(e.target.value)}
-                          autoFocus
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full gap-2"
-                        onClick={() => setShowTimer(true)}
-                      >
-                        <Timer className="h-4 w-4" />
-                        {t("workout.enableTimer")}
-                      </Button>
-                    </div>
-                  )
-                ) : (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>{t("workout.reps")}</Label>
-                      <Input
-                        id="add-reps"
-                        type="number"
-                        inputMode="numeric"
-                        enterKeyHint={selectedExercise.type === "weighted" ? "next" : "done"}
-                        placeholder="8"
-                        value={reps}
-                        onChange={(e) => setReps(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === "Enter" && selectedExercise.type === "weighted") { e.preventDefault(); document.getElementById('add-weight')?.focus(); } }}
-                        autoFocus
-                      />
-                    </div>
-                    {selectedExercise.type === "weighted" && (
-                      <div className="space-y-2">
-                        <Label>{t("workout.weight")}</Label>
-                        <Input
-                          id="add-weight"
-                          type="number"
-                          inputMode="decimal"
-                          enterKeyHint="done"
-                          step="0.5"
-                          placeholder="18"
-                          value={weight}
-                          onChange={(e) => setWeight(e.target.value)}
-                        />
-                        {selectedExercise.name.toLowerCase().includes("гантел") && (
-                          <p className="text-xs text-muted-foreground">
-                            {t("workout.dumbbellNote")}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {!(selectedExercise.type === "timed" && showTimer) && (
-                  <Button
-                    type="submit"
-                    className="w-full mt-4"
-                    disabled={addSet.isPending}
-                  >
-                    {t("common.add")}
-                  </Button>
-                )}
-              </form>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-      </>
+          <Button onClick={() => setDialogOpen(true)} className="w-full gap-2 shadow-lg">
+            <Plus className="h-4 w-4" />
+            {t("workout.addExercise")}
+          </Button>
+          <AddSetDialog
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+            exercises={exercises ?? []}
+            favoriteExerciseIds={favoriteExercises ?? new Set<string>()}
+            dateLocale={dateLocale}
+            effectiveUserId={effectiveUserId ?? null}
+            autoFillEnabled={autoFillEnabled}
+            units={units}
+            convertWeight={convertWeight}
+            convertDistance={convertDistance}
+            toMetricWeight={toMetricWeight}
+            toMetricDistance={toMetricDistance}
+            existingSetCountByExercise={Object.fromEntries(
+              Object.entries(setsByExercise).map(([exerciseId, data]) => [exerciseId, data.sets.length])
+            )}
+            totalSetCount={workout.workout_sets.length}
+            initialExerciseId={initialExerciseId}
+            onInitialExerciseHandled={() => setInitialExerciseId(null)}
+            isSubmitting={addSet.isPending}
+            onToggleFavorite={handleToggleFavoriteForDialog}
+            onGetRecentSets={getRecentSetsForExercise}
+            onGetLastSet={getLastSetForExercise}
+            onAddSet={createSetForWorkout}
+          />
+        </>
       )}
 
       {Object.keys(setsByExercise).length === 0 ? (
@@ -1355,7 +756,7 @@ export default function WorkoutDetail() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {Object.entries(setsByExercise).map(([exerciseId, { exercise, sets }], index) => (
+          {orderedExerciseEntries.map(([exerciseId, { exercise, sets }], index) => (
             <WorkoutExerciseCard
               key={exerciseId}
               exerciseId={exerciseId}

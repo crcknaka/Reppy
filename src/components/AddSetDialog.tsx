@@ -28,6 +28,25 @@ type AddSetPayload = {
   plank_seconds?: number;
 };
 
+type UpdateSetPayload = {
+  setId: string;
+  reps: number | null;
+  weight: number | null;
+  distance_km: number | null;
+  duration_minutes: number | null;
+  plank_seconds: number | null;
+};
+
+type EditSetContext = {
+  setId: string;
+  exerciseId: string;
+  reps: number | null;
+  weight: number | null;
+  distance_km: number | null;
+  duration_minutes: number | null;
+  plank_seconds: number | null;
+};
+
 type ExerciseTypeFilter = "all" | "bodyweight" | "weighted" | "cardio" | "timed";
 
 interface AddSetDialogProps {
@@ -52,6 +71,9 @@ interface AddSetDialogProps {
   onGetRecentSets: (exerciseId: string, userId: string, limit: number) => Promise<RecentSetData[]>;
   onGetLastSet: (exerciseId: string, userId: string) => Promise<LastSetData | null>;
   onAddSet: (payload: AddSetPayload) => Promise<void>;
+  onUpdateSet: (payload: UpdateSetPayload) => Promise<void>;
+  editSetId: string | null;
+  onResolveEditSet: (setId: string) => EditSetContext | null;
 }
 
 interface ExerciseSelectionCardProps {
@@ -139,8 +161,12 @@ export function AddSetDialog({
   onGetRecentSets,
   onGetLastSet,
   onAddSet,
+  onUpdateSet,
+  editSetId,
+  onResolveEditSet,
 }: AddSetDialogProps) {
   const { t } = useTranslation();
+  const isEditMode = !!editSetId;
 
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [reps, setReps] = useState("");
@@ -155,6 +181,7 @@ export function AddSetDialog({
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [hasMoreHistory, setHasMoreHistory] = useState(false);
   const [historyLimit, setHistoryLimit] = useState(5);
+  const [suppressEditHydration, setSuppressEditHydration] = useState(false);
 
   const resetDialogState = () => {
     setSelectedExercise(null);
@@ -172,6 +199,7 @@ export function AddSetDialog({
   const handleDialogChange = (nextOpen: boolean) => {
     onOpenChange(nextOpen);
     if (!nextOpen) {
+      setSuppressEditHydration(false);
       resetDialogState();
       onInitialExerciseHandled();
     }
@@ -285,7 +313,7 @@ export function AddSetDialog({
     setHistoryLimit(newLimit);
   };
 
-  const handleAddSet = async () => {
+  const handleSubmitSet = async () => {
     if (!selectedExercise) {
       toast.error(t("workout.enterExercise"));
       return;
@@ -295,19 +323,21 @@ export function AddSetDialog({
     const uniqueExercises = Object.keys(existingSetCountByExercise).length;
     const isNewExercise = !existingSetCountByExercise[selectedExercise.id];
 
-    if (isNewExercise && uniqueExercises >= LIMITS.MAX_EXERCISES_PER_WORKOUT) {
-      toast.error(t("limits.maxExercisesPerWorkout", { max: LIMITS.MAX_EXERCISES_PER_WORKOUT }));
-      return;
-    }
+    if (!isEditMode) {
+      if (isNewExercise && uniqueExercises >= LIMITS.MAX_EXERCISES_PER_WORKOUT) {
+        toast.error(t("limits.maxExercisesPerWorkout", { max: LIMITS.MAX_EXERCISES_PER_WORKOUT }));
+        return;
+      }
 
-    if (existingSets >= LIMITS.MAX_SETS_PER_EXERCISE) {
-      toast.error(t("limits.maxSetsPerExercise", { max: LIMITS.MAX_SETS_PER_EXERCISE }));
-      return;
-    }
+      if (existingSets >= LIMITS.MAX_SETS_PER_EXERCISE) {
+        toast.error(t("limits.maxSetsPerExercise", { max: LIMITS.MAX_SETS_PER_EXERCISE }));
+        return;
+      }
 
-    if (totalSetCount >= LIMITS.MAX_TOTAL_SETS_PER_WORKOUT) {
-      toast.error(t("limits.maxTotalSetsPerWorkout", { max: LIMITS.MAX_TOTAL_SETS_PER_WORKOUT }));
-      return;
+      if (totalSetCount >= LIMITS.MAX_TOTAL_SETS_PER_WORKOUT) {
+        toast.error(t("limits.maxTotalSetsPerWorkout", { max: LIMITS.MAX_TOTAL_SETS_PER_WORKOUT }));
+        return;
+      }
     }
 
     if (selectedExercise.type === "cardio") {
@@ -370,33 +400,89 @@ export function AddSetDialog({
       const weightInKg = weight ? toMetricWeight(parseFloat(weight)) : undefined;
       const distanceInKm = distance ? toMetricDistance(parseFloat(distance)) : undefined;
 
-      await onAddSet({
-        exerciseId: selectedExercise.id,
-        setNumber: existingSets + 1,
-        reps: reps ? parseInt(reps) : undefined,
-        weight: weightInKg,
-        distance_km: distanceInKm,
-        duration_minutes: selectedExercise.type === "cardio" && duration ? parseInt(duration) : undefined,
-        plank_seconds: selectedExercise.type === "timed" && duration ? parseInt(duration) : undefined,
-      });
+      if (isEditMode) {
+        if (!editSetId) {
+          return;
+        }
 
-      toast.success(t("workout.setAdded"));
-      resetDialogState();
-      onInitialExerciseHandled();
-      onOpenChange(false);
+        setSuppressEditHydration(true);
+
+        await onUpdateSet({
+          setId: editSetId,
+          reps: reps ? parseInt(reps) : null,
+          weight: weightInKg ?? null,
+          distance_km: distanceInKm ?? null,
+          duration_minutes: selectedExercise.type === "cardio" && duration ? parseInt(duration) : null,
+          plank_seconds: selectedExercise.type === "timed" && duration ? parseInt(duration) : null,
+        });
+
+        toast.success(t("workout.setUpdated"));
+      } else {
+        await onAddSet({
+          exerciseId: selectedExercise.id,
+          setNumber: existingSets + 1,
+          reps: reps ? parseInt(reps) : undefined,
+          weight: weightInKg,
+          distance_km: distanceInKm,
+          duration_minutes: selectedExercise.type === "cardio" && duration ? parseInt(duration) : undefined,
+          plank_seconds: selectedExercise.type === "timed" && duration ? parseInt(duration) : undefined,
+        });
+
+        toast.success(t("workout.setAdded"));
+      }
+      handleDialogChange(false);
     } catch (error) {
-      toast.error(t("workout.setAddError"));
+      setSuppressEditHydration(false);
+      toast.error(isEditMode ? t("workout.setUpdateError") : t("workout.setAddError"));
     }
   };
 
   useEffect(() => {
-    if (!open || !initialExerciseId || exercises.length === 0) return;
+    if (!open || !isEditMode || !editSetId || exercises.length === 0) return;
+    if (suppressEditHydration) return;
+
+    const resolvedEditSet = onResolveEditSet(editSetId);
+    if (!resolvedEditSet) return;
+
+    const exercise = exercises.find((entry) => entry.id === resolvedEditSet.exerciseId);
+    if (!exercise) return;
+
+    setSelectedExercise(exercise);
+    setExerciseSearchQuery("");
+    setRecentSets([]);
+    setHistoryLimit(5);
+    setHasMoreHistory(false);
+    setShowTimer(false);
+
+    setReps(resolvedEditSet.reps?.toString() ?? "");
+    setWeight(resolvedEditSet.weight ? convertWeight(resolvedEditSet.weight).toString() : "");
+    setDistance(resolvedEditSet.distance_km ? convertDistance(resolvedEditSet.distance_km).toString() : "");
+
+    const durationValue =
+      exercise.type === "timed" ? resolvedEditSet.plank_seconds : exercise.type === "cardio" ? resolvedEditSet.duration_minutes : null;
+    setDuration(durationValue?.toString() ?? "");
+
+    void loadExerciseHistory(exercise.id, 5);
+  }, [
+    open,
+    isEditMode,
+    editSetId,
+    onResolveEditSet,
+    exercises,
+    suppressEditHydration,
+    convertWeight,
+    convertDistance,
+    loadExerciseHistory,
+  ]);
+
+  useEffect(() => {
+    if (!open || isEditMode || !initialExerciseId || exercises.length === 0) return;
     const exercise = exercises.find((entry) => entry.id === initialExerciseId);
     if (exercise) {
       void handleSelectExercise(exercise);
       onInitialExerciseHandled();
     }
-  }, [open, initialExerciseId, exercises, handleSelectExercise, onInitialExerciseHandled]);
+  }, [open, isEditMode, initialExerciseId, exercises, handleSelectExercise, onInitialExerciseHandled]);
 
   return (
     <Dialog open={open} onOpenChange={handleDialogChange}>
@@ -583,7 +669,7 @@ export function AddSetDialog({
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                void handleAddSet();
+                void handleSubmitSet();
               }}
             >
               {selectedExercise.type === "cardio" ? (
@@ -696,7 +782,7 @@ export function AddSetDialog({
 
               {!(selectedExercise.type === "timed" && showTimer) && (
                 <Button type="submit" className="w-full mt-4" disabled={isSubmitting}>
-                  {t("common.add")}
+                  {isEditMode ? t("common.save") : t("common.add")}
                 </Button>
               )}
             </form>

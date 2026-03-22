@@ -2,7 +2,7 @@ import { useState } from "react";
 import { format, type Locale } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Activity, Copy, Dumbbell, History, Pencil, Plus, Save, Timer, Trash2, Trophy, User, X } from "lucide-react";
+import { Activity, Copy, Dumbbell, History, Pencil, Plus, Timer, Trash2, Trophy, User } from "lucide-react";
 
 import { getExerciseName } from "@/lib/i18n";
 import { LIMITS } from "@/lib/limits";
@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
 import { useUnits } from "@/hooks/useUnits";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   AlertDialog,
@@ -56,15 +55,6 @@ type SetPayload = {
   plank_seconds?: number;
 };
 
-type UpdateSetPayload = {
-  setId: string;
-  reps: number | null;
-  weight: number | null;
-  distance_km: number | null;
-  duration_minutes: number | null;
-  plank_seconds: number | null;
-};
-
 interface WorkoutExerciseCardProps {
   exerciseId: string;
   exercise: ExerciseCardExercise | null;
@@ -77,7 +67,7 @@ interface WorkoutExerciseCardProps {
   onOpenExerciseHistory: (exerciseId: string, exerciseName: string, exerciseType: string) => void;
   onAddAnotherSet: (exerciseId: string) => Promise<void>;
   onCreateSet: (payload: SetPayload) => Promise<void>;
-  onUpdateSet: (payload: UpdateSetPayload) => Promise<void>;
+  onEditSet: (set: WorkoutSet) => void;
   onDeleteSet: (setId: string) => Promise<void>;
 }
 
@@ -93,16 +83,11 @@ export function WorkoutExerciseCard({
   onOpenExerciseHistory,
   onAddAnotherSet,
   onCreateSet,
-  onUpdateSet,
+  onEditSet,
   onDeleteSet,
 }: WorkoutExerciseCardProps) {
   const { t } = useTranslation();
-  const { units, convertWeight, convertDistance, toMetricWeight, toMetricDistance } = useUnits();
-  const [editingSetId, setEditingSetId] = useState<string | null>(null);
-  const [editReps, setEditReps] = useState("");
-  const [editWeight, setEditWeight] = useState("");
-  const [editDistance, setEditDistance] = useState("");
-  const [editDuration, setEditDuration] = useState("");
+  const { units, convertWeight, convertDistance } = useUnits();
   const [openTooltipId, setOpenTooltipId] = useState<string | null>(null);
   const [setToDelete, setSetToDelete] = useState<string | null>(null);
 
@@ -133,48 +118,6 @@ export function WorkoutExerciseCard({
       toast.success(t("workout.setCopied"));
     } catch {
       toast.error(t("workout.setCopyError"));
-    }
-  };
-
-  const handleEditSet = (set: WorkoutSet) => {
-    setEditingSetId(set.id);
-    setEditReps(set.reps?.toString() || "");
-    setEditWeight(set.weight ? convertWeight(set.weight).toString() : "");
-    setEditDistance(set.distance_km ? convertDistance(set.distance_km).toString() : "");
-    const durationValue = set.exercise?.type === "timed" ? set.plank_seconds : set.duration_minutes;
-    setEditDuration(durationValue ? durationValue.toString() : "");
-  };
-
-  const handleCancelEdit = () => {
-    setEditingSetId(null);
-    setEditReps("");
-    setEditWeight("");
-    setEditDistance("");
-    setEditDuration("");
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editingSetId) return;
-
-    const currentSet = sets.find((s) => s.id === editingSetId);
-    const exerciseType = currentSet?.exercise?.type;
-
-    const weightInKg = editWeight ? toMetricWeight(parseFloat(editWeight)) : null;
-    const distanceInKm = editDistance ? toMetricDistance(parseFloat(editDistance)) : null;
-
-    try {
-      await onUpdateSet({
-        setId: editingSetId,
-        reps: editReps ? parseInt(editReps) : null,
-        weight: weightInKg,
-        distance_km: distanceInKm,
-        duration_minutes: exerciseType === "cardio" && editDuration ? parseInt(editDuration) : null,
-        plank_seconds: exerciseType === "timed" && editDuration ? parseInt(editDuration) : null,
-      });
-      toast.success(t("workout.setUpdated"));
-      handleCancelEdit();
-    } catch {
-      toast.error(t("workout.setUpdateError"));
     }
   };
 
@@ -298,187 +241,62 @@ export function WorkoutExerciseCard({
                       )}
                       <div className="text-center text-sm font-medium text-muted-foreground">{setIndex + 1}</div>
 
-                      {editingSetId === set.id ? (
-                        <>
-                          {exercise?.type === "cardio" ? (
-                            <>
-                              <Input
-                                type="number"
-                                inputMode="decimal"
-                                enterKeyHint="next"
-                                step="0.1"
-                                value={editDistance}
-                                onChange={(e) => setEditDistance(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    (e.currentTarget.nextElementSibling as HTMLInputElement)?.focus();
-                                  }
-                                }}
-                                className="h-7 text-center text-sm px-2"
-                                placeholder={t("units.km")}
-                                autoFocus
-                              />
-                              <Input
-                                type="number"
-                                inputMode="numeric"
-                                enterKeyHint="done"
-                                value={editDuration}
-                                onChange={(e) => setEditDuration(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    e.preventDefault();
-                                    handleSaveEdit();
-                                  }
-                                }}
-                                className="h-7 text-center text-sm px-2"
-                                placeholder={t("units.min")}
-                              />
-                            </>
-                          ) : exercise?.type === "timed" ? (
-                            <Input
-                              type="number"
-                              inputMode="numeric"
-                              enterKeyHint="done"
-                              value={editDuration}
-                              onChange={(e) => setEditDuration(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  e.preventDefault();
-                                  handleSaveEdit();
-                                }
-                              }}
-                              className="h-7 text-center text-sm px-2"
-                              placeholder={t("units.sec")}
-                              autoFocus
-                            />
-                          ) : exercise?.type === "bodyweight" ? (
-                            <Input
-                              type="number"
-                              inputMode="numeric"
-                              enterKeyHint="done"
-                              value={editReps}
-                              onChange={(e) => setEditReps(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  e.preventDefault();
-                                  handleSaveEdit();
-                                }
-                              }}
-                              className="h-7 text-center text-sm px-2"
-                              autoFocus
-                            />
-                          ) : (
-                            <>
-                              <Input
-                                type="number"
-                                inputMode="numeric"
-                                enterKeyHint="next"
-                                value={editReps}
-                                onChange={(e) => setEditReps(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    (e.currentTarget.nextElementSibling as HTMLInputElement)?.focus();
-                                  }
-                                }}
-                                className="h-7 text-center text-sm px-2"
-                                autoFocus
-                              />
-                              <Input
-                                type="number"
-                                inputMode="decimal"
-                                enterKeyHint="done"
-                                step="0.5"
-                                value={editWeight}
-                                onChange={(e) => setEditWeight(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    e.preventDefault();
-                                    handleSaveEdit();
-                                  }
-                                }}
-                                className="h-7 text-center text-sm px-2"
-                                placeholder="—"
-                              />
-                            </>
-                          )}
+                      <>
+                        {exercise?.type === "cardio" ? (
+                          <>
+                            <div className="text-center text-sm font-semibold text-foreground">
+                              {set.distance_km ? `${convertDistance(set.distance_km)} ${units.distance}` : "—"}
+                            </div>
+                            <div className="text-center text-sm font-medium text-primary">
+                              {set.duration_minutes ? `${set.duration_minutes} ${t("units.min")}` : "—"}
+                            </div>
+                          </>
+                        ) : exercise?.type === "timed" ? (
+                          <div className="text-center text-sm font-semibold text-primary">
+                            {set.plank_seconds ? `${set.plank_seconds} ${t("units.sec")}` : "—"}
+                          </div>
+                        ) : exercise?.type === "bodyweight" ? (
+                          <div className="text-center text-sm font-semibold text-foreground">{set.reps || "—"}</div>
+                        ) : (
+                          <>
+                            <div className="text-center text-sm font-semibold text-foreground">{set.reps || "—"}</div>
+                            <div className="text-center text-sm font-medium text-primary">
+                              {set.weight ? `${convertWeight(set.weight)} ${units.weight}` : "—"}
+                            </div>
+                          </>
+                        )}
 
-                          <div className="flex gap-0.5 justify-end">
+                        {canManageSets ? (
+                          <div className="flex gap-0 justify-end -mr-1">
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                              onClick={handleSaveEdit}
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                              onClick={() => handleCopySet(set)}
                             >
-                              <Save className="h-3 w-3" />
+                              <Copy className="h-3.5 w-3.5" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                              onClick={handleCancelEdit}
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                              onClick={() => onEditSet(set)}
                             >
-                              <X className="h-3 w-3" />
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                              onClick={() => setSetToDelete(set.id)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </div>
-                        </>
-                      ) : (
-                        <>
-                          {exercise?.type === "cardio" ? (
-                            <>
-                              <div className="text-center text-sm font-semibold text-foreground">
-                                {set.distance_km ? `${convertDistance(set.distance_km)} ${units.distance}` : "—"}
-                              </div>
-                              <div className="text-center text-sm font-medium text-primary">
-                                {set.duration_minutes ? `${set.duration_minutes} ${t("units.min")}` : "—"}
-                              </div>
-                            </>
-                          ) : exercise?.type === "timed" ? (
-                            <div className="text-center text-sm font-semibold text-primary">
-                              {set.plank_seconds ? `${set.plank_seconds} ${t("units.sec")}` : "—"}
-                            </div>
-                          ) : exercise?.type === "bodyweight" ? (
-                            <div className="text-center text-sm font-semibold text-foreground">{set.reps || "—"}</div>
-                          ) : (
-                            <>
-                              <div className="text-center text-sm font-semibold text-foreground">{set.reps || "—"}</div>
-                              <div className="text-center text-sm font-medium text-primary">
-                                {set.weight ? `${convertWeight(set.weight)} ${units.weight}` : "—"}
-                              </div>
-                            </>
-                          )}
-
-                          {canManageSets ? (
-                            <div className="flex gap-0 justify-end -mr-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                                onClick={() => handleCopySet(set)}
-                              >
-                                <Copy className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                                onClick={() => handleEditSet(set)}
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                                onClick={() => setSetToDelete(set.id)}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <div></div>
-                          )}
-                        </>
-                      )}
+                        ) : (
+                          <div></div>
+                        )}
+                      </>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>

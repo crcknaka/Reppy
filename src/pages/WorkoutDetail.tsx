@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format, isToday, parseISO } from "date-fns";
@@ -86,6 +86,7 @@ export default function WorkoutDetail() {
   const { data: workoutOwnerProfile } = useUserProfile(!isOwner && workout ? workout.user_id : null);
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editSetId, setEditSetId] = useState<string | null>(null);
   const [showStickyAdd, setShowStickyAdd] = useState(false);
 
   // Show sticky "+" button when scrolled down past 200px
@@ -359,8 +360,39 @@ export default function WorkoutDetail() {
   };
 
   const handleAddAnotherSet = async (exerciseId: string) => {
+    setEditSetId(null);
     setInitialExerciseId(exerciseId);
     setDialogOpen(true);
+  };
+
+  const handleEditSetFromCard = (set: {
+    id: string;
+  }) => {
+    setInitialExerciseId(null);
+    setEditSetId(set.id);
+    setDialogOpen(true);
+  };
+
+  const resolveEditSetById = useCallback((setId: string) => {
+    const targetSet = workout?.workout_sets?.find((set) => set.id === setId);
+    if (!targetSet) return null;
+
+    return {
+      setId: targetSet.id,
+      exerciseId: targetSet.exercise_id,
+      reps: targetSet.reps,
+      weight: targetSet.weight,
+      distance_km: targetSet.distance_km,
+      duration_minutes: targetSet.duration_minutes,
+      plank_seconds: targetSet.plank_seconds,
+    };
+  }, [workout?.workout_sets]);
+
+  const handleSetDialogOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      setEditSetId(null);
+    }
   };
 
   const handleToggleFavoriteForDialog = async (exerciseId: string, isFavorite: boolean) => {
@@ -710,13 +742,19 @@ export default function WorkoutDetail() {
 
       {isOwner && !workout?.is_locked && (
         <>
-          <Button onClick={() => setDialogOpen(true)} className="w-full gap-2 shadow-lg">
+          <Button
+            onClick={() => {
+              setEditSetId(null);
+              setDialogOpen(true);
+            }}
+            className="w-full gap-2 shadow-lg"
+          >
             <Plus className="h-4 w-4" />
             {t("workout.addExercise")}
           </Button>
           <AddSetDialog
             open={dialogOpen}
-            onOpenChange={setDialogOpen}
+            onOpenChange={handleSetDialogOpenChange}
             exercises={exercises ?? []}
             favoriteExerciseIds={favoriteExercises ?? new Set<string>()}
             dateLocale={dateLocale}
@@ -733,11 +771,14 @@ export default function WorkoutDetail() {
             totalSetCount={workout.workout_sets.length}
             initialExerciseId={initialExerciseId}
             onInitialExerciseHandled={() => setInitialExerciseId(null)}
-            isSubmitting={addSet.isPending}
+            isSubmitting={addSet.isPending || updateSet.isPending}
             onToggleFavorite={handleToggleFavoriteForDialog}
             onGetRecentSets={getRecentSetsForExercise}
             onGetLastSet={getLastSetForExercise}
             onAddSet={createSetForWorkout}
+            onUpdateSet={updateWorkoutSet}
+            editSetId={editSetId}
+            onResolveEditSet={resolveEditSetById}
           />
         </>
       )}
@@ -770,7 +811,7 @@ export default function WorkoutDetail() {
               onOpenExerciseHistory={openExerciseHistory}
               onAddAnotherSet={handleAddAnotherSet}
               onCreateSet={createSetForWorkout}
-              onUpdateSet={updateWorkoutSet}
+              onEditSet={handleEditSetFromCard}
               onDeleteSet={deleteWorkoutSet}
             />
           ))}

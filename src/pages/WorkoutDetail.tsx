@@ -57,7 +57,10 @@ import { useUnits } from "@/hooks/useUnits";
 import { useAutoFillLastSet } from "@/hooks/useAutoFillLastSet";
 import { LIMITS } from "@/lib/limits";
 import { WorkoutExerciseCard } from "@/components/WorkoutExerciseCard";
-import { AddSetDialog } from "@/components/AddSetDialog";
+import type { Exercise } from "@/hooks/useExercises";
+import type { EditSetContext } from "@/components/setDialogTypes";
+import { AddExerciseDialog } from "@/components/AddExerciseDialog";
+import { AddOrUpdateSetDialog } from "@/components/AddOrUpdateSetDialog";
 
 export default function WorkoutDetail() {
   const { t, i18n } = useTranslation();
@@ -85,8 +88,10 @@ export default function WorkoutDetail() {
   // Fetch workout owner's profile for banner (only when viewing others)
   const { data: workoutOwnerProfile } = useUserProfile(!isOwner && workout ? workout.user_id : null);
 
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [addExerciseDialogOpen, setAddExerciseDialogOpen] = useState(false);
+  const [setDialogOpen, setSetDialogOpen] = useState(false);
   const [editSetId, setEditSetId] = useState<string | null>(null);
+  const [selectedExerciseForSetDialog, setSelectedExerciseForSetDialog] = useState<Exercise | null>(null);
   const [showStickyAdd, setShowStickyAdd] = useState(false);
 
   // Show sticky "+" button when scrolled down past 200px
@@ -97,7 +102,6 @@ export default function WorkoutDetail() {
     return () => window.removeEventListener("scroll", check);
   }, []);
 
-  const [initialExerciseId, setInitialExerciseId] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -150,14 +154,40 @@ export default function WorkoutDetail() {
     };
   }, [isPhotoFullscreen]);
 
-  // Auto-open dialog with selected exercise if coming from Exercises page
+  const openAddExerciseDialog = () => {
+    setEditSetId(null);
+    setSelectedExerciseForSetDialog(null);
+    setAddExerciseDialogOpen(true);
+  };
+
+  const openSetDialogForExercise = (exercise: Exercise) => {
+    setSelectedExerciseForSetDialog(exercise);
+    setSetDialogOpen(true);
+  };
+
+  const handleSetDialogOpenChange = (open: boolean) => {
+    setSetDialogOpen(open);
+    if (!open) {
+      setEditSetId(null);
+      setSelectedExerciseForSetDialog(null);
+    }
+  };
+
+  const handleExerciseSelectedForSetDialog = (exercise: Exercise) => {
+    setEditSetId(null);
+    setAddExerciseDialogOpen(false);
+    openSetDialogForExercise(exercise);
+  };
+
+  // Auto-open set dialog with selected exercise if coming from Exercises page
   useEffect(() => {
     const state = location.state as { autoAddExerciseId?: string } | null;
     if (state?.autoAddExerciseId && exercises) {
       const exercise = exercises.find((e) => e.id === state.autoAddExerciseId);
       if (exercise) {
-        setInitialExerciseId(exercise.id);
-        setDialogOpen(true);
+        setEditSetId(null);
+        setAddExerciseDialogOpen(false);
+        openSetDialogForExercise(exercise);
         // Clear the state to prevent reopening on re-render
         navigate(location.pathname, { replace: true, state: {} });
       }
@@ -360,20 +390,35 @@ export default function WorkoutDetail() {
   };
 
   const handleAddAnotherSet = async (exerciseId: string) => {
+    const exercise = (exercises ?? []).find((entry) => entry.id === exerciseId);
+    if (!exercise) return;
+
     setEditSetId(null);
-    setInitialExerciseId(exerciseId);
-    setDialogOpen(true);
+    setAddExerciseDialogOpen(false);
+    openSetDialogForExercise(exercise);
   };
 
   const handleEditSetFromCard = (set: {
     id: string;
   }) => {
-    setInitialExerciseId(null);
+    const resolved = resolveEditSetById(set.id);
+    if (!resolved) {
+      toast.error(t("workout.setUpdateError"));
+      return;
+    }
+
+    const exercise = (exercises ?? []).find((entry) => entry.id === resolved.exerciseId);
+    if (!exercise) {
+      toast.error(t("workout.enterExercise"));
+      return;
+    }
+
     setEditSetId(set.id);
-    setDialogOpen(true);
+    setAddExerciseDialogOpen(false);
+    openSetDialogForExercise(exercise);
   };
 
-  const resolveEditSetById = useCallback((setId: string) => {
+  const resolveEditSetById = (setId: string): EditSetContext | null => {
     const targetSet = workout?.workout_sets?.find((set) => set.id === setId);
     if (!targetSet) return null;
 
@@ -386,14 +431,9 @@ export default function WorkoutDetail() {
       duration_minutes: targetSet.duration_minutes,
       plank_seconds: targetSet.plank_seconds,
     };
-  }, [workout?.workout_sets]);
-
-  const handleSetDialogOpenChange = (open: boolean) => {
-    setDialogOpen(open);
-    if (!open) {
-      setEditSetId(null);
-    }
   };
+
+  const editContextForSetDialog = editSetId ? resolveEditSetById(editSetId) : null;
 
   const handleToggleFavoriteForDialog = async (exerciseId: string, isFavorite: boolean) => {
     await toggleFavorite.mutateAsync({ exerciseId, isFavorite });
@@ -567,7 +607,7 @@ export default function WorkoutDetail() {
       {/* Fixed "+" button — appears top-right when scrolled past main Add Exercise button */}
       {isOwner && !workout?.is_locked && createPortal(
         <Button
-          onClick={() => setDialogOpen(true)}
+          onClick={openAddExerciseDialog}
           className={cn(
             "fixed bottom-24 right-4 md:right-8 shadow-lg z-[9999] transition-all duration-200",
             showStickyAdd ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
@@ -743,20 +783,29 @@ export default function WorkoutDetail() {
       {isOwner && !workout?.is_locked && (
         <>
           <Button
-            onClick={() => {
-              setEditSetId(null);
-              setDialogOpen(true);
-            }}
+            onClick={openAddExerciseDialog}
             className="w-full gap-2 shadow-lg"
           >
             <Plus className="h-4 w-4" />
             {t("workout.addExercise")}
           </Button>
-          <AddSetDialog
-            open={dialogOpen}
-            onOpenChange={handleSetDialogOpenChange}
+
+          <AddExerciseDialog
+            open={addExerciseDialogOpen}
+            onOpenChange={setAddExerciseDialogOpen}
             exercises={exercises ?? []}
             favoriteExerciseIds={favoriteExercises ?? new Set<string>()}
+            onToggleFavorite={handleToggleFavoriteForDialog}
+            onSelectExercise={handleExerciseSelectedForSetDialog}
+          />
+
+          <AddOrUpdateSetDialog
+            open={setDialogOpen}
+            onOpenChange={handleSetDialogOpenChange}
+            selectedExercise={selectedExerciseForSetDialog}
+            mode={editSetId ? "edit" : "add"}
+            editSetId={editSetId}
+            editContext={editContextForSetDialog}
             dateLocale={dateLocale}
             effectiveUserId={effectiveUserId ?? null}
             autoFillEnabled={autoFillEnabled}
@@ -769,16 +818,11 @@ export default function WorkoutDetail() {
               Object.entries(setsByExercise).map(([exerciseId, data]) => [exerciseId, data.sets.length])
             )}
             totalSetCount={workout.workout_sets.length}
-            initialExerciseId={initialExerciseId}
-            onInitialExerciseHandled={() => setInitialExerciseId(null)}
             isSubmitting={addSet.isPending || updateSet.isPending}
-            onToggleFavorite={handleToggleFavoriteForDialog}
             onGetRecentSets={getRecentSetsForExercise}
             onGetLastSet={getLastSetForExercise}
             onAddSet={createSetForWorkout}
             onUpdateSet={updateWorkoutSet}
-            editSetId={editSetId}
-            onResolveEditSet={resolveEditSetById}
           />
         </>
       )}

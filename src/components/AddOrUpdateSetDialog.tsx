@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { getExerciseName } from "@/lib/i18n";
+import { LIMITS } from "@/lib/limits";
 import { isValidationFailure, validateSetCreationLimits, validateSetInputValues } from "@/lib/setValidation";
 import type { Exercise } from "@/hooks/useExercises";
 import type { EditSetContext, SharedSetDialogDataProps } from "@/components/setDialogTypes";
@@ -12,8 +13,8 @@ import { ExerciseTimer } from "@/components/ExerciseTimer";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SwipeNumberInput } from "@/components/ui/swipe-number-input";
 
 type SetDialogMode = "add" | "edit";
 
@@ -372,17 +373,19 @@ export function AddOrUpdateSetDialog({
             }}
           >
             {selectedExercise.type === "cardio" ? (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4 max-w-md mx-auto w-full">
                 <div className="space-y-2">
                   <Label>
                     {t("workout.distance")} ({units.distance})
                   </Label>
-                  <Input
+                  <SwipeNumberInput
                     id="add-distance"
                     type="number"
                     inputMode="decimal"
                     enterKeyHint="next"
                     step="0.1"
+                    min={convertDistance(LIMITS.MIN_DISTANCE_KM)}
+                    max={convertDistance(LIMITS.MAX_DISTANCE_KM)}
                     placeholder="5.5"
                     value={distance}
                     onChange={(e) => setDistance(e.target.value)}
@@ -397,11 +400,13 @@ export function AddOrUpdateSetDialog({
                 </div>
                 <div className="space-y-2">
                   <Label>{t("workout.timeMin")}</Label>
-                  <Input
+                  <SwipeNumberInput
                     id="add-duration"
                     type="number"
                     inputMode="numeric"
                     enterKeyHint="done"
+                    min={LIMITS.MIN_DURATION_MINUTES}
+                    max={LIMITS.MAX_DURATION_MINUTES}
                     placeholder="30"
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
@@ -418,13 +423,15 @@ export function AddOrUpdateSetDialog({
                   onCancel={() => setShowTimer(false)}
                 />
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-4 max-w-md mx-auto w-full">
                   <div className="space-y-2">
                     <Label>{t("workout.timeSec")}</Label>
-                    <Input
+                    <SwipeNumberInput
                       type="number"
                       inputMode="numeric"
                       enterKeyHint="done"
+                      min={LIMITS.MIN_TIME_SECONDS}
+                      max={LIMITS.MAX_TIME_SECONDS}
                       placeholder="60"
                       value={duration}
                       onChange={(e) => setDuration(e.target.value)}
@@ -438,14 +445,16 @@ export function AddOrUpdateSetDialog({
                 </div>
               )
             ) : (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4 max-w-md mx-auto w-full">
                 <div className="space-y-2">
                   <Label>{t("workout.reps")}</Label>
-                  <Input
+                  <SwipeNumberInput
                     id="add-reps"
                     type="number"
                     inputMode="numeric"
                     enterKeyHint={selectedExercise.type === "weighted" ? "next" : "done"}
+                    min={LIMITS.MIN_REPS}
+                    max={LIMITS.MAX_REPS}
                     placeholder="8"
                     value={reps}
                     onChange={(e) => setReps(e.target.value)}
@@ -461,12 +470,14 @@ export function AddOrUpdateSetDialog({
                 {selectedExercise.type === "weighted" && (
                   <div className="space-y-2">
                     <Label>{t("workout.weight")}</Label>
-                    <Input
+                    <SwipeNumberInput
                       id="add-weight"
                       type="number"
                       inputMode="decimal"
                       enterKeyHint="done"
                       step="0.5"
+                      min={convertWeight(LIMITS.MIN_WEIGHT_KG)}
+                      max={convertWeight(LIMITS.MAX_WEIGHT_KG)}
                       placeholder="18"
                       value={weight}
                       onChange={(e) => setWeight(e.target.value)}

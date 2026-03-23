@@ -224,10 +224,10 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
       state.lastX = event.clientX;
       state.lastTimestamp = event.timeStamp;
 
-      const instantaneousVelocity = dx / dt;
+      const instantaneousVelocity = -dx / dt;
       state.velocityPxPerMs = state.velocityPxPerMs * 0.75 + instantaneousVelocity * 0.25;
 
-      state.remainderPx += dx;
+      state.remainderPx -= dx;
 
       const steps = Math.trunc(state.remainderPx / PIXELS_PER_STEP);
       if (steps !== 0) {

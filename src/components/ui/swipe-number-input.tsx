@@ -130,10 +130,18 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
         if (!input || stepDelta === 0) return;
 
         const currentValue = Number(input.value.replace(/,/g, "."));
-        const fallbackBase = minValue ?? 0;
-        const base = Number.isFinite(currentValue) ? currentValue : fallbackBase;
+        const origin = minValue ?? 0;
+        const base = Number.isFinite(currentValue) ? currentValue : origin;
+        const offsetFromOrigin = (base - origin) / resolvedSwipeStep;
+        const epsilon = Math.max(1e-9, resolvedSwipeStep * 1e-6);
 
-        const next = clamp(base + stepDelta * resolvedSwipeStep, minValue, maxValue);
+        const targetGridIndex =
+          stepDelta > 0
+            ? Math.floor(offsetFromOrigin + epsilon) + stepDelta
+            : Math.ceil(offsetFromOrigin - epsilon) + stepDelta;
+
+        const snapped = origin + targetGridIndex * resolvedSwipeStep;
+        const next = clamp(snapped, minValue, maxValue);
         const rounded = Number(next.toFixed(decimals));
 
         applyNativeInputValue(input, rounded.toString());

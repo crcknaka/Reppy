@@ -10,6 +10,7 @@ export interface WorkoutSet {
   workout_id: string;
   exercise_id: string;
   set_number: number;
+  is_completed: boolean;
   reps: number | null;
   weight: number | null;
   distance_km: number | null;
@@ -55,6 +56,7 @@ export function useWorkouts() {
             workout_id,
             exercise_id,
             set_number,
+            is_completed,
             reps,
             weight,
             distance_km,
@@ -68,7 +70,7 @@ export function useWorkouts() {
         .order("date", { ascending: false });
 
       if (error) throw error;
-      return data as Workout[];
+      return data as unknown as Workout[];
     },
     enabled: !!user,
   });
@@ -93,6 +95,7 @@ export function useWorkoutsByMonth(year: number, month: number) {
             workout_id,
             exercise_id,
             set_number,
+            is_completed,
             reps,
             weight,
             distance_km,
@@ -108,7 +111,7 @@ export function useWorkoutsByMonth(year: number, month: number) {
         .order("date", { ascending: false });
 
       if (error) throw error;
-      return data as Workout[];
+      return data as unknown as Workout[];
     },
     enabled: !!user,
   });
@@ -168,6 +171,7 @@ export function useAddSet() {
       distance_km,
       duration_minutes,
       plank_seconds,
+      is_completed,
     }: {
       workoutId: string;
       exerciseId: string;
@@ -177,6 +181,7 @@ export function useAddSet() {
       distance_km?: number;
       duration_minutes?: number;
       plank_seconds?: number;
+      is_completed?: boolean;
     }) => {
       const { data, error } = await supabase
         .from("workout_sets")
@@ -189,6 +194,7 @@ export function useAddSet() {
           distance_km: distance_km ?? null,
           duration_minutes: duration_minutes ?? null,
           plank_seconds: plank_seconds ?? null,
+          is_completed: is_completed ?? false,
         })
         .select()
         .single();
@@ -233,6 +239,7 @@ export function useUpdateSet() {
       distance_km,
       duration_minutes,
       plank_seconds,
+      is_completed,
     }: {
       setId: string;
       reps?: number | null;
@@ -240,16 +247,31 @@ export function useUpdateSet() {
       distance_km?: number | null;
       duration_minutes?: number | null;
       plank_seconds?: number | null;
+      is_completed?: boolean;
     }) => {
+      const updateData: {
+        reps?: number | null;
+        weight?: number | null;
+        distance_km?: number | null;
+        duration_minutes?: number | null;
+        plank_seconds?: number | null;
+        is_completed?: boolean;
+      } = {};
+
+      if (reps !== undefined) updateData.reps = reps;
+      if (weight !== undefined) updateData.weight = weight;
+      if (distance_km !== undefined) updateData.distance_km = distance_km;
+      if (duration_minutes !== undefined) updateData.duration_minutes = duration_minutes;
+      if (plank_seconds !== undefined) updateData.plank_seconds = plank_seconds;
+      if (is_completed !== undefined) updateData.is_completed = is_completed;
+
+      if (Object.keys(updateData).length === 0) {
+        throw new Error("No set fields provided for update");
+      }
+
       const { data, error } = await supabase
         .from("workout_sets")
-        .update({
-          reps: reps ?? null,
-          weight: weight ?? null,
-          distance_km: distance_km ?? null,
-          duration_minutes: duration_minutes ?? null,
-          plank_seconds: plank_seconds ?? null,
-        })
+        .update(updateData)
         .eq("id", setId)
         .select()
         .single();
@@ -306,6 +328,7 @@ export function useUserWorkouts(userId: string | null | undefined) {
             workout_id,
             exercise_id,
             set_number,
+            is_completed,
             reps,
             weight,
             distance_km,
@@ -319,7 +342,7 @@ export function useUserWorkouts(userId: string | null | undefined) {
         .order("date", { ascending: false });
 
       if (error) throw error;
-      return data as Workout[];
+      return data as unknown as Workout[];
     },
     enabled: !!userId,
   });
@@ -340,6 +363,7 @@ export function useSingleWorkout(workoutId: string | undefined) {
             workout_id,
             exercise_id,
             set_number,
+            is_completed,
             reps,
             weight,
             distance_km,
@@ -353,7 +377,7 @@ export function useSingleWorkout(workoutId: string | undefined) {
         .single();
 
       if (error) throw error;
-      return data as Workout;
+      return data as unknown as Workout;
     },
     enabled: !!workoutId,
   });

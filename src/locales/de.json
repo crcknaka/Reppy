@@ -271,6 +271,8 @@
     "setDeleteError": "Fehler beim Löschen des Satzes",
     "setCopied": "Satz kopiert",
     "setCopyError": "Fehler beim Kopieren des Satzes",
+    "markSetComplete": "Satz als abgeschlossen markieren",
+    "markSetIncomplete": "Satz als nicht abgeschlossen markieren",
     "setUpdated": "Satz aktualisiert",
     "setUpdateError": "Fehler beim Aktualisieren des Satzes",
     "commentSaved": "Kommentar gespeichert",

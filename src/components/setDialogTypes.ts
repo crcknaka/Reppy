@@ -11,15 +11,17 @@ export type AddSetPayload = {
   distance_km?: number;
   duration_minutes?: number;
   plank_seconds?: number;
+  is_completed?: boolean;
 };
 
 export type UpdateSetPayload = {
   setId: string;
-  reps: number | null;
-  weight: number | null;
-  distance_km: number | null;
-  duration_minutes: number | null;
-  plank_seconds: number | null;
+  reps?: number | null;
+  weight?: number | null;
+  distance_km?: number | null;
+  duration_minutes?: number | null;
+  plank_seconds?: number | null;
+  is_completed?: boolean;
 };
 
 export type EditSetContext = {

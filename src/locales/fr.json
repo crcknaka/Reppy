@@ -271,6 +271,8 @@
     "setDeleteError": "Erreur de suppression de série",
     "setCopied": "Série copiée",
     "setCopyError": "Erreur de copie de série",
+    "markSetComplete": "Marquer la série comme terminée",
+    "markSetIncomplete": "Marquer la série comme non terminée",
     "setUpdated": "Série mise à jour",
     "setUpdateError": "Erreur de mise à jour de série",
     "commentSaved": "Commentaire enregistré",

@@ -296,6 +296,8 @@
     "setDeleteError": "Error deleting set",
     "setCopied": "Set copied",
     "setCopyError": "Error copying set",
+    "markSetComplete": "Mark set as complete",
+    "markSetIncomplete": "Mark set as incomplete",
     "setUpdated": "Set updated",
     "setUpdateError": "Error updating set",
     "commentSaved": "Comment saved",

@@ -365,6 +365,7 @@ export default function WorkoutDetail() {
     distance_km?: number;
     duration_minutes?: number;
     plank_seconds?: number;
+    is_completed?: boolean;
   }) => {
     if (!workout) return;
 
@@ -376,13 +377,21 @@ export default function WorkoutDetail() {
 
   const updateWorkoutSet = async (payload: {
     setId: string;
-    reps: number | null;
-    weight: number | null;
-    distance_km: number | null;
-    duration_minutes: number | null;
-    plank_seconds: number | null;
+    reps?: number | null;
+    weight?: number | null;
+    distance_km?: number | null;
+    duration_minutes?: number | null;
+    plank_seconds?: number | null;
+    is_completed?: boolean;
   }) => {
     await updateSet.mutateAsync(payload);
+  };
+
+  const toggleWorkoutSetCompleted = async (setId: string, isCompleted: boolean) => {
+    await updateWorkoutSet({
+      setId,
+      is_completed: isCompleted,
+    });
   };
 
   const deleteWorkoutSet = async (setId: string) => {
@@ -857,6 +866,7 @@ export default function WorkoutDetail() {
               onCreateSet={createSetForWorkout}
               onEditSet={handleEditSetFromCard}
               onDeleteSet={deleteWorkoutSet}
+              onToggleSetCompleted={toggleWorkoutSetCompleted}
             />
           ))}
         </div>

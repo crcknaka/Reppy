@@ -36,6 +36,7 @@ type WorkoutSet = {
   id: string;
   exercise_id: string;
   set_number: number;
+  is_completed: boolean;
   reps: number | null;
   weight: number | null;
   distance_km: number | null;
@@ -53,6 +54,7 @@ type SetPayload = {
   distance_km?: number;
   duration_minutes?: number;
   plank_seconds?: number;
+  is_completed?: boolean;
 };
 
 interface WorkoutExerciseCardProps {
@@ -69,6 +71,7 @@ interface WorkoutExerciseCardProps {
   onCreateSet: (payload: SetPayload) => Promise<void>;
   onEditSet: (set: WorkoutSet) => void;
   onDeleteSet: (setId: string) => Promise<void>;
+  onToggleSetCompleted: (setId: string, isCompleted: boolean) => Promise<void>;
 }
 
 export function WorkoutExerciseCard({
@@ -85,6 +88,7 @@ export function WorkoutExerciseCard({
   onCreateSet,
   onEditSet,
   onDeleteSet,
+  onToggleSetCompleted,
 }: WorkoutExerciseCardProps) {
   const { t } = useTranslation();
   const { units, convertWeight, convertDistance } = useUnits();
@@ -113,6 +117,7 @@ export function WorkoutExerciseCard({
         distance_km: set.distance_km ?? undefined,
         duration_minutes: set.duration_minutes ?? undefined,
         plank_seconds: set.plank_seconds ?? undefined,
+        is_completed: false,
       });
 
       toast.success(t("workout.setCopied"));
@@ -194,10 +199,10 @@ export function WorkoutExerciseCard({
         <CardContent className="space-y-1 px-4 pb-4">
           <div
             className={cn(
-              "grid gap-1 px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide",
+              "grid gap-1 pl-4 pr-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide",
               exercise?.type === "bodyweight" || exercise?.type === "timed"
-                ? "grid-cols-[44px_1fr_84px]"
-                : "grid-cols-[44px_1fr_1fr_84px]"
+                ? "grid-cols-[40px_1fr_84px]"
+                : "grid-cols-[40px_1fr_1fr_84px]"
             )}
           >
             <div className="text-center">#</div>
@@ -214,7 +219,7 @@ export function WorkoutExerciseCard({
             {sets
               .slice()
               .sort((a, b) => a.set_number - b.set_number)
-              .map((set, setIndex) => (
+              .map((set) => (
                 <Tooltip
                   key={set.id}
                   open={openTooltipId === set.id}
@@ -223,10 +228,10 @@ export function WorkoutExerciseCard({
                   <TooltipTrigger asChild>
                     <div
                       className={cn(
-                        "relative grid gap-1 items-center py-2 px-2 rounded-md cursor-pointer select-none",
+                        "relative grid gap-1 items-center py-2 pl-4 pr-2 rounded-md cursor-pointer select-none",
                         exercise?.type === "bodyweight" || exercise?.type === "timed"
-                          ? "grid-cols-[44px_1fr_84px]"
-                          : "grid-cols-[44px_1fr_1fr_84px]",
+                          ? "grid-cols-[40px_1fr_84px]"
+                          : "grid-cols-[40px_1fr_1fr_84px]",
                         isRecordSet(set.id) ? "bg-yellow-100 dark:bg-yellow-900/30" : "bg-muted/30"
                       )}
                       onClick={(e) => {
@@ -237,9 +242,36 @@ export function WorkoutExerciseCard({
                       }}
                     >
                       {isRecordSet(set.id) && (
-                        <Trophy className="absolute left-1.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-yellow-500" />
+                        <Trophy className="absolute left-1 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-yellow-500" />
                       )}
-                      <div className="text-center text-sm font-medium text-muted-foreground">{setIndex + 1}</div>
+                      <div className="flex justify-center">
+                        <button
+                          type="button"
+                          className={cn(
+                            "inline-flex h-7 w-7 items-center justify-center rounded-[0.65rem] border text-xs font-semibold tabular-nums transition-colors",
+                            set.is_completed
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-muted-foreground/40 bg-background text-muted-foreground",
+                            canManageSets && !set.is_completed && "hover:border-primary/60",
+                            !canManageSets && "cursor-default"
+                          )}
+                          aria-label={
+                            set.is_completed ? t("workout.markSetIncomplete") : t("workout.markSetComplete")
+                          }
+                          disabled={!canManageSets}
+                          onClick={async (event) => {
+                            event.stopPropagation();
+                            if (!canManageSets) return;
+                            try {
+                              await onToggleSetCompleted(set.id, !set.is_completed);
+                            } catch {
+                              toast.error(t("workout.setUpdateError"));
+                            }
+                          }}
+                        >
+                          {set.set_number}
+                        </button>
+                      </div>
 
                       <>
                         {exercise?.type === "cardio" ? (

@@ -148,6 +148,7 @@ export type Database = {
           created_at: string
           exercise_id: string
           id: string
+          is_completed: boolean
           reps: number | null
           set_number: number
           weight: number | null
@@ -160,6 +161,7 @@ export type Database = {
           created_at?: string
           exercise_id: string
           id?: string
+          is_completed?: boolean
           reps?: number | null
           set_number?: number
           weight?: number | null
@@ -172,6 +174,7 @@ export type Database = {
           created_at?: string
           exercise_id?: string
           id?: string
+          is_completed?: boolean
           reps?: number | null
           set_number?: number
           weight?: number | null

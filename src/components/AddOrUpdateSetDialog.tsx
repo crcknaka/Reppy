@@ -384,8 +384,8 @@ export function AddOrUpdateSetDialog({
                     inputMode="decimal"
                     enterKeyHint="next"
                     step="0.1"
-                    min={convertDistance(LIMITS.MIN_DISTANCE_KM)}
-                    max={convertDistance(LIMITS.MAX_DISTANCE_KM)}
+                    min={LIMITS.MIN_DISTANCE_KM}
+                    max={LIMITS.MAX_DISTANCE_KM}
                     placeholder="5.5"
                     value={distance}
                     onChange={(e) => setDistance(e.target.value)}
@@ -475,9 +475,10 @@ export function AddOrUpdateSetDialog({
                       type="number"
                       inputMode="decimal"
                       enterKeyHint="done"
-                      step="0.5"
-                      min={convertWeight(LIMITS.MIN_WEIGHT_KG)}
-                      max={convertWeight(LIMITS.MAX_WEIGHT_KG)}
+                      step="0.1"
+                      swipeStep="0.5"
+                      min={LIMITS.MIN_WEIGHT_KG}
+                      max={LIMITS.MAX_WEIGHT_KG}
                       placeholder="18"
                       value={weight}
                       onChange={(e) => setWeight(e.target.value)}

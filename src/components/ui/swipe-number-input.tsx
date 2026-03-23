@@ -3,7 +3,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-type SwipeNumberInputProps = React.ComponentProps<"input">;
+type SwipeNumberInputProps = React.ComponentProps<"input"> & {
+  swipeStep?: string | number;
+};
 
 type SwipeState = {
   pointerId: number;
@@ -62,6 +64,7 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
       className,
       type = "text",
       step,
+      swipeStep,
       min,
       max,
       disabled,
@@ -88,8 +91,11 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
     const swipeEnabled = type === "number" && !disabled && !readOnly;
     const resolvedLang = type === "number" ? (lang ?? "en-US") : lang;
 
-    const resolvedStep = React.useMemo(() => getStepValue(step), [step]);
-    const decimals = React.useMemo(() => countDecimals(resolvedStep), [resolvedStep]);
+    const resolvedSwipeStep = React.useMemo(
+      () => getStepValue(swipeStep ?? step),
+      [swipeStep, step],
+    );
+    const decimals = React.useMemo(() => countDecimals(resolvedSwipeStep), [resolvedSwipeStep]);
     const minValue = React.useMemo(() => toFiniteNumber(min), [min]);
     const maxValue = React.useMemo(() => toFiniteNumber(max), [max]);
 
@@ -127,12 +133,12 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
         const fallbackBase = minValue ?? 0;
         const base = Number.isFinite(currentValue) ? currentValue : fallbackBase;
 
-        const next = clamp(base + stepDelta * resolvedStep, minValue, maxValue);
+        const next = clamp(base + stepDelta * resolvedSwipeStep, minValue, maxValue);
         const rounded = Number(next.toFixed(decimals));
 
         applyNativeInputValue(input, rounded.toString());
       },
-      [decimals, maxValue, minValue, resolvedStep],
+      [decimals, maxValue, minValue, resolvedSwipeStep],
     );
 
     const onInertiaFrame = React.useCallback(

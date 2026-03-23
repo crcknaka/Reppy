@@ -344,6 +344,8 @@
     "setCopyError": "Ошибка копирования подхода",
     "markSetComplete": "Отметить подход как выполненный",
     "markSetIncomplete": "Отметить подход как невыполненный",
+    "setMarkedComplete": "Подход отмечен как выполненный",
+    "setMarkedIncomplete": "Подход отмечен как невыполненный",
     "setUpdated": "Подход обновлён",
     "setUpdateError": "Ошибка обновления подхода",
     "commentSaved": "Комментарий сохранён",

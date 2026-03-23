@@ -263,7 +263,13 @@ export function WorkoutExerciseCard({
                             event.stopPropagation();
                             if (!canManageSets) return;
                             try {
-                              await onToggleSetCompleted(set.id, !set.is_completed);
+                              const nextIsCompleted = !set.is_completed;
+                              await onToggleSetCompleted(set.id, nextIsCompleted);
+                              toast.success(
+                                nextIsCompleted
+                                  ? t("workout.setMarkedComplete")
+                                  : t("workout.setMarkedIncomplete")
+                              );
                             } catch {
                               toast.error(t("workout.setUpdateError"));
                             }

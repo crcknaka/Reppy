@@ -298,6 +298,8 @@
     "setCopyError": "Error copying set",
     "markSetComplete": "Mark set as complete",
     "markSetIncomplete": "Mark set as incomplete",
+    "setMarkedComplete": "Set marked as complete",
+    "setMarkedIncomplete": "Set marked as incomplete",
     "setUpdated": "Set updated",
     "setUpdateError": "Error updating set",
     "commentSaved": "Comment saved",

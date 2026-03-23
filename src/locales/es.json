@@ -273,6 +273,8 @@
     "setCopyError": "Error al copiar serie",
     "markSetComplete": "Marcar serie como completada",
     "markSetIncomplete": "Marcar serie como incompleta",
+    "setMarkedComplete": "Serie marcada como completada",
+    "setMarkedIncomplete": "Serie marcada como incompleta",
     "setUpdated": "Serie actualizada",
     "setUpdateError": "Error al actualizar serie",
     "commentSaved": "Comentario guardado",

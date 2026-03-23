@@ -273,6 +273,8 @@
     "setCopyError": "Fehler beim Kopieren des Satzes",
     "markSetComplete": "Satz als abgeschlossen markieren",
     "markSetIncomplete": "Satz als nicht abgeschlossen markieren",
+    "setMarkedComplete": "Satz als abgeschlossen markiert",
+    "setMarkedIncomplete": "Satz als nicht abgeschlossen markiert",
     "setUpdated": "Satz aktualisiert",
     "setUpdateError": "Fehler beim Aktualisieren des Satzes",
     "commentSaved": "Kommentar gespeichert",

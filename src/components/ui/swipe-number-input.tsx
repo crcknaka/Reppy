@@ -20,6 +20,9 @@ const INERTIA_MIN_VELOCITY = 0.04;
 const INERTIA_STOP_VELOCITY = 0.002;
 const INERTIA_FRICTION_PER_MS = 0.993;
 const INERTIA_RELEASE_IDLE_CUTOFF_MS = 120;
+const HAPTIC_PULSE_MS = 10;
+const HAPTIC_PAUSE_MS = 12;
+const MAX_HAPTIC_STEPS_PER_COMMIT = 10;
 
 const toFiniteNumber = (value: string | number | undefined): number | null => {
   if (value === undefined || value === "") return null;
@@ -124,6 +127,27 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
 
     React.useEffect(() => stopInertia, [stopInertia]);
 
+    const triggerStepHaptic = React.useCallback((stepCount: number) => {
+      if (stepCount <= 0) return;
+      if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") return;
+
+      const pulses = Math.min(stepCount, MAX_HAPTIC_STEPS_PER_COMMIT);
+      if (pulses === 1) {
+        navigator.vibrate(HAPTIC_PULSE_MS);
+        return;
+      }
+
+      const pattern: number[] = [];
+      for (let i = 0; i < pulses; i += 1) {
+        pattern.push(HAPTIC_PULSE_MS);
+        if (i < pulses - 1) {
+          pattern.push(HAPTIC_PAUSE_MS);
+        }
+      }
+
+      navigator.vibrate(pattern);
+    }, []);
+
     const commitStepDelta = React.useCallback(
       (stepDelta: number) => {
         const input = inputRef.current;
@@ -143,10 +167,16 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
         const snapped = origin + targetGridIndex * resolvedSwipeStep;
         const next = clamp(snapped, minValue, maxValue);
         const rounded = Number(next.toFixed(decimals));
+        const baseRounded = Number(base.toFixed(decimals));
+
+        const movedSteps = Math.round(
+          Math.abs((rounded - baseRounded) / resolvedSwipeStep),
+        );
 
         applyNativeInputValue(input, rounded.toString());
+        triggerStepHaptic(movedSteps);
       },
-      [decimals, maxValue, minValue, resolvedSwipeStep],
+      [decimals, maxValue, minValue, resolvedSwipeStep, triggerStepHaptic],
     );
 
     const onInertiaFrame = React.useCallback(

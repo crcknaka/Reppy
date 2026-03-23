@@ -70,7 +70,8 @@ export function useWorkouts() {
         .order("date", { ascending: false });
 
       if (error) throw error;
-      return data as unknown as Workout[];
+      const workouts = data ?? [];
+      return workouts;
     },
     enabled: !!user,
   });
@@ -111,7 +112,8 @@ export function useWorkoutsByMonth(year: number, month: number) {
         .order("date", { ascending: false });
 
       if (error) throw error;
-      return data as unknown as Workout[];
+      const workouts = data ?? [];
+      return workouts;
     },
     enabled: !!user,
   });
@@ -342,7 +344,8 @@ export function useUserWorkouts(userId: string | null | undefined) {
         .order("date", { ascending: false });
 
       if (error) throw error;
-      return data as unknown as Workout[];
+      const workouts = data ?? [];
+      return workouts;
     },
     enabled: !!userId,
   });
@@ -377,7 +380,7 @@ export function useSingleWorkout(workoutId: string | undefined) {
         .single();
 
       if (error) throw error;
-      return data as unknown as Workout;
+      return data;
     },
     enabled: !!workoutId,
   });

@@ -21,6 +21,7 @@ export type Database = {
           image_url: string | null
           is_preset: boolean
           name: string
+          name_translations: Record<string, string> | null
           type: Database["public"]["Enums"]["exercise_type"]
           user_id: string | null
         }
@@ -30,6 +31,7 @@ export type Database = {
           image_url?: string | null
           is_preset?: boolean
           name: string
+          name_translations?: Record<string, string> | null
           type?: Database["public"]["Enums"]["exercise_type"]
           user_id?: string | null
         }
@@ -39,6 +41,7 @@ export type Database = {
           image_url?: string | null
           is_preset?: boolean
           name?: string
+          name_translations?: Record<string, string> | null
           type?: Database["public"]["Enums"]["exercise_type"]
           user_id?: string | null
         }

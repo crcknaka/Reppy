@@ -169,24 +169,17 @@ export function useOfflineWorkouts() {
 
                   // Cache the exercise data for offline access
                   if (set.exercise) {
-                    const exerciseData = set.exercise as unknown as {
-                      id: string;
-                      name: string;
-                      type: "bodyweight" | "weighted" | "cardio" | "timed";
-                      image_url?: string | null;
-                      is_preset?: boolean;
-                      name_translations?: Record<string, string> | null;
-                    };
-                    const existingExercise = await offlineDb.exercises.get(exerciseData.id);
+
+                    const existingExercise = await offlineDb.exercises.get(set.exercise.id);
                     if (!existingExercise) {
                       await offlineDb.exercises.put({
-                        id: exerciseData.id,
-                        name: exerciseData.name,
-                        type: exerciseData.type,
-                        image_url: exerciseData.image_url,
-                        is_preset: exerciseData.is_preset,
-                        user_id: exerciseData.is_preset ? null : effectiveUserId,
-                        name_translations: exerciseData.name_translations || null,
+                        id: set.exercise.id,
+                        name: set.exercise.name,
+                        type: set.exercise.type,
+                        image_url: set.exercise.image_url,
+                        is_preset: set.exercise.is_preset,
+                        user_id: set.exercise.is_preset ? null : effectiveUserId,
+                        name_translations: set.exercise.name_translations || null,
                         created_at: new Date().toISOString(),
                         _synced: true,
                       });
@@ -196,7 +189,7 @@ export function useOfflineWorkouts() {
               }
             }
 
-            return data as unknown as Workout[];
+            return data as Workout[];
           }
         } catch {
           // Network error - fall through to cache
@@ -727,24 +720,16 @@ export function useOfflineSingleWorkout(workoutId: string | undefined) {
 
                 // Cache the exercise data for offline access
                 if (set.exercise) {
-                  const exerciseData = set.exercise as unknown as {
-                    id: string;
-                    name: string;
-                    type: "bodyweight" | "weighted" | "cardio" | "timed";
-                    image_url?: string | null;
-                    is_preset?: boolean;
-                    name_translations?: Record<string, string> | null;
-                  };
-                  const existingExercise = await offlineDb.exercises.get(exerciseData.id);
+                  const existingExercise = await offlineDb.exercises.get(set.exercise.id);
                   if (!existingExercise) {
                     await offlineDb.exercises.put({
-                      id: exerciseData.id,
-                      name: exerciseData.name,
-                      type: exerciseData.type,
-                      image_url: exerciseData.image_url,
-                      is_preset: exerciseData.is_preset,
-                      user_id: exerciseData.is_preset ? null : data.user_id,
-                      name_translations: exerciseData.name_translations || null,
+                      id: set.exercise.id,
+                      name: set.exercise.name,
+                      type: set.exercise.type,
+                      image_url: set.exercise.image_url,
+                      is_preset: set.exercise.is_preset,
+                      user_id: set.exercise.is_preset ? null : data.user_id,
+                      name_translations: set.exercise.name_translations || null,
                       created_at: new Date().toISOString(),
                       _synced: true,
                     });
@@ -752,7 +737,7 @@ export function useOfflineSingleWorkout(workoutId: string | undefined) {
                 }
               }
             }
-            return data as unknown as Workout;
+            return data as Workout;
           }
         } catch (err) {
           // If error is "Workout not found", rethrow it

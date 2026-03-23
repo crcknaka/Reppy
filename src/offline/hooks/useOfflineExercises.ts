@@ -171,7 +171,7 @@ export function useOfflineCreateExercise() {
         });
       }
 
-      return exercise as unknown as Exercise;
+      return exercise as Exercise;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["exercises"] });

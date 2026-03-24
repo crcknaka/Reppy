@@ -57,12 +57,12 @@ import { ViewingUserBanner } from "@/components/ViewingUserBanner";
 import { useUnits } from "@/hooks/useUnits";
 import { useAutoFillLastSet } from "@/hooks/useAutoFillLastSet";
 import { LIMITS } from "@/lib/limits";
-import { WorkoutExerciseCard } from "@/components/WorkoutExerciseCard";
-import { CopyWorkoutDialog } from "@/components/CopyWorkoutDialog";
+import { WorkoutExerciseCard } from "@/components/workout/WorkoutExerciseCard";
+import { CopyWorkoutDialog } from "@/components/workout/CopyWorkoutDialog";
 import type { Exercise } from "@/hooks/useExercises";
-import type { EditSetContext } from "@/components/setDialogTypes";
-import { AddExerciseDialog } from "@/components/AddExerciseDialog";
-import { AddOrUpdateSetDialog } from "@/components/AddOrUpdateSetDialog";
+import type { EditSetContext } from "@/components/workout/setDialogTypes";
+import { AddExerciseDialog } from "@/components/workout/AddExerciseDialog";
+import { AddOrUpdateSetDialog } from "@/components/workout/AddOrUpdateSetDialog";
 
 export default function WorkoutDetail() {
   const { t, i18n } = useTranslation();

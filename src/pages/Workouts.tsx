@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
-import { format, isWithinInterval, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, subMonths, parseISO, isToday, eachDayOfInterval, isSameDay, addMonths } from "date-fns";
+import { format, isWithinInterval, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, subMonths, eachDayOfInterval } from "date-fns";
 import { getDateLocale } from "@/lib/dateLocales";
-import { Plus, Calendar as CalendarIcon, CalendarPlus, Trash2, Filter, X, Dumbbell, MessageSquare, List, ChevronLeft, ChevronRight, Activity, Timer, User, Layers, Route } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, CalendarPlus, Filter, X, List, ChevronLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getExerciseName } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,9 @@ import { useOfflineProfile } from "@/offline/hooks/useOfflineProfile";
 import { useAllProfiles } from "@/hooks/useAllProfiles";
 import { useFriends } from "@/hooks/useFriends";
 import { ViewingUserBanner } from "@/components/ViewingUserBanner";
+import { WorkoutListItemCard } from "@/components/workouts/WorkoutListItemCard";
+import { WorkoutCalendarDetailCard } from "@/components/workouts/WorkoutCalendarDetailCard";
+import { WorkoutCalendarPanel } from "@/components/workouts/WorkoutCalendarPanel";
 
 export default function Workouts() {
   const { t, i18n } = useTranslation();
@@ -168,35 +171,6 @@ export default function Workouts() {
     } catch (error) {
       toast.error(t("workouts.deleteError"));
     }
-  };
-
-  const getTotalSets = (workout: typeof workouts extends (infer T)[] | undefined ? T : never) => {
-    return workout?.workout_sets?.length || 0;
-  };
-
-  const getUniqueExercises = (workout: typeof workouts extends (infer T)[] | undefined ? T : never) => {
-    const exerciseIds = new Set(workout?.workout_sets?.map(s => s.exercise_id));
-    return exerciseIds.size;
-  };
-
-  const getTotalDistance = (workout: typeof workouts extends (infer T)[] | undefined ? T : never) => {
-    const distance = workout?.workout_sets?.reduce((sum, set) => sum + (set.distance_km || 0), 0) || 0;
-    return distance > 0 ? Math.round(distance * 10) / 10 : 0;
-  };
-
-  const isWeekend = (dateStr: string) => {
-    const day = parseISO(dateStr).getDay();
-    return day === 0 || day === 6;
-  };
-
-  const getIntensity = (dayWorkouts: (typeof workouts extends (infer T)[] | undefined ? T : never)[] | undefined) => {
-    if (!dayWorkouts || dayWorkouts.length === 0) return 0;
-    const sets = dayWorkouts.reduce((total, w) => total + (w?.workout_sets?.length || 0), 0);
-    if (sets === 0) return 0;
-    if (sets <= 5) return 1;
-    if (sets <= 10) return 2;
-    if (sets <= 15) return 3;
-    return 4;
   };
 
   // Memoize calendar computations to avoid recalculating on every render
@@ -629,98 +603,18 @@ export default function Workouts() {
       ) : (
         <div className="space-y-3">
           {visibleWorkouts.map((workout, index) => (
-            <Card
+            <WorkoutListItemCard
               key={workout.id}
-              className={cn(
-                "cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/30",
-                "animate-fade-in",
-                isToday(parseISO(workout.date)) && "border-green-500/50 dark:border-green-400/50"
-              )}
-              style={{ animationDelay: `${index * 50}ms` }}
-              onClick={() => navigate(`/workout/${workout.id}`)}
-            >
-              <CardContent className="p-3 flex items-center gap-3">
-                {/* Calendar date badge */}
-                <div className={cn(
-                  "flex-shrink-0 w-14 h-14 rounded-lg flex flex-col items-center justify-center",
-                  isToday(parseISO(workout.date))
-                    ? "bg-green-500/15 text-green-600 dark:text-green-400"
-                    : isWeekend(workout.date)
-                      ? "bg-primary/10 text-primary"
-                      : "bg-muted text-foreground"
-                )}>
-                  <span className="text-xl font-bold leading-none">
-                    {format(new Date(workout.date), "d")}
-                  </span>
-                  <span className="text-[10px] font-medium uppercase mt-0.5">
-                    {format(new Date(workout.date), "MMM", { locale: dateLocale })}
-                  </span>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className={cn(
-                      "text-sm font-medium capitalize",
-                      isToday(parseISO(workout.date))
-                        ? "text-green-600 dark:text-green-400"
-                        : isWeekend(workout.date)
-                          ? "text-primary"
-                          : "text-foreground"
-                    )}>
-                      {isToday(parseISO(workout.date))
-                        ? t("workouts.today")
-                        : format(new Date(workout.date), "EEEE", { locale: dateLocale })}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Dumbbell className="h-3.5 w-3.5" />
-                      {getUniqueExercises(workout)}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Layers className="h-3.5 w-3.5" />
-                      {getTotalSets(workout)}
-                    </span>
-                    {getTotalDistance(workout) > 0 && (
-                      <span className="flex items-center gap-1">
-                        <Route className="h-3.5 w-3.5" />
-                        {convertDistance(getTotalDistance(workout))} {units.distance}
-                      </span>
-                    )}
-                  </div>
-                  {workout.notes && (
-                    <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                      <MessageSquare className="h-3 w-3 flex-shrink-0" />
-                      <p className="line-clamp-1">{workout.notes}</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Photo thumbnail (if exists) */}
-                {workout.photo_url && (
-                  <div className="flex-shrink-0">
-                    <img
-                      src={workout.photo_url}
-                      alt=""
-                      className="w-12 h-12 rounded-lg object-cover"
-                    />
-                  </div>
-                )}
-
-                {/* Delete button */}
-                {!isViewingOther && !workout.is_locked && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-foreground flex-shrink-0"
-                    onClick={(e) => handleDeleteWorkout(workout.id, e)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+              workout={workout}
+              index={index}
+              dateLocale={dateLocale}
+              isViewingOther={!!isViewingOther}
+              convertDistance={convertDistance}
+              distanceUnit={units.distance}
+              todayLabel={t("workouts.today")}
+              onOpen={(workoutId) => navigate(`/workout/${workoutId}`)}
+              onDelete={handleDeleteWorkout}
+            />
           ))}
 
           {/* Load More Button */}
@@ -741,241 +635,47 @@ export default function Workouts() {
       {/* Calendar View */}
       {viewMode === "calendar" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-          {/* Calendar */}
-          <Card className="lg:sticky lg:top-4 lg:self-start">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-center justify-between mb-3">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="text-sm font-semibold capitalize">
-                  {format(calendarMonth, "LLLL yyyy", { locale: dateLocale })}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* Week days header */}
-              <div className="grid grid-cols-7 gap-0.5 mb-1">
-                {weekDays.map((day) => (
-                  <div
-                    key={day}
-                    className="text-center text-[10px] sm:text-xs font-medium text-muted-foreground py-1"
-                  >
-                    {day}
-                  </div>
-                ))}
-              </div>
-
-              {/* Calendar grid */}
-              <div className="grid grid-cols-7 gap-0.5">
-                {/* Empty cells for days before month start */}
-                {Array.from({ length: adjustedStartDay }).map((_, i) => (
-                  <div key={`empty-${i}`} className="aspect-square" />
-                ))}
-
-                {/* Days of the month */}
-                {calendarDays.map((day) => {
-                  const dayWorkouts = getWorkoutsForDate(day);
-                  const hasWorkouts = dayWorkouts && dayWorkouts.length > 0;
-                  const intensity = getIntensity(dayWorkouts);
-                  const isTodayDate = isToday(day);
-                  const isSelected = selectedCalendarDate && isSameDay(day, selectedCalendarDate);
-
-                  return (
-                    <button
-                      key={day.toISOString()}
-                      onClick={() => {
-                        if (hasWorkouts) {
-                          setSelectedCalendarDate(day);
-                        }
-                      }}
-                      className={cn(
-                        "aspect-square rounded-md flex flex-col items-center justify-center gap-0.5 transition-all duration-200",
-                        isTodayDate && "ring-1 ring-primary ring-offset-1 ring-offset-background",
-                        isSelected && "bg-primary/20",
-                        hasWorkouts && "cursor-pointer hover:bg-muted",
-                        !hasWorkouts && "cursor-default"
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          "text-xs sm:text-sm",
-                          isTodayDate ? "font-bold text-primary" : "text-foreground"
-                        )}
-                      >
-                        {format(day, "d")}
-                      </span>
-                      {hasWorkouts && (
-                        <div className="flex gap-0.5">
-                          {dayWorkouts.length > 1 ? (
-                            // Multiple workouts - show count indicator
-                            <div className="flex items-center gap-0.5">
-                              <div
-                                className={cn(
-                                  "w-1.5 h-1.5 rounded-full",
-                                  intensity === 1 && "bg-primary/30",
-                                  intensity === 2 && "bg-primary/50",
-                                  intensity === 3 && "bg-primary/75",
-                                  intensity >= 4 && "bg-primary"
-                                )}
-                              />
-                              <span className="text-[8px] text-primary font-medium">×{dayWorkouts.length}</span>
-                            </div>
-                          ) : (
-                            // Single workout - just show dot
-                            <div
-                              className={cn(
-                                "w-1.5 h-1.5 rounded-full",
-                                intensity === 1 && "bg-primary/30",
-                                intensity === 2 && "bg-primary/50",
-                                intensity === 3 && "bg-primary/75",
-                                intensity >= 4 && "bg-primary"
-                              )}
-                            />
-                          )}
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Intensity legend */}
-              <div className="flex items-center justify-center gap-2 mt-3 text-[10px] sm:text-xs text-muted-foreground">
-                <span>{t("common.less")}</span>
-                <div className="flex gap-0.5">
-                  <div className="w-2.5 h-2.5 rounded bg-primary/30" />
-                  <div className="w-2.5 h-2.5 rounded bg-primary/50" />
-                  <div className="w-2.5 h-2.5 rounded bg-primary/75" />
-                  <div className="w-2.5 h-2.5 rounded bg-primary" />
-                </div>
-                <span>{t("common.more")}</span>
-              </div>
-            </CardContent>
-          </Card>
+          <WorkoutCalendarPanel
+            calendarMonth={calendarMonth}
+            dateLocale={dateLocale}
+            weekDays={weekDays}
+            calendarDays={calendarDays}
+            adjustedStartDay={adjustedStartDay}
+            selectedCalendarDate={selectedCalendarDate}
+            getWorkoutsForDate={getWorkoutsForDate}
+            onPrevMonth={() => setCalendarMonth(subMonths(calendarMonth, 1))}
+            onNextMonth={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))}
+            onSelectDate={setSelectedCalendarDate}
+            labels={{
+              less: t("common.less"),
+              more: t("common.more"),
+            }}
+          />
 
           {/* Selected workout details */}
           <div className="space-y-4">
             {selectedWorkouts && selectedWorkouts.length > 0 ? (
               selectedWorkouts.map((workout, workoutIndex) => (
-                <Card key={workout.id} className="animate-scale-in">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="font-semibold">
-                        {format(new Date(workout.date), "d MMMM", { locale: dateLocale })}
-                        {selectedWorkouts.length > 1 && (
-                          <span className="text-muted-foreground ml-1">#{workoutIndex + 1}</span>
-                        )}
-                      </span>
-                      <Button size="sm" onClick={() => navigate(`/workout/${workout.id}`)}>
-                        {t("common.open")}
-                      </Button>
-                    </div>
-                    {workout.workout_sets && workout.workout_sets.length > 0 ? (
-                      <div className="space-y-2">
-                        {Object.values(
-                          workout.workout_sets.reduce((acc, set) => {
-                            const exerciseId = set.exercise_id;
-                            if (!acc[exerciseId]) {
-                              acc[exerciseId] = {
-                                name: set.exercise?.name || t("exercises.exercise"),
-                                type: set.exercise?.type || "weighted",
-                                name_translations: set.exercise?.name_translations,
-                                sets: 0,
-                                totalReps: 0,
-                                maxWeight: 0,
-                                totalDistance: 0,
-                                totalDuration: 0,
-                                totalPlankSeconds: 0,
-                              };
-                            }
-                            acc[exerciseId].sets++;
-                            acc[exerciseId].totalReps += set.reps || 0;
-                            if (set.weight && set.weight > acc[exerciseId].maxWeight) {
-                              acc[exerciseId].maxWeight = set.weight;
-                            }
-                            acc[exerciseId].totalDistance += set.distance_km || 0;
-                            acc[exerciseId].totalDuration += set.duration_minutes || 0;
-                            acc[exerciseId].totalPlankSeconds += set.plank_seconds || 0;
-                            return acc;
-                          }, {} as Record<string, {
-                            name: string;
-                            type: string;
-                            name_translations?: any;
-                            sets: number;
-                            totalReps: number;
-                            maxWeight: number;
-                            totalDistance: number;
-                            totalDuration: number;
-                            totalPlankSeconds: number;
-                          }>)
-                        ).map((exercise, i) => (
-                          <div key={i} className="p-2.5 bg-muted/50 rounded-lg">
-                            <div className="flex items-center gap-2">
-                              {exercise.type === "cardio" ? (
-                                <Activity className="h-4 w-4 text-primary flex-shrink-0" />
-                              ) : exercise.type === "weighted" ? (
-                                <Dumbbell className="h-4 w-4 text-primary flex-shrink-0" />
-                              ) : exercise.type === "timed" ? (
-                                <Timer className="h-4 w-4 text-primary flex-shrink-0" />
-                              ) : (
-                                <User className="h-4 w-4 text-primary flex-shrink-0" />
-                              )}
-                              <span className="font-medium text-sm truncate">{getExerciseName(exercise.name, exercise.name_translations)}</span>
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1 ml-6">
-                              {exercise.type === "cardio" ? (
-                                <>{exercise.sets} {t("workouts.sets")} · {convertDistance(exercise.totalDistance).toFixed(1)} {units.distance} · {exercise.totalDuration} {t("units.min")}</>
-                              ) : exercise.type === "timed" ? (
-                                <>{exercise.sets} {t("workouts.sets")} · {exercise.totalPlankSeconds} {t("units.sec")}</>
-                              ) : exercise.type === "bodyweight" ? (
-                                <>{exercise.sets} {t("workouts.sets")} · {exercise.totalReps} {t("units.reps")}</>
-                              ) : (
-                                <>{exercise.sets} {t("workouts.sets")} · {exercise.totalReps} {t("units.reps")}{exercise.maxWeight > 0 && ` · ${exercise.maxWeight} ${t("units.kg")}`}</>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-
-                        {/* Workout notes */}
-                        {workout.notes && (
-                          <div className="flex items-start gap-2 p-2.5 bg-muted/30 rounded-lg mt-2">
-                            <MessageSquare className="h-3.5 w-3.5 text-primary flex-shrink-0 mt-0.5" />
-                            <p className="text-xs text-muted-foreground line-clamp-2">{workout.notes}</p>
-                          </div>
-                        )}
-
-                        {/* Photo */}
-                        {workout.photo_url && (
-                          <div className="mt-3">
-                            <img
-                              src={workout.photo_url}
-                              alt=""
-                              className="w-full h-32 lg:h-48 rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                              onClick={() => navigate(`/workout/${workout.id}`)}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="text-muted-foreground text-sm text-center py-4">
-                        {t("workouts.noEntries")}
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
+                <WorkoutCalendarDetailCard
+                  key={workout.id}
+                  workout={workout}
+                  workoutIndex={workoutIndex}
+                  selectedWorkoutsCount={selectedWorkouts.length}
+                  dateLocale={dateLocale}
+                  convertDistance={convertDistance}
+                  distanceUnit={units.distance}
+                  onOpen={(workoutId) => navigate(`/workout/${workoutId}`)}
+                  labels={{
+                    open: t("common.open"),
+                    sets: t("workouts.sets"),
+                    min: t("units.min"),
+                    sec: t("units.sec"),
+                    reps: t("units.reps"),
+                    kg: t("units.kg"),
+                    noEntries: t("workouts.noEntries"),
+                    exerciseFallback: t("exercises.exercise"),
+                  }}
+                />
               ))
             ) : (
               <Card className="hidden lg:block">

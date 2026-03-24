@@ -7,7 +7,7 @@ import { getExerciseName } from "@/lib/i18n";
 import { getExerciseIcon, getExerciseTypeLabel, type ExerciseType } from "@/lib/exerciseUtils";
 import { cn } from "@/lib/utils";
 import type { Exercise } from "@/hooks/useExercises";
-import type { ExerciseSelectionBaseProps } from "@/components/setDialogTypes";
+import type { ExerciseSelectionBaseProps } from "@/components/workout/setDialogTypes";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";

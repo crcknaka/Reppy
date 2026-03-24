@@ -8,7 +8,7 @@ import { getExerciseName } from "@/lib/i18n";
 import { LIMITS } from "@/lib/limits";
 import { isValidationFailure, validateSetCreationLimits, validateSetInputValues } from "@/lib/setValidation";
 import type { Exercise } from "@/hooks/useExercises";
-import type { EditSetContext, SharedSetDialogDataProps } from "@/components/setDialogTypes";
+import type { EditSetContext, SharedSetDialogDataProps } from "@/components/workout/setDialogTypes";
 import { ExerciseTimer } from "@/components/ExerciseTimer";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";

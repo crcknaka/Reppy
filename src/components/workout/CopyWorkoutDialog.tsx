@@ -6,7 +6,7 @@ import { ArrowLeft, Copy } from "lucide-react";
 
 import { getExerciseName } from "@/lib/i18n";
 import { LIMITS } from "@/lib/limits";
-import { WorkoutExerciseCard } from "@/components/WorkoutExerciseCard";
+import { WorkoutExerciseCard } from "@/components/workout/WorkoutExerciseCard";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { Workout, WorkoutSet } from "@/hooks/useWorkouts";

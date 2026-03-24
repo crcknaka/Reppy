@@ -307,7 +307,16 @@
     "notFound": "Training nicht gefunden",
     "backToWorkouts": "Zurück zu Trainings",
     "linkDeactivated": "Dieser Link ist ungültig oder wurde deaktiviert",
-    "createdAt": "Zeit"
+    "createdAt": "Zeit",
+    "copyWorkout": "Workout kopieren",
+    "selectWorkoutToCopy": "Wähle ein Workout zum Kopieren aus",
+    "selectExercisesToCopy": "Wähle Übungen zum Kopieren aus",
+    "selectAll": "Alle auswählen",
+    "deselectAll": "Auswahl aufheben",
+    "copySelected": "Auswahl kopieren",
+    "workoutCopied": "Workout kopiert",
+    "workoutCopyError": "Fehler beim Kopieren des Workouts",
+    "noWorkoutsToCopy": "Keine früheren Workouts zum Kopieren verfügbar"
   },
   "timer": {
     "result": "Ergebnis",

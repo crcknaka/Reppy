@@ -307,7 +307,16 @@
     "notFound": "Entrenamiento no encontrado",
     "backToWorkouts": "Volver a entrenamientos",
     "linkDeactivated": "Este enlace no es válido o ha sido desactivado",
-    "createdAt": "Hora"
+    "createdAt": "Hora",
+    "copyWorkout": "Copiar entrenamiento",
+    "selectWorkoutToCopy": "Selecciona un entrenamiento para copiar",
+    "selectExercisesToCopy": "Selecciona ejercicios para copiar",
+    "selectAll": "Seleccionar todo",
+    "deselectAll": "Deseleccionar todo",
+    "copySelected": "Copiar seleccionados",
+    "workoutCopied": "Entrenamiento copiado",
+    "workoutCopyError": "Error al copiar el entrenamiento",
+    "noWorkoutsToCopy": "No hay entrenamientos anteriores para copiar"
   },
   "timer": {
     "result": "Resultado",

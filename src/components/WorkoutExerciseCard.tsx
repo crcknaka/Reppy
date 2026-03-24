@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useUnits } from "@/hooks/useUnits";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   AlertDialog,
@@ -62,6 +63,9 @@ interface WorkoutExerciseCardProps {
   exercise: ExerciseCardExercise | null;
   sets: WorkoutSet[];
   index: number;
+  readOnly?: boolean;
+  selectionChecked?: boolean;
+  onSelectionChange?: (checked: boolean) => void;
   isOwner: boolean;
   isLocked: boolean;
   isRecordSet: (setId: string) => boolean;
@@ -79,6 +83,9 @@ export function WorkoutExerciseCard({
   exercise,
   sets,
   index,
+  readOnly = false,
+  selectionChecked = false,
+  onSelectionChange,
   isOwner,
   isLocked,
   isRecordSet,
@@ -95,7 +102,8 @@ export function WorkoutExerciseCard({
   const [openTooltipId, setOpenTooltipId] = useState<string | null>(null);
   const [setToDelete, setSetToDelete] = useState<string | null>(null);
 
-  const canManageSets = isOwner && !isLocked;
+  const canManageSets = !readOnly && isOwner && !isLocked;
+  const showSelectionCheckbox = readOnly && typeof onSelectionChange === "function";
 
   const handleCopySet = async (set: WorkoutSet) => {
     try {
@@ -140,7 +148,16 @@ export function WorkoutExerciseCard({
 
   return (
     <>
-      <Card className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+      <Card className="relative animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+        {showSelectionCheckbox && (
+          <div className="absolute left-2 top-2 z-10">
+            <Checkbox
+              checked={selectionChecked}
+              className="h-5 w-5"
+              onCheckedChange={(value) => onSelectionChange(value === true)}
+            />
+          </div>
+        )}
         <CardHeader className="pb-2 pt-4 px-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -156,21 +173,23 @@ export function WorkoutExerciseCard({
                 )}
                 <span className="truncate">{exercise?.name ? getExerciseName(exercise.name, exercise.name_translations) : ""}</span>
               </CardTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 flex-shrink-0"
-                onClick={() =>
-                  exercise &&
-                  onOpenExerciseHistory(
-                    exerciseId,
-                    getExerciseName(exercise.name, exercise.name_translations),
-                    exercise.type
-                  )
-                }
-              >
-                <History className="h-4 w-4 text-muted-foreground" />
-              </Button>
+              {!readOnly && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 flex-shrink-0"
+                  onClick={() =>
+                    exercise &&
+                    onOpenExerciseHistory(
+                      exerciseId,
+                      getExerciseName(exercise.name, exercise.name_translations),
+                      exercise.type
+                    )
+                  }
+                >
+                  <History className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              )}
             </div>
             {exercise?.image_url ? (
               <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
@@ -201,8 +220,12 @@ export function WorkoutExerciseCard({
             className={cn(
               "grid gap-1 pl-4 pr-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide",
               exercise?.type === "bodyweight" || exercise?.type === "timed"
-                ? "grid-cols-[40px_1fr_84px]"
-                : "grid-cols-[40px_1fr_1fr_84px]"
+                ? readOnly
+                  ? "grid-cols-[40px_1fr]"
+                  : "grid-cols-[40px_1fr_84px]"
+                : readOnly
+                  ? "grid-cols-[40px_1fr_1fr]"
+                  : "grid-cols-[40px_1fr_1fr_84px]"
             )}
           >
             <div className="text-center">#</div>
@@ -212,7 +235,7 @@ export function WorkoutExerciseCard({
             {exercise?.type !== "bodyweight" && exercise?.type !== "timed" && (
               <div className="text-center">{exercise?.type === "cardio" ? t("progress.time") : t("workout.weight")}</div>
             )}
-            <div></div>
+            {!readOnly && <div></div>}
           </div>
 
           <TooltipProvider>
@@ -230,8 +253,12 @@ export function WorkoutExerciseCard({
                       className={cn(
                         "relative grid gap-1 items-center py-2 pl-4 pr-2 rounded-md cursor-pointer select-none",
                         exercise?.type === "bodyweight" || exercise?.type === "timed"
-                          ? "grid-cols-[40px_1fr_84px]"
-                          : "grid-cols-[40px_1fr_1fr_84px]",
+                          ? readOnly
+                            ? "grid-cols-[40px_1fr]"
+                            : "grid-cols-[40px_1fr_84px]"
+                          : readOnly
+                            ? "grid-cols-[40px_1fr_1fr]"
+                            : "grid-cols-[40px_1fr_1fr_84px]",
                         isRecordSet(set.id) ? "bg-yellow-100 dark:bg-yellow-900/30" : "bg-muted/30"
                       )}
                       onClick={(e) => {
@@ -245,38 +272,42 @@ export function WorkoutExerciseCard({
                         <Trophy className="absolute left-1 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-yellow-500" />
                       )}
                       <div className="flex justify-center">
-                        <button
-                          type="button"
-                          className={cn(
-                            "inline-flex h-7 w-7 items-center justify-center rounded-[0.65rem] border text-xs font-semibold tabular-nums transition-colors",
-                            set.is_completed
-                              ? "border-primary bg-primary text-primary-foreground"
-                              : "border-muted-foreground/40 bg-background text-muted-foreground",
-                            canManageSets && !set.is_completed && "hover:border-primary/60",
-                            !canManageSets && "cursor-default"
-                          )}
-                          aria-label={
-                            set.is_completed ? t("workout.markSetIncomplete") : t("workout.markSetComplete")
-                          }
-                          disabled={!canManageSets}
-                          onClick={async (event) => {
-                            event.stopPropagation();
-                            if (!canManageSets) return;
-                            try {
-                              const nextIsCompleted = !set.is_completed;
-                              await onToggleSetCompleted(set.id, nextIsCompleted);
-                              toast.success(
-                                nextIsCompleted
-                                  ? t("workout.setMarkedComplete")
-                                  : t("workout.setMarkedIncomplete")
-                              );
-                            } catch {
-                              toast.error(t("workout.setUpdateError"));
+                        {readOnly ? (
+                          <span className="text-sm font-semibold text-muted-foreground tabular-nums">{set.set_number}</span>
+                        ) : (
+                          <button
+                            type="button"
+                            className={cn(
+                              "inline-flex h-7 w-7 items-center justify-center rounded-[0.65rem] border text-xs font-semibold tabular-nums transition-colors",
+                              set.is_completed
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-muted-foreground/40 bg-background text-muted-foreground",
+                              canManageSets && !set.is_completed && "hover:border-primary/60",
+                              !canManageSets && "cursor-default"
+                            )}
+                            aria-label={
+                              set.is_completed ? t("workout.markSetIncomplete") : t("workout.markSetComplete")
                             }
-                          }}
-                        >
-                          {set.set_number}
-                        </button>
+                            disabled={!canManageSets}
+                            onClick={async (event) => {
+                              event.stopPropagation();
+                              if (!canManageSets) return;
+                              try {
+                                const nextIsCompleted = !set.is_completed;
+                                await onToggleSetCompleted(set.id, nextIsCompleted);
+                                toast.success(
+                                  nextIsCompleted
+                                    ? t("workout.setMarkedComplete")
+                                    : t("workout.setMarkedIncomplete")
+                                );
+                              } catch {
+                                toast.error(t("workout.setUpdateError"));
+                              }
+                            }}
+                          >
+                            {set.set_number}
+                          </button>
+                        )}
                       </div>
 
                       <>
@@ -304,35 +335,37 @@ export function WorkoutExerciseCard({
                           </>
                         )}
 
-                        {canManageSets ? (
-                          <div className="flex gap-0 justify-end -mr-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                              onClick={() => handleCopySet(set)}
-                            >
-                              <Copy className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                              onClick={() => onEditSet(set)}
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                              onClick={() => setSetToDelete(set.id)}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <div></div>
+                        {!readOnly && (
+                          canManageSets ? (
+                            <div className="flex gap-0 justify-end -mr-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                onClick={() => handleCopySet(set)}
+                              >
+                                <Copy className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                onClick={() => onEditSet(set)}
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                onClick={() => setSetToDelete(set.id)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div></div>
+                          )
                         )}
                       </>
                     </div>

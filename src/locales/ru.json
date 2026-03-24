@@ -378,7 +378,16 @@
     "notFound": "Тренировка не найдена",
     "backToWorkouts": "К списку тренировок",
     "linkDeactivated": "Эта ссылка недействительна или была деактивирована",
-    "createdAt": "Время"
+    "createdAt": "Время",
+    "copyWorkout": "Копировать тренировку",
+    "selectWorkoutToCopy": "Выберите тренировку для копирования",
+    "selectExercisesToCopy": "Выберите упражнения для копирования",
+    "selectAll": "Выбрать все",
+    "deselectAll": "Снять выделение",
+    "copySelected": "Копировать выбранное",
+    "workoutCopied": "Тренировка скопирована",
+    "workoutCopyError": "Ошибка при копировании тренировки",
+    "noWorkoutsToCopy": "Нет предыдущих тренировок для копирования"
   },
   "timer": {
     "result": "Результат",

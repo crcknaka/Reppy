@@ -35,6 +35,7 @@ import { useUserAllTimeBests, useLockWorkout, useUnlockWorkout } from "@/hooks/u
 import { useWorkoutShare, useCreateWorkoutShare, useDeactivateWorkoutShare } from "@/hooks/useWorkoutShare";
 import {
   useOfflineSingleWorkout,
+  useOfflineWorkouts,
   useOfflineAddSet,
   useOfflineDeleteSet,
   useOfflineUpdateSet,
@@ -57,6 +58,7 @@ import { useUnits } from "@/hooks/useUnits";
 import { useAutoFillLastSet } from "@/hooks/useAutoFillLastSet";
 import { LIMITS } from "@/lib/limits";
 import { WorkoutExerciseCard } from "@/components/WorkoutExerciseCard";
+import { CopyWorkoutDialog } from "@/components/CopyWorkoutDialog";
 import type { Exercise } from "@/hooks/useExercises";
 import type { EditSetContext } from "@/components/setDialogTypes";
 import { AddExerciseDialog } from "@/components/AddExerciseDialog";
@@ -71,6 +73,7 @@ export default function WorkoutDetail() {
   const { user, effectiveUserId, isGuest } = useAuth();
   const { isOnline } = useOffline();
   // Use offline-first hooks for data
+  const { data: allWorkouts } = useOfflineWorkouts();
   const { data: workout, isLoading: isWorkoutLoading, isFetching, isError } = useOfflineSingleWorkout(id);
   const { data: exercises } = useOfflineExercises();
   const { data: favoriteExercises } = useOfflineFavoriteExercises();
@@ -375,6 +378,32 @@ export default function WorkoutDetail() {
     });
   };
 
+  const createSetForCopyWorkout = async (payload: {
+    exerciseId: string;
+    setNumber: number;
+    reps?: number;
+    weight?: number;
+    distance_km?: number;
+    duration_minutes?: number;
+    plank_seconds?: number;
+    is_completed?: boolean;
+  }) => {
+    if (!workout) {
+      throw new Error("Workout not found");
+    }
+
+    const createdSet = await addSet.mutateAsync({
+      workoutId: workout.id,
+      ...payload,
+    });
+
+    if (!createdSet?.id) {
+      throw new Error("Failed to create workout set");
+    }
+
+    return { id: createdSet.id };
+  };
+
   const updateWorkoutSet = async (payload: {
     setId: string;
     reps?: number | null;
@@ -658,77 +687,88 @@ export default function WorkoutDetail() {
             </span>
           </div>
         </div>
-        {isOwner && !isGuest && (
+        {isOwner && (
           <>
-            <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Share2 className="h-5 w-5" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>{t("workout.shareWorkout")}</DialogTitle>
-                  <DialogDescription className="sr-only">
-                    {t("workout.shareWorkout")}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 mt-4">
-                  {workoutShare ? (
-                    <>
-                      <div className="space-y-2">
-                        <Label>{t("workout.publicLink")}</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            readOnly
-                            value={`${window.location.origin}/share/${workoutShare.share_token}`}
-                            className="font-mono text-sm"
-                          />
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={copyShareLink}
-                          >
-                            {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-                          </Button>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {t("workout.anyoneWithLink")}
-                        </p>
-                        {workoutShare.expires_at && (
+            <CopyWorkoutDialog
+              enabled={isOwner && !workout?.is_locked}
+              currentWorkout={workout}
+              allWorkouts={allWorkouts}
+              dateLocale={dateLocale}
+              onCreateSet={createSetForCopyWorkout}
+              onDeleteSet={deleteWorkoutSet}
+            />
+
+            {!isGuest && (
+              <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Share2 className="h-5 w-5" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{t("workout.shareWorkout")}</DialogTitle>
+                    <DialogDescription className="sr-only">
+                      {t("workout.shareWorkout")}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    {workoutShare ? (
+                      <>
+                        <div className="space-y-2">
+                          <Label>{t("workout.publicLink")}</Label>
+                          <div className="flex gap-2">
+                            <Input
+                              readOnly
+                              value={`${window.location.origin}/share/${workoutShare.share_token}`}
+                              className="font-mono text-sm"
+                            />
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={copyShareLink}
+                            >
+                              {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                            </Button>
+                          </div>
                           <p className="text-xs text-muted-foreground">
-                            {t("workout.linkExpiresAt", { date: format(new Date(workoutShare.expires_at), "d MMM yyyy", { locale: dateLocale }) })}
+                            {t("workout.anyoneWithLink")}
                           </p>
-                        )}
-                      </div>
-                      <Button
-                        variant="destructive"
-                        className="w-full gap-2"
-                        onClick={handleDeactivateShare}
-                        disabled={deactivateShare.isPending}
-                      >
-                        <Ban className="h-4 w-4" />
-                        {t("workout.deactivateLink")}
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-sm text-muted-foreground">
-                        {t("workout.createLinkDescription")}
-                      </p>
-                      <Button
-                        className="w-full gap-2"
-                        onClick={handleShareWorkout}
-                        disabled={createShare.isPending}
-                      >
-                        <Share2 className="h-4 w-4" />
-                        {t("workout.createLink")}
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </DialogContent>
-            </Dialog>
+                          {workoutShare.expires_at && (
+                            <p className="text-xs text-muted-foreground">
+                              {t("workout.linkExpiresAt", { date: format(new Date(workoutShare.expires_at), "d MMM yyyy", { locale: dateLocale }) })}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          variant="destructive"
+                          className="w-full gap-2"
+                          onClick={handleDeactivateShare}
+                          disabled={deactivateShare.isPending}
+                        >
+                          <Ban className="h-4 w-4" />
+                          {t("workout.deactivateLink")}
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm text-muted-foreground">
+                          {t("workout.createLinkDescription")}
+                        </p>
+                        <Button
+                          className="w-full gap-2"
+                          onClick={handleShareWorkout}
+                          disabled={createShare.isPending}
+                        >
+                          <Share2 className="h-4 w-4" />
+                          {t("workout.createLink")}
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
 
           </>
         )}

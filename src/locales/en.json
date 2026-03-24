@@ -332,7 +332,16 @@
     "notFound": "Workout not found",
     "backToWorkouts": "Back to workouts",
     "linkInvalidOrDeactivated": "This link is invalid or has been deactivated",
-    "createdAt": "Time"
+    "createdAt": "Time",
+    "copyWorkout": "Copy workout",
+    "selectWorkoutToCopy": "Select a workout to copy from",
+    "selectExercisesToCopy": "Select exercises to copy",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "copySelected": "Copy selected",
+    "workoutCopied": "Workout copied",
+    "workoutCopyError": "Error copying workout",
+    "noWorkoutsToCopy": "No previous workouts available to copy"
   },
   "timer": {
     "result": "Result",

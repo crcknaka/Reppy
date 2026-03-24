@@ -17,7 +17,7 @@ interface WorkoutListItemCardProps {
   distanceUnit: string;
   todayLabel: string;
   onOpen: (workoutId: string) => void;
-  onDelete: (workoutId: string, event: React.MouseEvent) => void;
+  onDelete?: (workoutId: string, event: React.MouseEvent) => void;
 }
 
 const isWeekend = (dateStr: string) => {
@@ -124,7 +124,7 @@ export function WorkoutListItemCard({
           </div>
         )}
 
-        {!isViewingOther && !workout.is_locked && (
+        {!isViewingOther && !workout.is_locked && onDelete && (
           <Button
             variant="ghost"
             size="icon"

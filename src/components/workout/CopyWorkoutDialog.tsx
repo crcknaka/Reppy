@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
-import { format, type Locale } from "date-fns";
+import { type Locale } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ArrowLeft, Copy } from "lucide-react";
 
-import { getExerciseName } from "@/lib/i18n";
 import { LIMITS } from "@/lib/limits";
+import { useUnits } from "@/hooks/useUnits";
 import { WorkoutExerciseCard } from "@/components/workout/WorkoutExerciseCard";
+import { WorkoutListItemCard } from "@/components/workouts/WorkoutListItemCard";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import type { Workout, WorkoutSet } from "@/hooks/useWorkouts";
@@ -40,6 +41,7 @@ export function CopyWorkoutDialog({
   onDeleteSet,
 }: CopyWorkoutDialogProps) {
   const { t } = useTranslation();
+  const { convertDistance, units } = useUnits();
   const [open, setOpen] = useState(false);
   const [selectedSourceWorkoutId, setSelectedSourceWorkoutId] = useState<string | null>(null);
   const [selectedExerciseIds, setSelectedExerciseIds] = useState<Set<string>>(new Set());
@@ -265,30 +267,19 @@ export function CopyWorkoutDialog({
             {copyableWorkouts.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-6">{t("workout.noWorkoutsToCopy")}</p>
             ) : (
-              copyableWorkouts.map((entry) => {
-                const totalSets = entry.workout_sets?.length ?? 0;
-                const uniqueExercises = new Set((entry.workout_sets ?? []).map((set) => set.exercise_id)).size;
-
-                return (
-                  <button
-                    key={entry.id}
-                    type="button"
-                    className="w-full rounded-lg border p-3 text-left hover:bg-muted/50 transition-colors"
-                    onClick={() => handleSelectSourceWorkout(entry.id)}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div>
-                        <p className="font-medium text-sm">
-                          {format(new Date(entry.date), "d MMMM yyyy", { locale: dateLocale })}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {uniqueExercises} {t("workouts.exercises")} · {totalSets} {t("workouts.sets")}
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })
+              copyableWorkouts.map((entry, index) => (
+                <WorkoutListItemCard
+                  key={entry.id}
+                  workout={entry}
+                  index={index}
+                  dateLocale={dateLocale}
+                  isViewingOther={false}
+                  convertDistance={convertDistance}
+                  distanceUnit={units.distance}
+                  todayLabel={t("workouts.today")}
+                  onOpen={handleSelectSourceWorkout}
+                />
+              ))
             )}
           </div>
         ) : (

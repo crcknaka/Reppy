@@ -375,9 +375,7 @@ export function AddOrUpdateSetDialog({
             {selectedExercise.type === "cardio" ? (
               <div className="space-y-4 max-w-md mx-auto w-full">
                 <div className="space-y-2">
-                  <Label>
-                    {t("workout.distance")} ({units.distance})
-                  </Label>
+                  <Label>{t("workout.distance")}</Label>
                   <SwipeNumberInput
                     id="add-distance"
                     type="number"
@@ -388,6 +386,7 @@ export function AddOrUpdateSetDialog({
                     max={LIMITS.MAX_DISTANCE_KM}
                     placeholder="5.5"
                     value={distance}
+                    suffix={units.distance}
                     onChange={(e) => setDistance(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -409,6 +408,7 @@ export function AddOrUpdateSetDialog({
                     max={LIMITS.MAX_DURATION_MINUTES}
                     placeholder="30"
                     value={duration}
+                    suffix={t("units.min")}
                     onChange={(e) => setDuration(e.target.value)}
                   />
                 </div>
@@ -434,6 +434,7 @@ export function AddOrUpdateSetDialog({
                       max={LIMITS.MAX_TIME_SECONDS}
                       placeholder="60"
                       value={duration}
+                      suffix={t("units.sec")}
                       onChange={(e) => setDuration(e.target.value)}
                       autoFocus
                     />
@@ -457,6 +458,7 @@ export function AddOrUpdateSetDialog({
                     max={LIMITS.MAX_REPS}
                     placeholder="8"
                     value={reps}
+                    suffix={t("units.reps")}
                     onChange={(e) => setReps(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && selectedExercise.type === "weighted") {
@@ -481,6 +483,7 @@ export function AddOrUpdateSetDialog({
                       max={LIMITS.MAX_WEIGHT_KG}
                       placeholder="18"
                       value={weight}
+                      suffix={units.weight}
                       onChange={(e) => setWeight(e.target.value)}
                     />
                     {selectedExercise.name.toLowerCase().includes("гантел") && (

@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 
 type SwipeNumberInputProps = React.ComponentProps<"input"> & {
   swipeStep?: string | number;
+  suffix?: string;
 };
 
 type SwipeState = {
@@ -78,7 +79,7 @@ function drawRuler(
   canvas: HTMLCanvasElement,
   value: number,
   stepSize: number,
-  isSwiping: boolean,
+  isActive: boolean,
 ) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
@@ -106,7 +107,7 @@ function drawRuler(
   const startIndex = Math.floor(stepsFromZero - ticksVisible / 2);
   const endIndex = Math.ceil(stepsFromZero + ticksVisible / 2);
 
-  const baseAlpha = isSwiping ? 0.5 : 0.25;
+  const baseAlpha = isActive ? 0.5 : 0.25;
 
   for (let i = startIndex; i <= endIndex; i++) {
     const x = centerX + (i - stepsFromZero) * TICK_GAP_PX;
@@ -149,7 +150,7 @@ function drawRuler(
   ctx.lineTo(centerX, 0);
   ctx.strokeStyle = primaryColor ? `hsl(${primaryColor})` : "hsl(24, 100%, 50%)";
   ctx.lineWidth = 2;
-  ctx.globalAlpha = isSwiping ? 0.9 : 0.5;
+  ctx.globalAlpha = isActive ? 0.9 : 0.5;
   ctx.stroke();
   ctx.globalAlpha = 1;
 }
@@ -161,6 +162,7 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
       type = "text",
       step,
       swipeStep,
+      suffix,
       min,
       max,
       disabled,
@@ -184,6 +186,7 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
     const inertiaRemainderRef = React.useRef(0);
 
     const [isSwiping, setIsSwiping] = React.useState(false);
+    const [isFocused, setIsFocused] = React.useState(false);
 
     const swipeEnabled = type === "number" && !disabled && !readOnly;
     const resolvedLang = type === "number" ? (lang ?? "en-US") : lang;
@@ -215,8 +218,8 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
       const input = inputRef.current;
       if (!canvas || !input) return;
       const val = toFiniteNumber(input.value) ?? 0;
-      drawRuler(canvas, val, resolvedSwipeStep, swipeStateRef.current !== null);
-    }, [resolvedSwipeStep]);
+      drawRuler(canvas, val, resolvedSwipeStep, isFocused || swipeStateRef.current !== null);
+    }, [resolvedSwipeStep, isFocused]);
 
     // Observe input value changes for ruler sync
     React.useEffect(() => {
@@ -231,10 +234,10 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
       return () => input.removeEventListener("input", handler);
     }, [swipeEnabled, redrawRuler]);
 
-    // Redraw on swiping state change
+    // Redraw on swiping/focus state change
     React.useEffect(() => {
       redrawRuler();
-    }, [isSwiping, redrawRuler]);
+    }, [isSwiping, isFocused, redrawRuler]);
 
     const stopInertia = React.useCallback(() => {
       if (inertiaFrameRef.current !== null) {
@@ -415,38 +418,50 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
     };
 
     return (
-      <div className="relative">
-        <input
-          type={type}
-          step={step}
-          min={min}
-          max={max}
-          lang={resolvedLang}
-          className={cn(
-            "flex h-10 w-full border border-input bg-background px-4 py-2 text-base ring-offset-background transition-all duration-200 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:border-ring hover:border-muted-foreground/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-            type === "number" && "appearance-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
-            swipeEnabled ? "select-none rounded-t-xl rounded-b-none border-b-0 text-center" : "rounded-xl",
-            isSwiping && "border-ring ring-2 ring-ring/30",
-            className,
+      <div
+        className={cn(
+          "relative",
+          swipeEnabled && "rounded-xl border border-input bg-background transition-all duration-200 hover:border-muted-foreground/50",
+          swipeEnabled && (isFocused || isSwiping) && "border-ring ring-2 ring-ring/30",
+        )}
+      >
+        <div className="relative">
+          <input
+            type={type}
+            step={step}
+            min={min}
+            max={max}
+            lang={resolvedLang}
+            className={cn(
+              "flex h-10 w-full bg-transparent px-4 py-2 text-base ring-offset-background transition-all duration-200 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+              type === "number" && "appearance-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
+              swipeEnabled ? "select-none text-center border-0 outline-none focus-visible:ring-0 focus-visible:ring-offset-0" : "rounded-xl border border-input bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:border-ring hover:border-muted-foreground/50",
+              className,
+            )}
+            style={swipeEnabled ? { ...style, touchAction: "pan-y" } : style}
+            ref={setRefs}
+            disabled={disabled}
+            readOnly={readOnly}
+            onFocus={(e) => { setIsFocused(true); props.onFocus?.(e); }}
+            onBlur={(e) => { setIsFocused(false); props.onBlur?.(e); }}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerEnd}
+            onPointerCancel={handlePointerEnd}
+            {...props}
+          />
+          {/* Suffix label (e.g. "km", "min") */}
+          {swipeEnabled && suffix && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
+              {suffix}
+            </span>
           )}
-          style={swipeEnabled ? { ...style, touchAction: "pan-y" } : style}
-          ref={setRefs}
-          disabled={disabled}
-          readOnly={readOnly}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerEnd}
-          onPointerCancel={handlePointerEnd}
-          {...props}
-        />
+        </div>
 
-        {/* Ruler strip below input */}
+        {/* Ruler strip */}
         {swipeEnabled && (
           <div
-            className={cn(
-              "w-full overflow-hidden rounded-b-xl border border-t-0 border-input bg-background transition-colors duration-200",
-              isSwiping && "border-ring",
-            )}
+            className="w-full overflow-hidden"
             style={{ height: RULER_HEIGHT }}
           >
             <canvas
@@ -456,7 +471,6 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
             />
           </div>
         )}
-
       </div>
     );
   },

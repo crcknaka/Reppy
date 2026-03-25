@@ -165,7 +165,7 @@ export function WorkoutExerciseCard({
             />
           </div>
         )}
-        <CardHeader className="pb-2 pt-4 px-4">
+        <CardHeader className="pb-2 pt-4 px-5">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <CardTitle className="flex items-center gap-2 text-base truncate">
@@ -222,7 +222,7 @@ export function WorkoutExerciseCard({
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-1 px-4 pb-4">
+        <CardContent className="space-y-1.5 px-5 pb-4">
           <div
             className={cn(
               "grid gap-1 pl-4 pr-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide",

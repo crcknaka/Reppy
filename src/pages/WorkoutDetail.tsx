@@ -656,8 +656,8 @@ export default function WorkoutDetail() {
         </Button>,
         document.body
       )}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => {
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
           // If viewing someone else's workout, go back to their workouts list
           if (!isOwner && workout?.user_id) {
             navigate(`/?user=${workout.user_id}`);
@@ -668,7 +668,7 @@ export default function WorkoutDetail() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1 space-y-1">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+          <h1 className="text-lg font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
             {format(new Date(workout.date), "d MMMM yyyy", { locale: dateLocale })}
           </h1>
           <div className="flex items-center gap-2">
@@ -701,8 +701,8 @@ export default function WorkoutDetail() {
             {!isGuest && (
               <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Share2 className="h-5 w-5" />
+                  <Button variant="outline" size="icon" className="h-8 w-8">
+                    <Share2 className="h-4 w-4" />
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -782,9 +782,9 @@ export default function WorkoutDetail() {
                   variant="outline"
                   size="icon"
                   onClick={() => setUnlockDialogOpen(true)}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
                 >
-                  <Lock className="h-5 w-5" />
+                  <Lock className="h-4 w-4" />
                 </Button>
 
                 <AlertDialog open={unlockDialogOpen} onOpenChange={setUnlockDialogOpen}>
@@ -811,10 +811,11 @@ export default function WorkoutDetail() {
               <Button
                 variant="outline"
                 size="icon"
+                className="h-8 w-8"
                 onClick={handleLockWorkout}
                 disabled={lockWorkout.isPending}
               >
-                <Unlock className="h-5 w-5" />
+                <Unlock className="h-4 w-4" />
               </Button>
             )}
           </>

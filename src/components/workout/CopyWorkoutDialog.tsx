@@ -250,8 +250,8 @@ export function CopyWorkoutDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Import className="h-5 w-5" />
+        <Button variant="outline" size="icon" className="h-8 w-8">
+          <Import className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl overflow-x-hidden">

@@ -308,15 +308,15 @@
     "backToWorkouts": "Voltar aos treinos",
     "linkDeactivated": "Este link é inválido ou foi desativado",
     "createdAt": "Hora",
-    "copyWorkout": "Copiar treino",
-    "selectWorkoutToCopy": "Selecione um treino para copiar",
-    "selectExercisesToCopy": "Selecione exercícios para copiar",
+    "copyWorkout": "Importar de treino",
+    "selectWorkoutToCopy": "Selecione um treino para importar",
+    "selectExercisesToCopy": "Selecione exercícios para importar",
     "selectAll": "Selecionar tudo",
     "deselectAll": "Desmarcar tudo",
-    "copySelected": "Copiar selecionados",
-    "workoutCopied": "Treino copiado",
-    "workoutCopyError": "Erro ao copiar treino",
-    "noWorkoutsToCopy": "Nenhum treino anterior disponível para copiar"
+    "copySelected": "Importar selecionados",
+    "workoutCopied": "Exercícios importados",
+    "workoutCopyError": "Erro ao importar treino",
+    "noWorkoutsToCopy": "Nenhum treino anterior disponível"
   },
   "timer": {
     "result": "Resultado",

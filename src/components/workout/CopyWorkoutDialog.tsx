@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { type Locale } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { ArrowLeft, Copy } from "lucide-react";
+import { ArrowLeft, Import } from "lucide-react";
 
 import { LIMITS } from "@/lib/limits";
 import { useUnits } from "@/hooks/useUnits";
@@ -251,10 +251,10 @@ export function CopyWorkoutDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" size="icon">
-          <Copy className="h-5 w-5" />
+          <Import className="h-5 w-5" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl overflow-x-hidden">
         <DialogHeader>
           <DialogTitle>{t("workout.copyWorkout")}</DialogTitle>
           <DialogDescription>
@@ -263,7 +263,7 @@ export function CopyWorkoutDialog({
         </DialogHeader>
 
         {!selectedSourceWorkout ? (
-          <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+          <div className="space-y-2 max-h-[60vh] overflow-y-auto overflow-x-hidden">
             {copyableWorkouts.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-6">{t("workout.noWorkoutsToCopy")}</p>
             ) : (
@@ -284,12 +284,12 @@ export function CopyWorkoutDialog({
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-1 min-w-0">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="px-2"
+                className="px-2 shrink-0"
                 onClick={() => {
                   setSelectedSourceWorkoutId(null);
                   setSelectedExerciseIds(new Set());
@@ -299,11 +299,11 @@ export function CopyWorkoutDialog({
                 {t("common.back")}
               </Button>
 
-              <div className="flex items-center gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={handleSelectAllExercisesToCopy}>
+              <div className="flex items-center gap-1 shrink-0">
+                <Button type="button" variant="outline" size="sm" className="text-xs px-2" onClick={handleSelectAllExercisesToCopy}>
                   {t("workout.selectAll")}
                 </Button>
-                <Button type="button" variant="outline" size="sm" onClick={handleDeselectAllExercisesToCopy}>
+                <Button type="button" variant="outline" size="sm" className="text-xs px-2" onClick={handleDeselectAllExercisesToCopy}>
                   {t("workout.deselectAll")}
                 </Button>
               </div>
@@ -312,7 +312,7 @@ export function CopyWorkoutDialog({
             {sourceOrderedExerciseEntries.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-6">{t("workout.noExercises")}</p>
             ) : (
-              <div className="space-y-3 max-h-[56vh] overflow-y-auto pr-1">
+              <div className="space-y-3 max-h-[56vh] overflow-y-auto overflow-x-hidden">
                 {sourceOrderedExerciseEntries.map(([exerciseId, { exercise, sets }], index) => {
                   const checked = selectedExerciseIds.has(exerciseId);
 

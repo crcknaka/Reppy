@@ -20,9 +20,13 @@ const INERTIA_MIN_VELOCITY = 0.04;
 const INERTIA_STOP_VELOCITY = 0.002;
 const INERTIA_FRICTION_PER_MS = 0.993;
 const INERTIA_RELEASE_IDLE_CUTOFF_MS = 120;
-const HAPTIC_PULSE_MS = 10;
-const HAPTIC_PAUSE_MS = 12;
+const HAPTIC_PULSE_MS = 25;
+const HAPTIC_PAUSE_MS = 20;
 const MAX_HAPTIC_STEPS_PER_COMMIT = 10;
+
+// Ruler constants
+const RULER_HEIGHT = 14;
+const TICK_GAP_PX = PIXELS_PER_STEP;
 
 const toFiniteNumber = (value: string | number | undefined): number | null => {
   if (value === undefined || value === "") return null;
@@ -71,6 +75,87 @@ const applyNativeInputValue = (input: HTMLInputElement, value: string) => {
   input.dispatchEvent(new Event("input", { bubbles: true }));
 };
 
+// --- Ruler drawing ---
+function drawRuler(
+  canvas: HTMLCanvasElement,
+  value: number,
+  stepSize: number,
+  isSwiping: boolean,
+) {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+
+  if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+  }
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  const centerX = w / 2;
+  // How many steps from 0 to current value
+  const stepsFromZero = value / stepSize;
+  // Pixel offset of current value from ruler center
+  const offsetPx = stepsFromZero * TICK_GAP_PX;
+
+  // Draw ticks
+  const ticksVisible = Math.ceil(w / TICK_GAP_PX) + 2;
+  const startIndex = Math.floor(stepsFromZero - ticksVisible / 2);
+  const endIndex = Math.ceil(stepsFromZero + ticksVisible / 2);
+
+  const baseAlpha = isSwiping ? 0.5 : 0.25;
+
+  for (let i = startIndex; i <= endIndex; i++) {
+    const x = centerX + (i - stepsFromZero) * TICK_GAP_PX;
+    if (x < -2 || x > w + 2) continue;
+
+    const isMajor10 = i % 10 === 0;
+    const isMajor5 = i % 5 === 0;
+
+    let tickH: number;
+    let tickAlpha: number;
+    let tickWidth: number;
+
+    if (isMajor10) {
+      tickH = h * 0.85;
+      tickAlpha = baseAlpha * 1.8;
+      tickWidth = 1.5;
+    } else if (isMajor5) {
+      tickH = h * 0.6;
+      tickAlpha = baseAlpha * 1.4;
+      tickWidth = 1;
+    } else {
+      tickH = h * 0.35;
+      tickAlpha = baseAlpha;
+      tickWidth = 0.5;
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(x, h);
+    ctx.lineTo(x, h - tickH);
+    ctx.strokeStyle = `rgba(150, 150, 150, ${tickAlpha})`;
+    ctx.lineWidth = tickWidth;
+    ctx.stroke();
+  }
+
+  // Center indicator — primary color
+  const style = getComputedStyle(canvas);
+  const primaryColor = style.getPropertyValue("--primary").trim();
+  ctx.beginPath();
+  ctx.moveTo(centerX, h);
+  ctx.lineTo(centerX, 0);
+  ctx.strokeStyle = primaryColor ? `hsl(${primaryColor})` : "hsl(24, 100%, 50%)";
+  ctx.lineWidth = 2;
+  ctx.globalAlpha = isSwiping ? 0.9 : 0.5;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
 const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProps>(
   (
     {
@@ -93,6 +178,7 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
     forwardedRef,
   ) => {
     const inputRef = React.useRef<HTMLInputElement | null>(null);
+    const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
     const swipeStateRef = React.useRef<SwipeState | null>(null);
     const inertiaFrameRef = React.useRef<number | null>(null);
     const inertiaVelocityRef = React.useRef(0);
@@ -124,6 +210,33 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
       },
       [forwardedRef],
     );
+
+    // Redraw ruler whenever value or swiping state changes
+    const redrawRuler = React.useCallback(() => {
+      const canvas = canvasRef.current;
+      const input = inputRef.current;
+      if (!canvas || !input) return;
+      const val = toFiniteNumber(input.value) ?? 0;
+      drawRuler(canvas, val, resolvedSwipeStep, swipeStateRef.current !== null);
+    }, [resolvedSwipeStep]);
+
+    // Observe input value changes for ruler sync
+    React.useEffect(() => {
+      if (!swipeEnabled) return;
+      const input = inputRef.current;
+      if (!input) return;
+
+      const handler = () => redrawRuler();
+      input.addEventListener("input", handler);
+      // Initial draw
+      redrawRuler();
+      return () => input.removeEventListener("input", handler);
+    }, [swipeEnabled, redrawRuler]);
+
+    // Redraw on swiping state change
+    React.useEffect(() => {
+      redrawRuler();
+    }, [isSwiping, redrawRuler]);
 
     const stopInertia = React.useCallback(() => {
       if (inertiaFrameRef.current !== null) {
@@ -185,8 +298,9 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
 
         applyNativeInputValue(input, rounded.toString());
         triggerStepHaptic(movedSteps);
+        redrawRuler();
       },
-      [decimals, maxValue, minValue, resolvedSwipeStep, triggerStepHaptic],
+      [decimals, maxValue, minValue, resolvedSwipeStep, triggerStepHaptic, redrawRuler],
     );
 
     const onInertiaFrame = React.useCallback(
@@ -318,9 +432,9 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
           max={max}
           lang={resolvedLang}
           className={cn(
-            "flex h-10 w-full rounded-xl border border-input bg-background px-4 py-2 text-base ring-offset-background transition-all duration-200 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:border-ring hover:border-muted-foreground/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+            "flex h-10 w-full border border-input bg-background px-4 py-2 text-base ring-offset-background transition-all duration-200 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:border-ring hover:border-muted-foreground/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
             type === "number" && "appearance-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
-            swipeEnabled && "select-none pr-11 pl-11",
+            swipeEnabled ? "select-none pr-11 pl-11 rounded-t-xl rounded-b-none border-b-0" : "rounded-xl",
             isSwiping && "border-ring ring-2 ring-ring/30",
             className,
           )}
@@ -335,6 +449,23 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
           {...props}
         />
 
+        {/* Ruler strip below input */}
+        {swipeEnabled && (
+          <div
+            className={cn(
+              "w-full overflow-hidden rounded-b-xl border border-t-0 border-input bg-background transition-colors duration-200",
+              isSwiping && "border-ring",
+            )}
+            style={{ height: RULER_HEIGHT }}
+          >
+            <canvas
+              ref={canvasRef}
+              className="w-full h-full"
+              style={{ display: "block" }}
+            />
+          </div>
+        )}
+
         {swipeEnabled && (
           <>
             <button
@@ -348,6 +479,7 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 isSwiping && "text-foreground",
               )}
+              style={{ bottom: RULER_HEIGHT }}
             >
               <span className="rounded-md p-1 transition-all duration-150 group-hover:bg-muted/60 group-active:scale-95 group-active:bg-muted/80">
                 <ChevronLeft className="h-4 w-4" />
@@ -364,6 +496,7 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 isSwiping && "text-foreground",
               )}
+              style={{ bottom: RULER_HEIGHT }}
             >
               <span className="rounded-md p-1 transition-all duration-150 group-hover:bg-muted/60 group-active:scale-95 group-active:bg-muted/80">
                 <ChevronRight className="h-4 w-4" />

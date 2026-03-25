@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
+import { toast } from "sonner";
 import App from "./App.tsx";
 import "./index.css";
 import "./lib/i18n";
@@ -8,20 +9,47 @@ import "./lib/i18n";
 const updateSW = registerSW({
   immediate: true, // Register immediately for faster caching
   onNeedRefresh() {
-    // Auto-update when new content is available
-    console.log("New content available, updating...");
-    updateSW(true); // Force update
+    // Show a toast instead of auto-reloading — prevents unsaved data loss
+    toast("Доступно обновление", {
+      duration: Infinity,
+      action: {
+        label: "Обновить",
+        onClick: () => updateSW(true),
+      },
+    });
   },
   onOfflineReady() {
     console.log("App ready for offline use.");
   },
   onRegistered(registration) {
     console.log("Service worker registered:", registration);
-    // Check for updates periodically
+    // Check for updates periodically, but only when the tab is visible
     if (registration) {
-      setInterval(() => {
-        registration.update();
-      }, 60 * 60 * 1000); // Check every hour
+      const CHECK_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
+      let intervalId: ReturnType<typeof setInterval> | null = null;
+
+      const startPolling = () => {
+        if (!intervalId) {
+          intervalId = setInterval(() => registration.update(), CHECK_INTERVAL_MS);
+        }
+      };
+      const stopPolling = () => {
+        if (intervalId) {
+          clearInterval(intervalId);
+          intervalId = null;
+        }
+      };
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          stopPolling();
+        } else {
+          registration.update(); // check immediately when tab becomes visible
+          startPolling();
+        }
+      });
+
+      startPolling();
     }
   },
   onRegisterError(error) {

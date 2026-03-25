@@ -28,6 +28,7 @@ interface WorkoutCalendarDetailCardProps {
 }
 
 interface ExerciseSummary {
+  exerciseId: string;
   name: string;
   type: "cardio" | "weighted" | "timed" | "bodyweight";
   name_translations?: unknown;
@@ -47,6 +48,7 @@ const getExerciseSummaries = (workout: Workout, exerciseFallback: string): Exerc
       const exerciseId = set.exercise_id;
       if (!acc[exerciseId]) {
         acc[exerciseId] = {
+          exerciseId,
           name: set.exercise?.name || exerciseFallback,
           type: set.exercise?.type || "weighted",
           name_translations: set.exercise?.name_translations,
@@ -104,8 +106,8 @@ export function WorkoutCalendarDetailCard({
 
         {exerciseSummaries.length > 0 ? (
           <div className="space-y-2">
-            {exerciseSummaries.map((exercise, index) => (
-              <div key={index} className="p-2.5 bg-muted/50 rounded-lg">
+            {exerciseSummaries.map((exercise) => (
+              <div key={exercise.exerciseId} className="p-2.5 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-2">
                   {exercise.type === "cardio" ? (
                     <Activity className="h-4 w-4 text-primary flex-shrink-0" />

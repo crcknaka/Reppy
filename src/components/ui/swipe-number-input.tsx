@@ -26,7 +26,17 @@ const MAX_HAPTIC_STEPS_PER_COMMIT = 10;
 
 const toFiniteNumber = (value: string | number | undefined): number | null => {
   if (value === undefined || value === "") return null;
-  const parsed = Number(typeof value === "string" ? value.replace(/,/g, ".") : value);
+  let raw = typeof value === "string" ? value : String(value);
+  // Strip whitespace used as digit-group separators (e.g. "1 234")
+  raw = raw.replace(/\s/g, "");
+  // If both comma and dot present, comma is a digit-group separator (e.g. "1,234.56")
+  if (raw.includes(",") && raw.includes(".")) {
+    raw = raw.replace(/,/g, "");
+  } else {
+    // Comma is a decimal separator (e.g. "2,5" → "2.5")
+    raw = raw.replace(/,/g, ".");
+  }
+  const parsed = Number(raw);
   return Number.isFinite(parsed) ? parsed : null;
 };
 
@@ -153,7 +163,7 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
         const input = inputRef.current;
         if (!input || stepDelta === 0) return;
 
-        const currentValue = Number(input.value.replace(/,/g, "."));
+        const currentValue = toFiniteNumber(input.value) ?? NaN;
         const origin = minValue ?? 0;
         const base = Number.isFinite(currentValue) ? currentValue : origin;
         const offsetFromOrigin = (base - origin) / resolvedSwipeStep;

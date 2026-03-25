@@ -139,7 +139,7 @@ export function useOfflineWorkouts() {
                 .toArray();
               const cachedSetIds = new Set(cachedSets.map((s) => s.id));
               const serverSetIds = new Set(
-                (workout.workout_sets || []).map((s: any) => s.id)
+                (workout.workout_sets || []).map((s: Pick<WorkoutSet, "id">) => s.id)
               );
 
               // Delete sets that exist in cache but not on server

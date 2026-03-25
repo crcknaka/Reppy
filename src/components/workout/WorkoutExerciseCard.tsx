@@ -2,7 +2,7 @@ import { useState } from "react";
 import { format, type Locale } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Activity, Copy, Dumbbell, History, Pencil, Plus, Timer, Trash2, Trophy, User } from "lucide-react";
+import { Activity, Copy, Dumbbell, History, Loader2, Pencil, Plus, Timer, Trash2, Trophy, User } from "lucide-react";
 
 import { getExerciseName } from "@/lib/i18n";
 import { LIMITS } from "@/lib/limits";
@@ -101,11 +101,14 @@ export function WorkoutExerciseCard({
   const { units, convertWeight, convertDistance } = useUnits();
   const [openTooltipId, setOpenTooltipId] = useState<string | null>(null);
   const [setToDelete, setSetToDelete] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<string | null>(null); // "copy:setId" | "complete:setId" | "delete"
 
   const canManageSets = !readOnly && isOwner && !isLocked;
   const showSelectionCheckbox = readOnly && typeof onSelectionChange === "function";
 
   const handleCopySet = async (set: WorkoutSet) => {
+    if (pendingAction) return;
+    setPendingAction(`copy:${set.id}`);
     try {
       const exerciseSets = sets.filter((workoutSet) => workoutSet.exercise_id === set.exercise_id);
 
@@ -131,18 +134,22 @@ export function WorkoutExerciseCard({
       toast.success(t("workout.setCopied"));
     } catch {
       toast.error(t("workout.setCopyError"));
+    } finally {
+      setPendingAction(null);
     }
   };
 
   const confirmDeleteSet = async () => {
-    if (!setToDelete) return;
-
+    if (!setToDelete || pendingAction) return;
+    setPendingAction("delete");
     try {
       await onDeleteSet(setToDelete);
       toast.success(t("workout.setDeleted"));
       setSetToDelete(null);
     } catch {
       toast.error(t("workout.setDeleteError"));
+    } finally {
+      setPendingAction(null);
     }
   };
 
@@ -288,10 +295,11 @@ export function WorkoutExerciseCard({
                             aria-label={
                               set.is_completed ? t("workout.markSetIncomplete") : t("workout.markSetComplete")
                             }
-                            disabled={!canManageSets}
+                            disabled={!canManageSets || pendingAction === `complete:${set.id}`}
                             onClick={async (event) => {
                               event.stopPropagation();
-                              if (!canManageSets) return;
+                              if (!canManageSets || pendingAction) return;
+                              setPendingAction(`complete:${set.id}`);
                               try {
                                 const nextIsCompleted = !set.is_completed;
                                 await onToggleSetCompleted(set.id, nextIsCompleted);
@@ -302,8 +310,10 @@ export function WorkoutExerciseCard({
                                 );
                               } catch {
                                 toast.error(t("workout.setUpdateError"));
+                              } finally {
+                                setPendingAction(null);
                               }
-                            }}
+                            }
                           >
                             {set.set_number}
                           </button>
@@ -342,14 +352,16 @@ export function WorkoutExerciseCard({
                                 variant="ghost"
                                 size="icon"
                                 className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                disabled={!!pendingAction}
                                 onClick={() => handleCopySet(set)}
                               >
-                                <Copy className="h-3.5 w-3.5" />
+                                {pendingAction === `copy:${set.id}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Copy className="h-3.5 w-3.5" />}
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                disabled={!!pendingAction}
                                 onClick={() => onEditSet(set)}
                               >
                                 <Pencil className="h-3.5 w-3.5" />
@@ -358,6 +370,7 @@ export function WorkoutExerciseCard({
                                 variant="ghost"
                                 size="icon"
                                 className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                disabled={!!pendingAction}
                                 onClick={() => setSetToDelete(set.id)}
                               >
                                 <Trash2 className="h-3.5 w-3.5" />

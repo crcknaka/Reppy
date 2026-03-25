@@ -36,11 +36,6 @@ export default function Friends() {
   const { isGuest } = useAuth();
   const [friendToRemove, setFriendToRemove] = useState<{ id: string; name: string } | null>(null);
 
-  // Show CTA for guest users
-  if (isGuest) {
-    return <GuestFriendsCTA />;
-  }
-
   const { data: friends, isLoading: friendsLoading } = useFriends();
   const { data: pendingRequests, isLoading: pendingLoading } = usePendingFriendRequests();
   const { data: sentRequests, isLoading: sentLoading } = useSentFriendRequests();
@@ -89,6 +84,11 @@ export default function Friends() {
   };
 
   const pendingCount = pendingRequests?.length || 0;
+
+  // Keep hook order stable across guest/authenticated renders
+  if (isGuest) {
+    return <GuestFriendsCTA />;
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">

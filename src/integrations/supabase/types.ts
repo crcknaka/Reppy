@@ -21,6 +21,7 @@ export type Database = {
           image_url: string | null
           is_preset: boolean
           name: string
+          name_translations: Record<string, string> | null
           type: Database["public"]["Enums"]["exercise_type"]
           user_id: string | null
         }
@@ -30,6 +31,7 @@ export type Database = {
           image_url?: string | null
           is_preset?: boolean
           name: string
+          name_translations?: Record<string, string> | null
           type?: Database["public"]["Enums"]["exercise_type"]
           user_id?: string | null
         }
@@ -39,6 +41,7 @@ export type Database = {
           image_url?: string | null
           is_preset?: boolean
           name?: string
+          name_translations?: Record<string, string> | null
           type?: Database["public"]["Enums"]["exercise_type"]
           user_id?: string | null
         }
@@ -148,6 +151,7 @@ export type Database = {
           created_at: string
           exercise_id: string
           id: string
+          is_completed: boolean
           reps: number | null
           set_number: number
           weight: number | null
@@ -160,6 +164,7 @@ export type Database = {
           created_at?: string
           exercise_id: string
           id?: string
+          is_completed?: boolean
           reps?: number | null
           set_number?: number
           weight?: number | null
@@ -172,6 +177,7 @@ export type Database = {
           created_at?: string
           exercise_id?: string
           id?: string
+          is_completed?: boolean
           reps?: number | null
           set_number?: number
           weight?: number | null

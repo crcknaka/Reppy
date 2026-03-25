@@ -6,6 +6,7 @@ BEGIN
     JOIN pg_enum e ON t.oid = e.enumtypid
     WHERE t.typname = 'exercise_type' AND e.enumlabel = 'cardio') THEN
     ALTER TYPE public.exercise_type ADD VALUE 'cardio';
+    COMMIT;
   END IF;
 END $$;
 

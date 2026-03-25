@@ -42,6 +42,7 @@ export function useOfflineWorkouts() {
                   workout_id: set.workout_id,
                   exercise_id: set.exercise_id,
                   set_number: set.set_number,
+                  is_completed: set.is_completed,
                   reps: set.reps,
                   weight: set.weight,
                   distance_km: set.distance_km,
@@ -88,7 +89,7 @@ export function useOfflineWorkouts() {
             .select(`
               *,
               workout_sets (
-                id, workout_id, exercise_id, set_number, reps, weight,
+                id, workout_id, exercise_id, set_number, is_completed, reps, weight,
                 distance_km, duration_minutes, plank_seconds, created_at,
                 exercise:exercises (id, name, type, image_url, is_preset, name_translations)
               )
@@ -155,6 +156,7 @@ export function useOfflineWorkouts() {
                     workout_id: set.workout_id,
                     exercise_id: set.exercise_id,
                     set_number: set.set_number,
+                    is_completed: set.is_completed,
                     reps: set.reps,
                     weight: set.weight,
                     distance_km: set.distance_km,
@@ -167,6 +169,7 @@ export function useOfflineWorkouts() {
 
                   // Cache the exercise data for offline access
                   if (set.exercise) {
+
                     const existingExercise = await offlineDb.exercises.get(set.exercise.id);
                     if (!existingExercise) {
                       await offlineDb.exercises.put({
@@ -186,7 +189,7 @@ export function useOfflineWorkouts() {
               }
             }
 
-            return data as unknown as Workout[];
+            return data as Workout[];
           }
         } catch {
           // Network error - fall through to cache
@@ -301,6 +304,7 @@ export function useOfflineAddSet() {
       distance_km,
       duration_minutes,
       plank_seconds,
+      is_completed,
     }: {
       workoutId: string;
       exerciseId: string;
@@ -310,6 +314,7 @@ export function useOfflineAddSet() {
       distance_km?: number;
       duration_minutes?: number;
       plank_seconds?: number;
+      is_completed?: boolean;
     }) => {
       const now = new Date().toISOString();
       const offlineId = generateOfflineId();
@@ -325,6 +330,7 @@ export function useOfflineAddSet() {
         distance_km: distance_km ?? null,
         duration_minutes: duration_minutes ?? null,
         plank_seconds: plank_seconds ?? null,
+        is_completed: is_completed ?? false,
         created_at: now,
         _synced: false,
         _lastModified: Date.now(),
@@ -347,6 +353,7 @@ export function useOfflineAddSet() {
               distance_km: distance_km ?? null,
               duration_minutes: duration_minutes ?? null,
               plank_seconds: plank_seconds ?? null,
+              is_completed: is_completed ?? false,
             })
             .select()
             .single();
@@ -376,6 +383,7 @@ export function useOfflineAddSet() {
           distance_km: distance_km ?? null,
           duration_minutes: duration_minutes ?? null,
           plank_seconds: plank_seconds ?? null,
+          is_completed: is_completed ?? false,
           _offlineId: offlineId,
         });
       }
@@ -403,6 +411,7 @@ export function useOfflineUpdateSet() {
       distance_km,
       duration_minutes,
       plank_seconds,
+      is_completed,
     }: {
       setId: string;
       reps?: number | null;
@@ -410,14 +419,31 @@ export function useOfflineUpdateSet() {
       distance_km?: number | null;
       duration_minutes?: number | null;
       plank_seconds?: number | null;
+      is_completed?: boolean;
     }) => {
+      const updateData: {
+        reps?: number | null;
+        weight?: number | null;
+        distance_km?: number | null;
+        duration_minutes?: number | null;
+        plank_seconds?: number | null;
+        is_completed?: boolean;
+      } = {};
+
+      if (reps !== undefined) updateData.reps = reps;
+      if (weight !== undefined) updateData.weight = weight;
+      if (distance_km !== undefined) updateData.distance_km = distance_km;
+      if (duration_minutes !== undefined) updateData.duration_minutes = duration_minutes;
+      if (plank_seconds !== undefined) updateData.plank_seconds = plank_seconds;
+      if (is_completed !== undefined) updateData.is_completed = is_completed;
+
+      if (Object.keys(updateData).length === 0) {
+        return await offlineDb.workoutSets.get(setId);
+      }
+
       // Update local first
       await offlineDb.workoutSets.update(setId, {
-        reps: reps ?? null,
-        weight: weight ?? null,
-        distance_km: distance_km ?? null,
-        duration_minutes: duration_minutes ?? null,
-        plank_seconds: plank_seconds ?? null,
+        ...updateData,
         _synced: false,
         _lastModified: Date.now(),
       });
@@ -427,13 +453,7 @@ export function useOfflineUpdateSet() {
         try {
           const { data, error } = await supabase
             .from("workout_sets")
-            .update({
-              reps: reps ?? null,
-              weight: weight ?? null,
-              distance_km: distance_km ?? null,
-              duration_minutes: duration_minutes ?? null,
-              plank_seconds: plank_seconds ?? null,
-            })
+            .update(updateData)
             .eq("id", setId)
             .select()
             .single();
@@ -453,13 +473,7 @@ export function useOfflineUpdateSet() {
 
       // Queue for later sync (only for authenticated users)
       if (!isGuest) {
-        await syncQueue.enqueue("workout_sets", "update", setId, {
-          reps: reps ?? null,
-          weight: weight ?? null,
-          distance_km: distance_km ?? null,
-          duration_minutes: duration_minutes ?? null,
-          plank_seconds: plank_seconds ?? null,
-        });
+        await syncQueue.enqueue("workout_sets", "update", setId, updateData as Record<string, unknown>);
       }
 
       return await offlineDb.workoutSets.get(setId);
@@ -598,6 +612,7 @@ export function useOfflineSingleWorkout(workoutId: string | undefined) {
               workout_id: set.workout_id,
               exercise_id: set.exercise_id,
               set_number: set.set_number,
+              is_completed: set.is_completed,
               reps: set.reps,
               weight: set.weight,
               distance_km: set.distance_km,
@@ -651,7 +666,7 @@ export function useOfflineSingleWorkout(workoutId: string | undefined) {
             .select(`
               *,
               workout_sets (
-                id, workout_id, exercise_id, set_number, reps, weight,
+                id, workout_id, exercise_id, set_number, is_completed, reps, weight,
                 distance_km, duration_minutes, plank_seconds, created_at,
                 exercise:exercises (id, name, type, image_url, is_preset, name_translations)
               )
@@ -692,6 +707,7 @@ export function useOfflineSingleWorkout(workoutId: string | undefined) {
                   workout_id: set.workout_id,
                   exercise_id: set.exercise_id,
                   set_number: set.set_number,
+                  is_completed: set.is_completed,
                   reps: set.reps,
                   weight: set.weight,
                   distance_km: set.distance_km,
@@ -721,7 +737,7 @@ export function useOfflineSingleWorkout(workoutId: string | undefined) {
                 }
               }
             }
-            return data as unknown as Workout;
+            return data as Workout;
           }
         } catch (err) {
           // If error is "Workout not found", rethrow it

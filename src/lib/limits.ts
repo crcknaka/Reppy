@@ -11,7 +11,7 @@ export const LIMITS = {
   MAX_NOTES_LENGTH: 500,
 
   // Value limits - weighted exercises
-  MIN_WEIGHT_KG: 0.1,
+  MIN_WEIGHT_KG: 0.5,
   MAX_WEIGHT_KG: 500,
   MIN_REPS: 1,
   MAX_REPS: 999,

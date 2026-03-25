@@ -1,6 +1,4 @@
 import * as React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 
 type SwipeNumberInputProps = React.ComponentProps<"input"> & {
@@ -416,13 +414,6 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
       }
     };
 
-    const handleChevronStep = (stepDelta: number) => {
-      if (!swipeEnabled) return;
-      stopInertia();
-      inputRef.current?.focus();
-      commitStepDelta(stepDelta);
-    };
-
     return (
       <div className="relative">
         <input
@@ -434,7 +425,7 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
           className={cn(
             "flex h-10 w-full border border-input bg-background px-4 py-2 text-base ring-offset-background transition-all duration-200 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:border-ring hover:border-muted-foreground/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
             type === "number" && "appearance-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
-            swipeEnabled ? "select-none pr-11 pl-11 rounded-t-xl rounded-b-none border-b-0" : "rounded-xl",
+            swipeEnabled ? "select-none rounded-t-xl rounded-b-none border-b-0 text-center" : "rounded-xl",
             isSwiping && "border-ring ring-2 ring-ring/30",
             className,
           )}
@@ -466,44 +457,6 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
           </div>
         )}
 
-        {swipeEnabled && (
-          <>
-            <button
-              type="button"
-              aria-label="Decrement value"
-              onPointerDown={(event) => event.preventDefault()}
-              onClick={() => handleChevronStep(-1)}
-              className={cn(
-                "group absolute inset-y-0 left-0 grid w-10 place-items-center rounded-l-xl text-muted-foreground",
-                "transition-all duration-150 hover:text-foreground",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                isSwiping && "text-foreground",
-              )}
-              style={{ bottom: RULER_HEIGHT }}
-            >
-              <span className="rounded-md p-1 transition-all duration-150 group-hover:bg-muted/60 group-active:scale-95 group-active:bg-muted/80">
-                <ChevronLeft className="h-4 w-4" />
-              </span>
-            </button>
-            <button
-              type="button"
-              aria-label="Increment value"
-              onPointerDown={(event) => event.preventDefault()}
-              onClick={() => handleChevronStep(1)}
-              className={cn(
-                "group absolute inset-y-0 right-0 grid w-10 place-items-center rounded-r-xl text-muted-foreground",
-                "transition-all duration-150 hover:text-foreground",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                isSwiping && "text-foreground",
-              )}
-              style={{ bottom: RULER_HEIGHT }}
-            >
-              <span className="rounded-md p-1 transition-all duration-150 group-hover:bg-muted/60 group-active:scale-95 group-active:bg-muted/80">
-                <ChevronRight className="h-4 w-4" />
-              </span>
-            </button>
-          </>
-        )}
       </div>
     );
   },

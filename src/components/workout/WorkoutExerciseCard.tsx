@@ -2,7 +2,7 @@ import { useState } from "react";
 import { format, type Locale } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Activity, CopyPlus, Dumbbell, History, Loader2, MoreVertical, Pencil, Plus, Timer, Trash2, Trophy, User } from "lucide-react";
+import { Activity, CopyPlus, Dumbbell, History, Loader2, Plus, Timer, Trash2, Trophy, User } from "lucide-react";
 
 import { getExerciseName } from "@/lib/i18n";
 import { LIMITS } from "@/lib/limits";
@@ -12,12 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -235,10 +229,10 @@ export function WorkoutExerciseCard({
               exercise?.type === "bodyweight" || exercise?.type === "timed"
                 ? readOnly
                   ? "grid-cols-[40px_1fr]"
-                  : "grid-cols-[40px_1fr_84px]"
+                  : "grid-cols-[40px_1fr_64px]"
                 : readOnly
                   ? "grid-cols-[40px_1fr_1fr]"
-                  : "grid-cols-[40px_1fr_1fr_84px]"
+                  : "grid-cols-[40px_1fr_1fr_64px]"
             )}
           >
             <div className="text-center">#</div>
@@ -268,14 +262,18 @@ export function WorkoutExerciseCard({
                         exercise?.type === "bodyweight" || exercise?.type === "timed"
                           ? readOnly
                             ? "grid-cols-[40px_1fr]"
-                            : "grid-cols-[40px_1fr_84px]"
+                            : "grid-cols-[40px_1fr_64px]"
                           : readOnly
                             ? "grid-cols-[40px_1fr_1fr]"
-                            : "grid-cols-[40px_1fr_1fr_84px]",
+                            : "grid-cols-[40px_1fr_1fr_64px]",
                         isRecordSet(set.id) ? "bg-yellow-100 dark:bg-yellow-900/30" : "bg-muted/30"
                       )}
                       onClick={(e) => {
                         if ((e.target as HTMLElement).closest("button")) {
+                          return;
+                        }
+                        if (!readOnly && canManageSets) {
+                          onEditSet(set);
                           return;
                         }
                         setOpenTooltipId(openTooltipId === set.id ? null : set.id);
@@ -363,31 +361,15 @@ export function WorkoutExerciseCard({
                               >
                                 {pendingAction === `copy:${set.id}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CopyPlus className="h-3.5 w-3.5" />}
                               </Button>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                                    disabled={!!pendingAction}
-                                  >
-                                    <MoreVertical className="h-3.5 w-3.5" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => onEditSet(set)}>
-                                    <Pencil className="h-3.5 w-3.5 mr-2" />
-                                    {t("common.edit")}
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    className="text-destructive focus:text-destructive"
-                                    onClick={() => setSetToDelete(set.id)}
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5 mr-2" />
-                                    {t("common.delete")}
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                disabled={!!pendingAction}
+                                onClick={() => setSetToDelete(set.id)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
                             </div>
                           ) : (
                             <div></div>

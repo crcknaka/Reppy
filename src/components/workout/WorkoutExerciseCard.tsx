@@ -313,7 +313,7 @@ export function WorkoutExerciseCard({
                               } finally {
                                 setPendingAction(null);
                               }
-                            }
+                            }}
                           >
                             {set.set_number}
                           </button>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { format, type Locale } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Activity, Copy, Dumbbell, History, Loader2, Pencil, Plus, Timer, Trash2, Trophy, User } from "lucide-react";
+import { Activity, CopyPlus, Dumbbell, History, Loader2, MoreVertical, Pencil, Plus, Timer, Trash2, Trophy, User } from "lucide-react";
 
 import { getExerciseName } from "@/lib/i18n";
 import { LIMITS } from "@/lib/limits";
@@ -12,6 +12,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -355,26 +361,33 @@ export function WorkoutExerciseCard({
                                 disabled={!!pendingAction}
                                 onClick={() => handleCopySet(set)}
                               >
-                                {pendingAction === `copy:${set.id}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Copy className="h-3.5 w-3.5" />}
+                                {pendingAction === `copy:${set.id}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CopyPlus className="h-3.5 w-3.5" />}
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                                disabled={!!pendingAction}
-                                onClick={() => onEditSet(set)}
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                                disabled={!!pendingAction}
-                                onClick={() => setSetToDelete(set.id)}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                    disabled={!!pendingAction}
+                                  >
+                                    <MoreVertical className="h-3.5 w-3.5" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => onEditSet(set)}>
+                                    <Pencil className="h-3.5 w-3.5 mr-2" />
+                                    {t("common.edit")}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="text-destructive focus:text-destructive"
+                                    onClick={() => setSetToDelete(set.id)}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                    {t("common.delete")}
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                           ) : (
                             <div></div>

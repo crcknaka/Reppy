@@ -280,7 +280,7 @@ export function WorkoutExerciseCard({
                       }}
                     >
                       {isRecordSet(set.id) && (
-                        <Trophy className="absolute left-1 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-yellow-500" />
+                        <Trophy className="absolute -left-0.5 -top-0.5 h-3 w-3 text-yellow-500" />
                       )}
                       <div className="flex justify-center">
                         {readOnly ? (

@@ -225,14 +225,14 @@ export function WorkoutExerciseCard({
         <CardContent className="space-y-1.5 px-5 pb-4">
           <div
             className={cn(
-              "grid gap-1 pl-4 pr-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide",
+              "grid gap-1 pl-2 pr-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide",
               exercise?.type === "bodyweight" || exercise?.type === "timed"
                 ? readOnly
-                  ? "grid-cols-[40px_1fr]"
-                  : "grid-cols-[40px_1fr_64px]"
+                  ? "grid-cols-[32px_1fr]"
+                  : "grid-cols-[32px_1fr_64px]"
                 : readOnly
-                  ? "grid-cols-[40px_1fr_1fr]"
-                  : "grid-cols-[40px_1fr_1fr_64px]"
+                  ? "grid-cols-[32px_1fr_1fr]"
+                  : "grid-cols-[32px_1fr_1fr_64px]"
             )}
           >
             <div className="text-center">#</div>
@@ -258,14 +258,14 @@ export function WorkoutExerciseCard({
                   <TooltipTrigger asChild>
                     <div
                       className={cn(
-                        "relative grid gap-1 items-center py-2 pl-4 pr-2 rounded-md cursor-pointer select-none",
+                        "relative grid gap-1 items-center py-2 pl-2 pr-2 rounded-md cursor-pointer select-none",
                         exercise?.type === "bodyweight" || exercise?.type === "timed"
                           ? readOnly
-                            ? "grid-cols-[40px_1fr]"
-                            : "grid-cols-[40px_1fr_64px]"
+                            ? "grid-cols-[32px_1fr]"
+                            : "grid-cols-[32px_1fr_64px]"
                           : readOnly
-                            ? "grid-cols-[40px_1fr_1fr]"
-                            : "grid-cols-[40px_1fr_1fr_64px]",
+                            ? "grid-cols-[32px_1fr_1fr]"
+                            : "grid-cols-[32px_1fr_1fr_64px]",
                         isRecordSet(set.id) ? "bg-yellow-100 dark:bg-yellow-900/30" : "bg-muted/30"
                       )}
                       onClick={(e) => {

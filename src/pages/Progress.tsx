@@ -711,7 +711,7 @@ export default function Progress() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">{t("progress.title")}</h1>
+          <h1 className="text-lg font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">{t("progress.title")}</h1>
           <p className="text-muted-foreground text-sm">{t("progress.subtitle")}</p>
         </div>
         <PdfExportButton />
@@ -913,106 +913,80 @@ export default function Progress() {
 
       {/* Stats cards */}
       {stats && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-2">
           {selectedExerciseData?.type !== "cardio" && selectedExerciseData?.type !== "timed" && (
-            <Card>
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                  <Repeat className="h-3.5 w-3.5" />
-                  <span className="text-xs">{t("progress.repetitions")}</span>
+            <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3">
+              <Repeat className="h-4 w-4 text-primary" />
+              <div className="text-lg font-bold text-foreground leading-none">{stats.totalReps}</div>
+              <div className="text-[10px] text-muted-foreground">{t("progress.repetitions")}</div>
+              {stats.repsTrend !== 0 && (
+                <div className={`text-[10px] ${stats.repsTrend > 0 ? "text-green-500" : "text-destructive"}`}>
+                  {stats.repsTrend > 0 ? "+" : ""}{stats.repsTrend.toFixed(0)}%
                 </div>
-                <p className="text-xl font-bold text-foreground">{stats.totalReps}</p>
-                {stats.repsTrend !== 0 && (
-                  <p className={`text-xs ${stats.repsTrend > 0 ? "text-success" : "text-destructive"}`}>
-                    {stats.repsTrend > 0 ? "+" : ""}{stats.repsTrend.toFixed(0)}% {t("progress.perWeek")}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+              )}
+            </div>
           )}
 
           {selectedExerciseData?.type !== "bodyweight" && selectedExerciseData?.type !== "cardio" && selectedExerciseData?.type !== "timed" && (
-            <Card>
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                  <Weight className="h-3.5 w-3.5" />
-                  <span className="text-xs">{t("progress.maxWeight")}</span>
-                </div>
-                <p className="text-xl font-bold text-foreground">
-                  {stats.maxWeight > 0 ? `${convertWeight(stats.maxWeight)} ${units.weight}` : "—"}
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          <Card>
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <Zap className="h-3.5 w-3.5" />
-                <span className="text-xs">{t("progress.workoutsCount")}</span>
+            <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3">
+              <Weight className="h-4 w-4 text-primary" />
+              <div className="text-lg font-bold text-foreground leading-none">
+                {stats.maxWeight > 0 ? `${convertWeight(stats.maxWeight)} ${units.weight}` : "—"}
               </div>
-              <p className="text-xl font-bold text-foreground">{stats.workoutCount}</p>
-            </CardContent>
-          </Card>
+              <div className="text-[10px] text-muted-foreground">{t("progress.maxWeight")}</div>
+            </div>
+          )}
+
+          <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3">
+            <Zap className="h-4 w-4 text-primary" />
+            <div className="text-lg font-bold text-foreground leading-none">{stats.workoutCount}</div>
+            <div className="text-[10px] text-muted-foreground">{t("progress.workoutsCount")}</div>
+          </div>
 
           {selectedExerciseData?.type !== "bodyweight" && selectedExerciseData?.type !== "cardio" && selectedExerciseData?.type !== "timed" && (
-            <Card>
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                  <TrendingUp className="h-3.5 w-3.5" />
-                  <span className="text-xs">{t("progress.volume")}</span>
-                </div>
-                <p className="text-xl font-bold text-foreground">
-                  {convertWeight(stats.totalVolume).toLocaleString()} {units.weight}
-                </p>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              <div className="text-lg font-bold text-foreground leading-none">
+                {convertWeight(stats.totalVolume) >= 1000
+                  ? `${(convertWeight(stats.totalVolume) / 1000).toFixed(1)} t`
+                  : `${Math.round(convertWeight(stats.totalVolume))} ${units.weight}`}
+              </div>
+              <div className="text-[10px] text-muted-foreground">{t("progress.volume")}</div>
+            </div>
           )}
 
           {stats.totalDistance > 0 && (
-            <Card>
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                  <Activity className="h-3.5 w-3.5" />
-                  <span className="text-xs">{t("progress.ranDistance")}</span>
-                </div>
-                <p className="text-xl font-bold text-foreground">
-                  {convertDistance(stats.totalDistance).toFixed(1)} {units.distance}
-                </p>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3">
+              <Activity className="h-4 w-4 text-primary" />
+              <div className="text-lg font-bold text-foreground leading-none">
+                {convertDistance(stats.totalDistance).toFixed(1)} {units.distance}
+              </div>
+              <div className="text-[10px] text-muted-foreground">{t("progress.ranDistance")}</div>
+            </div>
           )}
 
           {stats.totalDurationMinutes > 0 && (selectedExerciseData?.type === "cardio" || selectedExercise === "all") && (
-            <Card>
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  <span className="text-xs">{t("progress.timeRunning")}</span>
-                </div>
-                <p className="text-xl font-bold text-foreground">
-                  {stats.totalDurationMinutes >= 60
-                    ? `${stats.totalDurationHours.toFixed(2)} ${t("units.h")}`
-                    : `${stats.totalDurationMinutes.toFixed(0)} ${t("units.min")}`}
-                </p>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3">
+              <Clock className="h-4 w-4 text-primary" />
+              <div className="text-lg font-bold text-foreground leading-none">
+                {stats.totalDurationMinutes >= 60
+                  ? `${stats.totalDurationHours.toFixed(1)} ${t("units.h")}`
+                  : `${stats.totalDurationMinutes.toFixed(0)} ${t("units.min")}`}
+              </div>
+              <div className="text-[10px] text-muted-foreground">{t("progress.timeRunning")}</div>
+            </div>
           )}
 
           {stats.totalPlankSeconds > 0 && (selectedExerciseData?.type === "timed" || selectedExercise === "all") && (
-            <Card>
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  <span className="text-xs">{t("progress.inPlank")}</span>
-                </div>
-                <p className="text-xl font-bold text-foreground">
-                  {stats.totalPlankSeconds >= 3600
-                    ? `${(stats.totalPlankSeconds / 3600).toFixed(2)} ${t("units.h")}`
-                    : `${(stats.totalPlankSeconds / 60).toFixed(2)} ${t("units.min")}`}
-                </p>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3">
+              <Clock className="h-4 w-4 text-primary" />
+              <div className="text-lg font-bold text-foreground leading-none">
+                {stats.totalPlankSeconds >= 60
+                  ? `${Math.floor(stats.totalPlankSeconds / 60)}${t("units.min")} ${stats.totalPlankSeconds % 60}${t("units.sec")}`
+                  : `${stats.totalPlankSeconds} ${t("units.sec")}`}
+              </div>
+              <div className="text-[10px] text-muted-foreground">{t("progress.inPlank")}</div>
+            </div>
           )}
         </div>
       )}

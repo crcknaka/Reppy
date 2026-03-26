@@ -539,19 +539,30 @@ export default function WorkoutDetail() {
   }) => {
     if (!workout) return;
 
+    // Build complete order: keep order of currently visible exercises, append new one at end
+    const savedOrder = workout.exercise_order ?? [];
+    const existingIds = new Set(Object.keys(setsByExercise));
+    // Only keep IDs that currently have sets (removes deleted exercises from order)
+    const cleanOrder = savedOrder.filter(id => existingIds.has(id));
+    // Add any exercises not in saved order
+    for (const id of existingIds) {
+      if (!cleanOrder.includes(id)) cleanOrder.push(id);
+    }
+    // Remove new exercise from wherever it was, add to end
+    const completeOrder = [...cleanOrder.filter(id => id !== payload.exerciseId), payload.exerciseId];
+
+    const orderChanged = JSON.stringify(completeOrder) !== JSON.stringify(savedOrder);
+    if (orderChanged) {
+      await updateWorkout.mutateAsync({
+        workoutId: workout.id,
+        exercise_order: completeOrder,
+      });
+    }
+
     await addSet.mutateAsync({
       workoutId: workout.id,
       ...payload,
     });
-
-    // Auto-append new exercise to order if not already present
-    const currentOrder = workout.exercise_order ?? [];
-    if (!currentOrder.includes(payload.exerciseId)) {
-      updateWorkout.mutate({
-        workoutId: workout.id,
-        exercise_order: [...currentOrder, payload.exerciseId],
-      });
-    }
   };
 
   const createSetForCopyWorkout = async (payload: {
@@ -568,6 +579,22 @@ export default function WorkoutDetail() {
       throw new Error("Workout not found");
     }
 
+    // Build complete order: existing + new at end
+    const savedOrder = workout.exercise_order ?? [];
+    const existingIds = new Set(Object.keys(setsByExercise));
+    const cleanOrder = savedOrder.filter(id => existingIds.has(id));
+    for (const id of existingIds) {
+      if (!cleanOrder.includes(id)) cleanOrder.push(id);
+    }
+    const needsUpdate = !existingIds.has(payload.exerciseId) || !cleanOrder.includes(payload.exerciseId);
+    if (needsUpdate) {
+      const completeOrder = [...cleanOrder.filter(id => id !== payload.exerciseId), payload.exerciseId];
+      await updateWorkout.mutateAsync({
+        workoutId: workout.id,
+        exercise_order: completeOrder,
+      });
+    }
+
     const createdSet = await addSet.mutateAsync({
       workoutId: workout.id,
       ...payload,
@@ -575,15 +602,6 @@ export default function WorkoutDetail() {
 
     if (!createdSet?.id) {
       throw new Error("Failed to create workout set");
-    }
-
-    // Auto-append new exercise to order if not already present
-    const currentOrder = workout.exercise_order ?? [];
-    if (!currentOrder.includes(payload.exerciseId)) {
-      updateWorkout.mutate({
-        workoutId: workout.id,
-        exercise_order: [...currentOrder, payload.exerciseId],
-      });
     }
 
     return { id: createdSet.id };

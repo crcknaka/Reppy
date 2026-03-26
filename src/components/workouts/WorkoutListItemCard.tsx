@@ -97,6 +97,12 @@ export function WorkoutListItemCard({
             </span>
           </div>
           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+            {!!recordCount && recordCount > 0 && (
+              <span className="flex items-center gap-1 text-yellow-500">
+                <Trophy className="h-4 w-4" />
+                {recordCount}
+              </span>
+            )}
             <span className="flex items-center gap-1">
               <Dumbbell className="h-3.5 w-3.5" />
               {getUniqueExercises(workout)}
@@ -109,12 +115,6 @@ export function WorkoutListItemCard({
               <span className="flex items-center gap-1">
                 <Route className="h-3.5 w-3.5" />
                 {convertDistance(totalDistance)} {distanceUnit}
-              </span>
-            )}
-            {!!recordCount && recordCount > 0 && (
-              <span className="flex items-center gap-1 text-yellow-500">
-                <Trophy className="h-4 w-4" />
-                {recordCount}
               </span>
             )}
           </div>

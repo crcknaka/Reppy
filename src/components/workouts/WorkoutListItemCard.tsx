@@ -113,7 +113,7 @@ export function WorkoutListItemCard({
             )}
             {!!recordCount && recordCount > 0 && (
               <span className="flex items-center gap-1 text-yellow-500">
-                <Trophy className="h-3.5 w-3.5" />
+                <Trophy className="h-4 w-4" />
                 {recordCount}
               </span>
             )}

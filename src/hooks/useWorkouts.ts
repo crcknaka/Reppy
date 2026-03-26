@@ -387,14 +387,14 @@ export function useSingleWorkout(workoutId: string | undefined) {
   });
 }
 
-export function useUserAllTimeBests(userId: string | null | undefined, excludeWorkoutId?: string) {
+export function useUserAllTimeBests(userId: string | null | undefined, excludeWorkoutId?: string, beforeDate?: string) {
   return useQuery({
-    queryKey: ["user-all-time-bests", userId, excludeWorkoutId],
+    queryKey: ["user-all-time-bests", userId, excludeWorkoutId, beforeDate],
     queryFn: async () => {
       if (!userId) throw new Error("User ID is required");
       if (!navigator.onLine) return {};
 
-      const { data, error } = await supabase
+      let query = supabase
         .from("workout_sets")
         .select(`
           id,
@@ -405,10 +405,17 @@ export function useUserAllTimeBests(userId: string | null | undefined, excludeWo
           duration_minutes,
           plank_seconds,
           workout_id,
-          workout:workouts!inner(user_id),
+          workout:workouts!inner(user_id, date),
           exercise:exercises(id, name, type, is_preset, name_translations)
         `)
         .eq('workout.user_id', userId);
+
+      // Only include sets from workouts before the given date (for historical records)
+      if (beforeDate) {
+        query = query.lt('workout.date', beforeDate);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 

@@ -135,7 +135,7 @@ export default function WorkoutDetail() {
   const deleteSet = useOfflineDeleteSet();
   const updateSet = useOfflineUpdateSet();
   const updateWorkout = useOfflineUpdateWorkout();
-  const { data: allTimeBests } = useUserAllTimeBests(workout?.user_id ?? user?.id, id);
+  const { data: allTimeBests } = useUserAllTimeBests(workout?.user_id ?? user?.id, id, workout?.date);
 
   // Check if current user is the owner (works for both authenticated users and guests)
   const isOwner = workout?.user_id === effectiveUserId;
@@ -1321,7 +1321,7 @@ export default function WorkoutDetail() {
                 {records > 0 && (
                   <div className="flex items-center gap-2.5 text-sm">
                     <Trophy className="h-4 w-4 text-yellow-500 flex-shrink-0" />
-                    <span className="text-muted-foreground">{records} {records === 1 ? "record" : "records"}</span>
+                    <span className="text-muted-foreground">{records} {t("workout.recordsShort")}</span>
                   </div>
                 )}
               </div>

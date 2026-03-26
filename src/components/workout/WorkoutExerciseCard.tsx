@@ -255,8 +255,11 @@ export function WorkoutExerciseCard({
               .slice()
               .sort((a, b) => a.set_number - b.set_number)
               .map((set, displayIndex) => (
+                    <div key={set.id} className="relative">
+                      {isRecordSet(set.id) && (
+                        <Trophy className="absolute -left-0.5 -top-0.5 h-4 w-4 text-yellow-500 z-10 drop-shadow-sm" />
+                      )}
                     <div
-                      key={set.id}
                       className={cn(
                         "relative grid gap-1 items-center py-2 pl-2 pr-2 rounded-md cursor-pointer select-none",
                         exercise?.type === "bodyweight" || exercise?.type === "timed"
@@ -283,9 +286,6 @@ export function WorkoutExerciseCard({
                         }
                       }}
                     >
-                      {isRecordSet(set.id) && (
-                        <Trophy className="absolute -left-0.5 -top-0.5 h-3.5 w-3.5 text-yellow-500" />
-                      )}
                       <div className="flex justify-center">
                         {readOnly ? (
                           <span className="text-sm font-semibold text-muted-foreground tabular-nums">{displayIndex + 1}</span>
@@ -383,6 +383,7 @@ export function WorkoutExerciseCard({
                           )
                         )}
                       </>
+                    </div>
                     </div>
               ))}
 

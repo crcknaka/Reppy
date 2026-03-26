@@ -72,6 +72,7 @@ export function useOfflineWorkouts() {
               created_at: workout.created_at,
               updated_at: workout.updated_at,
               is_locked: workout.is_locked,
+              exercise_order: workout.exercise_order ?? [],
               workout_sets: setsWithExercises,
             } as Workout;
           })
@@ -128,6 +129,7 @@ export function useOfflineWorkouts() {
                 created_at: workout.created_at,
                 updated_at: workout.updated_at,
                 is_locked: workout.is_locked,
+                exercise_order: (workout as Record<string, unknown>).exercise_order as string[] ?? [],
                 _synced: true,
                 _lastModified: Date.now(),
               });
@@ -230,6 +232,7 @@ export function useOfflineCreateWorkout() {
         created_at: now,
         updated_at: now,
         is_locked: false,
+        exercise_order: [] as string[],
         _synced: false,
         _lastModified: Date.now(),
         _offlineId: offlineId,
@@ -642,6 +645,7 @@ export function useOfflineSingleWorkout(workoutId: string | undefined) {
           created_at: workout.created_at,
           updated_at: workout.updated_at,
           is_locked: workout.is_locked,
+          exercise_order: workout.exercise_order ?? [],
           workout_sets: setsWithExercises,
         } as Workout;
       };
@@ -696,6 +700,7 @@ export function useOfflineSingleWorkout(workoutId: string | undefined) {
               created_at: data.created_at,
               updated_at: data.updated_at,
               is_locked: data.is_locked,
+              exercise_order: (data as Record<string, unknown>).exercise_order as string[] ?? [],
               _synced: true,
               _lastModified: Date.now(),
             });
@@ -784,14 +789,17 @@ export function useOfflineUpdateWorkout() {
       workoutId,
       notes,
       photo_url,
+      exercise_order,
     }: {
       workoutId: string;
       notes?: string;
       photo_url?: string | null;
+      exercise_order?: string[];
     }) => {
       const updateData: Record<string, unknown> = {};
       if (notes !== undefined) updateData.notes = notes;
       if (photo_url !== undefined) updateData.photo_url = photo_url;
+      if (exercise_order !== undefined) updateData.exercise_order = exercise_order;
 
       // Update local first
       await offlineDb.workouts.update(workoutId, {

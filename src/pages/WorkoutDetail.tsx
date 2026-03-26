@@ -1,11 +1,28 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+  DragOverlay,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format, isToday, parseISO } from "date-fns";
 import { getDateLocale } from "@/lib/dateLocales";
 import { useTranslation } from "react-i18next";
 import { getExerciseName } from "@/lib/i18n";
-import { ArrowLeft, Plus, Trash2, MessageSquare, Save, Pencil, X, Camera, Loader2, ImageIcon, Trophy, Share2, Copy, Check, Ban, Lock, Unlock, Maximize2, Dumbbell } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, MessageSquare, Save, Pencil, X, Camera, Loader2, ImageIcon, Trophy, Share2, Copy, Check, Ban, Lock, Unlock, Maximize2, Dumbbell, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -64,6 +81,38 @@ import type { EditSetContext } from "@/components/workout/setDialogTypes";
 import { AddExerciseDialog } from "@/components/workout/AddExerciseDialog";
 import { AddOrUpdateSetDialog } from "@/components/workout/AddOrUpdateSetDialog";
 
+// Sortable wrapper for exercise cards
+function SortableExerciseCard({ id, children, disabled }: { id: string; children: React.ReactNode; disabled?: boolean }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id, disabled });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...(disabled ? {} : listeners)}>
+      <div className="relative">
+        {!disabled && (
+          <div className="absolute -left-1 top-1/2 -translate-y-1/2 z-10 p-1.5 text-muted-foreground/50">
+            <GripVertical className="h-4 w-4" />
+          </div>
+        )}
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function WorkoutDetail() {
   const { t, i18n } = useTranslation();
   const dateLocale = getDateLocale(i18n.language);
@@ -104,6 +153,14 @@ export default function WorkoutDetail() {
     check();
     return () => window.removeEventListener("scroll", check);
   }, []);
+
+  // DnD for exercise reorder
+  const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null);
+  const dndSensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { delay: 200, tolerance: 5 },
+    })
+  );
 
   const [notes, setNotes] = useState("");
   const [isEditingNotes, setIsEditingNotes] = useState(false);
@@ -266,23 +323,62 @@ export default function WorkoutDetail() {
   }, [setsByExercise, allTimeBests]);
 
   const orderedExerciseEntries = useMemo(() => {
+    const entries = Object.entries(setsByExercise);
+    const order = workout?.exercise_order ?? [];
+
+    // Sort by saved order first, then by created_at for any new exercises
+    const orderMap = new Map(order.map((id, i) => [id, i]));
+
     const toTimestamp = (value: string | null | undefined) => {
       if (!value) return Number.POSITIVE_INFINITY;
       const timestamp = new Date(value).getTime();
       return Number.isNaN(timestamp) ? Number.POSITIVE_INFINITY : timestamp;
     };
 
-    return Object.entries(setsByExercise).sort(([, a], [, b]) => {
+    return entries.sort(([aId, a], [bId, b]) => {
+      const aOrder = orderMap.get(aId);
+      const bOrder = orderMap.get(bId);
+
+      // Both have saved order — use it
+      if (aOrder !== undefined && bOrder !== undefined) return aOrder - bOrder;
+      // Only one has saved order — it goes first
+      if (aOrder !== undefined) return -1;
+      if (bOrder !== undefined) return 1;
+
+      // Neither has saved order — fallback to created_at
       const aFirst = Math.min(...a.sets.map((set) => toTimestamp(set.created_at)));
       const bFirst = Math.min(...b.sets.map((set) => toTimestamp(set.created_at)));
-
-      if (aFirst !== bFirst) return aFirst - bFirst;
-
-      const aSetNumber = Math.min(...a.sets.map((set) => set.set_number));
-      const bSetNumber = Math.min(...b.sets.map((set) => set.set_number));
-      return aSetNumber - bSetNumber;
+      return aFirst - bFirst;
     });
-  }, [setsByExercise]);
+  }, [setsByExercise, workout?.exercise_order]);
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveExerciseId(event.active.id as string);
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate(30);
+    }
+  }, []);
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      setActiveExerciseId(null);
+      const { active, over } = event;
+      if (!over || active.id === over.id || !workout) return;
+
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate(15);
+      }
+
+      const exerciseIds = orderedExerciseEntries.map(([id]) => id);
+      const oldIndex = exerciseIds.indexOf(active.id as string);
+      const newIndex = exerciseIds.indexOf(over.id as string);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const newOrder = arrayMove(exerciseIds, oldIndex, newIndex);
+      updateWorkout.mutate({ workoutId: workout.id, exercise_order: newOrder });
+    },
+    [orderedExerciseEntries, workout, updateWorkout]
+  );
 
   // Show loader while loading or fetching (includes retries)
   if (isWorkoutLoading || (isFetching && !workout)) {
@@ -890,27 +986,44 @@ export default function WorkoutDetail() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
-          {orderedExerciseEntries.map(([exerciseId, { exercise, sets }], index) => (
-            <WorkoutExerciseCard
-              key={exerciseId}
-              exerciseId={exerciseId}
-              exercise={exercise}
-              sets={sets}
-              index={index}
-              isOwner={isOwner}
-              isLocked={!!workout?.is_locked}
-              isRecordSet={(setId) => recordSetIds.has(setId)}
-              dateLocale={dateLocale}
-              onOpenExerciseHistory={openExerciseHistory}
-              onAddAnotherSet={handleAddAnotherSet}
-              onCreateSet={createSetForWorkout}
-              onEditSet={handleEditSetFromCard}
-              onDeleteSet={deleteWorkoutSet}
-              onToggleSetCompleted={toggleWorkoutSetCompleted}
-            />
-          ))}
-        </div>
+        <DndContext
+          sensors={dndSensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={orderedExerciseEntries.map(([id]) => id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-4">
+              {orderedExerciseEntries.map(([exerciseId, { exercise, sets }], index) => (
+                <SortableExerciseCard
+                  key={exerciseId}
+                  id={exerciseId}
+                  disabled={!isOwner || !!workout?.is_locked}
+                >
+                  <WorkoutExerciseCard
+                    exerciseId={exerciseId}
+                    exercise={exercise}
+                    sets={sets}
+                    index={index}
+                    isOwner={isOwner}
+                    isLocked={!!workout?.is_locked}
+                    isRecordSet={(setId) => recordSetIds.has(setId)}
+                    dateLocale={dateLocale}
+                    onOpenExerciseHistory={openExerciseHistory}
+                    onAddAnotherSet={handleAddAnotherSet}
+                    onCreateSet={createSetForWorkout}
+                    onEditSet={handleEditSetFromCard}
+                    onDeleteSet={deleteWorkoutSet}
+                    onToggleSetCompleted={toggleWorkoutSetCompleted}
+                  />
+                </SortableExerciseCard>
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
 
       {/* Notes Card */}

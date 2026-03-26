@@ -36,6 +36,7 @@ export interface Workout {
   created_at: string;
   updated_at: string;
   is_locked: boolean;
+  exercise_order?: string[];
   workout_sets?: WorkoutSet[];
 }
 

@@ -93,29 +93,25 @@ function SortableExerciseCard({ id, children, disabled }: { id: string; children
   } = useSortable({ id, disabled });
 
   const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
-    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.3 : 1,
   };
 
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
-      {isDragging ? (
-        <div className="h-16 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5" />
-      ) : (
-        <div className="relative">
-          {!disabled && (
-            <div
-              className="absolute left-1.5 top-3 z-10 p-1 text-muted-foreground/40 cursor-grab active:cursor-grabbing"
-              style={{ touchAction: "none" }}
-              {...listeners}
-            >
-              <GripVertical className="h-4 w-4" />
-            </div>
-          )}
-          {children}
-        </div>
-      )}
+      <div className="relative">
+        {!disabled && (
+          <div
+            className="absolute left-1.5 top-3 z-10 p-1 text-muted-foreground/40 cursor-grab active:cursor-grabbing"
+            style={{ touchAction: "none" }}
+            {...listeners}
+          >
+            <GripVertical className="h-4 w-4" />
+          </div>
+        )}
+        {children}
+      </div>
     </div>
   );
 }

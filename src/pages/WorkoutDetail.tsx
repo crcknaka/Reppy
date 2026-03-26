@@ -1272,56 +1272,68 @@ export default function WorkoutDetail() {
 
         return (
           <Card>
-            <CardHeader className="pb-2 pt-4 px-4">
+            <CardHeader className="pb-3 pt-4 px-5">
               <CardTitle className="text-base flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-primary" />
                 {t("progress.title")}
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-4 pb-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-2.5 text-sm">
-                  <Dumbbell className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <span className="text-muted-foreground">{exerciseCount} {t("workout.exercisesShort")}</span>
+            <CardContent className="px-5 pb-5 space-y-3">
+              {records > 0 && (
+                <div className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-yellow-500/10 to-amber-500/5 border border-yellow-500/20 px-4 py-3">
+                  <div className="flex items-center justify-center h-9 w-9 rounded-full bg-yellow-500/15">
+                    <Trophy className="h-5 w-5 text-yellow-500" />
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-yellow-500 leading-tight">{records} {t("workout.recordsShort")}</div>
+                    <div className="text-[10px] text-yellow-500/60">{t("progress.personalBest")}</div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2.5 text-sm">
-                  <Repeat className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <span className="text-muted-foreground">{completedSets}/{totalSets} {t("workout.setsShort")}</span>
+              )}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
+                  <Dumbbell className="h-4 w-4 text-primary" />
+                  <div className="text-lg font-bold text-foreground leading-none">{exerciseCount}</div>
+                  <div className="text-[10px] text-muted-foreground">{t("workout.exercisesShort")}</div>
                 </div>
-                {totalVolume > 0 && (
-                  <div className="flex items-center gap-2.5 text-sm">
-                    <Weight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-muted-foreground">{formattedVolume}</span>
+                <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
+                  <Repeat className="h-4 w-4 text-primary" />
+                  <div className="text-lg font-bold text-foreground leading-none">{totalSets}</div>
+                  <div className="text-[10px] text-muted-foreground">{t("workout.setsShort")}</div>
+                </div>
+                {totalReps > 0 && (
+                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
+                    <Activity className="h-4 w-4 text-primary" />
+                    <div className="text-lg font-bold text-foreground leading-none">{totalReps}</div>
+                    <div className="text-[10px] text-muted-foreground">{t("units.reps")}</div>
                   </div>
                 )}
-                {totalReps > 0 && (
-                  <div className="flex items-center gap-2.5 text-sm">
-                    <Activity className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-muted-foreground">{totalReps} {t("units.reps")}</span>
+                {totalVolume > 0 && (
+                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
+                    <Weight className="h-4 w-4 text-primary" />
+                    <div className="text-lg font-bold text-foreground leading-none">{formattedVolume}</div>
+                    <div className="text-[10px] text-muted-foreground">{t("progress.volume")}</div>
                   </div>
                 )}
                 {totalDistance > 0 && (
-                  <div className="flex items-center gap-2.5 text-sm">
-                    <Route className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-muted-foreground">{convertDistance(totalDistance).toFixed(1)} {units.distance}</span>
+                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
+                    <Route className="h-4 w-4 text-primary" />
+                    <div className="text-lg font-bold text-foreground leading-none">{convertDistance(totalDistance).toFixed(1)} {units.distance}</div>
+                    <div className="text-[10px] text-muted-foreground">{t("progress.distance")}</div>
                   </div>
                 )}
                 {totalDurationMin > 0 && (
-                  <div className="flex items-center gap-2.5 text-sm">
-                    <Timer className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-muted-foreground">{totalDurationMin} {t("units.min")}</span>
+                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
+                    <Timer className="h-4 w-4 text-primary" />
+                    <div className="text-lg font-bold text-foreground leading-none">{totalDurationMin} {t("units.min")}</div>
+                    <div className="text-[10px] text-muted-foreground">{t("progress.time")}</div>
                   </div>
                 )}
                 {totalPlankSec > 0 && (
-                  <div className="flex items-center gap-2.5 text-sm">
-                    <Timer className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-muted-foreground">{totalPlankSec} {t("units.sec")}</span>
-                  </div>
-                )}
-                {records > 0 && (
-                  <div className="flex items-center gap-2.5 text-sm">
-                    <Trophy className="h-4 w-4 text-yellow-500 flex-shrink-0" />
-                    <span className="text-muted-foreground">{records} {t("workout.recordsShort")}</span>
+                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
+                    <Timer className="h-4 w-4 text-primary" />
+                    <div className="text-lg font-bold text-foreground leading-none">{totalPlankSec >= 60 ? `${Math.floor(totalPlankSec / 60)}${t("units.min")} ${totalPlankSec % 60}${t("units.sec")}` : `${totalPlankSec} ${t("units.sec")}`}</div>
+                    <div className="text-[10px] text-muted-foreground">{t("progress.inPlank")}</div>
                   </div>
                 )}
               </div>

@@ -329,9 +329,9 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
         // Micro pulse animation on value change
         if (movedSteps > 0) {
           input.style.transition = "none";
-          input.style.transform = "scale(1.08)";
+          input.style.transform = "scale(1.35)";
           requestAnimationFrame(() => {
-            input.style.transition = "transform 150ms ease-out";
+            input.style.transition = "transform 250ms ease-out";
             input.style.transform = "scale(1)";
           });
         }

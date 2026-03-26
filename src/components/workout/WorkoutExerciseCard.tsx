@@ -259,8 +259,10 @@ export function WorkoutExerciseCard({
                             ? "grid-cols-[32px_1fr_1fr]"
                             : "grid-cols-[32px_1fr_1fr_64px]",
                         isRecordSet(set.id) ? "bg-yellow-100 dark:bg-yellow-900/30" : "bg-muted/30",
+                        "animate-in fade-in slide-in-from-bottom-1 duration-200",
                         set.is_completed && "opacity-40"
                       )}
+                      style={{ animationDelay: `${displayIndex * 30}ms`, animationFillMode: "backwards" }}
                       onClick={(e) => {
                         if ((e.target as HTMLElement).closest("button")) {
                           return;

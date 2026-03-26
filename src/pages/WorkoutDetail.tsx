@@ -168,6 +168,37 @@ export default function WorkoutDetail() {
     })
   );
 
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [showRecordCelebration, setShowRecordCelebration] = useState(false);
+  const prevCompletionRef = useRef<boolean | null>(null);
+
+  // Detect when all sets become completed → trigger celebration
+  const allSetsCompleted = useMemo(() => {
+    if (!workout?.workout_sets || workout.workout_sets.length === 0) return false;
+    return workout.workout_sets.every(s => s.is_completed);
+  }, [workout?.workout_sets]);
+
+  const isDataReady = !!workout?.workout_sets && workout.workout_sets.length > 0;
+
+  useEffect(() => {
+    if (!isDataReady) return; // Wait for real data
+    if (prevCompletionRef.current === null) {
+      // First time data is ready — save state, no effect
+      prevCompletionRef.current = allSetsCompleted;
+      return;
+    }
+    if (allSetsCompleted && !prevCompletionRef.current) {
+      setShowCelebration(true);
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate([30, 50, 30, 50, 60]);
+      }
+      const timer = setTimeout(() => setShowCelebration(false), 2000);
+      prevCompletionRef.current = allSetsCompleted;
+      return () => clearTimeout(timer);
+    }
+    prevCompletionRef.current = allSetsCompleted;
+  }, [allSetsCompleted, isDataReady]);
+
   const [notes, setNotes] = useState("");
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -328,6 +359,35 @@ export default function WorkoutDetail() {
     return result;
   }, [setsByExercise, allTimeBests]);
 
+  // Detect new personal record → trigger record celebration
+  // Track actual set IDs, not just count — only fire when a NEW id appears
+  const prevRecordIdsRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    if (!isDataReady) return; // Wait for real data
+    if (prevRecordIdsRef.current === null) {
+      // First time data is ready — save current set, no effect
+      prevRecordIdsRef.current = new Set(recordSetIds);
+      return;
+    }
+    // Check if there's a truly new record ID that wasn't there before
+    let hasNew = false;
+    for (const id of recordSetIds) {
+      if (!prevRecordIdsRef.current.has(id)) {
+        hasNew = true;
+        break;
+      }
+    }
+    prevRecordIdsRef.current = new Set(recordSetIds);
+    if (hasNew) {
+      setShowRecordCelebration(true);
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate([50, 30, 80]);
+      }
+      const timer = setTimeout(() => setShowRecordCelebration(false), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [recordSetIds, isDataReady]);
+
   const orderedExerciseEntries = useMemo(() => {
     const entries = Object.entries(setsByExercise);
     const order = workout?.exercise_order ?? [];
@@ -482,6 +542,15 @@ export default function WorkoutDetail() {
       workoutId: workout.id,
       ...payload,
     });
+
+    // Auto-append new exercise to order if not already present
+    const currentOrder = workout.exercise_order ?? [];
+    if (!currentOrder.includes(payload.exerciseId)) {
+      updateWorkout.mutate({
+        workoutId: workout.id,
+        exercise_order: [...currentOrder, payload.exerciseId],
+      });
+    }
   };
 
   const createSetForCopyWorkout = async (payload: {
@@ -505,6 +574,15 @@ export default function WorkoutDetail() {
 
     if (!createdSet?.id) {
       throw new Error("Failed to create workout set");
+    }
+
+    // Auto-append new exercise to order if not already present
+    const currentOrder = workout.exercise_order ?? [];
+    if (!currentOrder.includes(payload.exerciseId)) {
+      updateWorkout.mutate({
+        workoutId: workout.id,
+        exercise_order: [...currentOrder, payload.exerciseId],
+      });
     }
 
     return { id: createdSet.id };
@@ -760,6 +838,65 @@ export default function WorkoutDetail() {
         >
           <Plus className="h-5 w-5" />
         </Button>,
+        document.body
+      )}
+      {/* Celebration animation on 100% completion */}
+      {showCelebration && createPortal(
+        <div className="fixed inset-0 z-[99999] pointer-events-none overflow-hidden">
+          {Array.from({ length: 24 }).map((_, i) => (
+            <span
+              key={i}
+              className="absolute text-xl"
+              style={{
+                left: `${5 + Math.random() * 90}%`,
+                top: "-5%",
+                animation: `celebration-fall ${1.5 + Math.random() * 1}s ease-in forwards`,
+                animationDelay: `${Math.random() * 0.6}s`,
+              }}
+            >
+              {["💪", "🔥", "⭐", "🏆", "✅"][i % 5]}
+            </span>
+          ))}
+          <style>{`
+            @keyframes celebration-fall {
+              0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+              100% { transform: translateY(100vh) rotate(360deg) scale(0.5); opacity: 0; }
+            }
+          `}</style>
+        </div>,
+        document.body
+      )}
+      {/* Record celebration — golden trophies rising */}
+      {showRecordCelebration && createPortal(
+        <div className="fixed inset-0 z-[99999] pointer-events-none overflow-hidden">
+          {Array.from({ length: 20 }).map((_, i) => {
+            const size = [0.8, 1, 1.2, 1.5, 1.8, 2.2][Math.floor(Math.random() * 6)];
+            return (
+              <span
+                key={i}
+                className="absolute"
+                style={{
+                  left: `${5 + Math.random() * 90}%`,
+                  bottom: "-5%",
+                  fontSize: `${size}rem`,
+                  animation: `record-rise ${2.5 + Math.random() * 1.5}s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards`,
+                  animationDelay: `${Math.random() * 0.8}s`,
+                }}
+              >
+                {["🏆", "🏆", "🏆", "👑", "✨", "🥇"][i % 6]}
+              </span>
+            );
+          })}
+          <style>{`
+            @keyframes record-rise {
+              0% { transform: translateY(0) scale(0.3) rotate(0deg); opacity: 0; }
+              10% { opacity: 0.8; }
+              25% { transform: translateY(-20vh) scale(1) rotate(5deg); opacity: 1; }
+              75% { opacity: 0.6; }
+              100% { transform: translateY(-110vh) scale(0.7) rotate(-10deg); opacity: 0; }
+            }
+          `}</style>
+        </div>,
         document.body
       )}
       <div className="flex items-center gap-3">

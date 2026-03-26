@@ -996,6 +996,21 @@ export default function WorkoutDetail() {
           </CardContent>
         </Card>
       ) : (
+        <>
+        {/* Overall workout progress */}
+        {workout.workout_sets && workout.workout_sets.length > 0 && (() => {
+          const total = workout.workout_sets.length;
+          const completed = workout.workout_sets.filter(s => s.is_completed).length;
+          const pct = Math.round((completed / total) * 100);
+          return (
+            <div className="h-[3px] bg-muted/30 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary/40 rounded-full transition-all duration-500"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          );
+        })()}
         <DndContext
           sensors={dndSensors}
           collisionDetection={closestCenter}
@@ -1035,6 +1050,7 @@ export default function WorkoutDetail() {
             </div>
           </SortableContext>
         </DndContext>
+        </>
       )}
 
       {/* Notes Card */}

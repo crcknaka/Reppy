@@ -325,6 +325,16 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
         applyNativeInputValue(input, rounded.toString());
         triggerStepHaptic(movedSteps);
         redrawRuler();
+
+        // Micro pulse animation on value change
+        if (movedSteps > 0) {
+          input.style.transition = "none";
+          input.style.transform = "scale(1.08)";
+          requestAnimationFrame(() => {
+            input.style.transition = "transform 150ms ease-out";
+            input.style.transform = "scale(1)";
+          });
+        }
       },
       [decimals, maxValue, minValue, resolvedSwipeStep, triggerStepHaptic, redrawRuler],
     );

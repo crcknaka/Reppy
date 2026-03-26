@@ -197,7 +197,7 @@ export function WorkoutExerciseCard({
               )}
             </div>
             {exercise?.image_url ? (
-              <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+              <div className="w-[4.5rem] h-[4.5rem] rounded-lg overflow-hidden bg-muted flex-shrink-0">
                 <img
                   src={exercise.image_url}
                   alt={getExerciseName(exercise.name, exercise.name_translations)}
@@ -205,7 +205,7 @@ export function WorkoutExerciseCard({
                 />
               </div>
             ) : (
-              <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+              <div className="w-[4.5rem] h-[4.5rem] rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
                 {exercise?.type === "weighted" ? (
                   <Dumbbell className="h-8 w-8 text-muted-foreground" />
                 ) : exercise?.type === "cardio" ? (
@@ -386,6 +386,15 @@ export function WorkoutExerciseCard({
             </Button>
           )}
         </CardContent>
+        {/* Set completion progress bar */}
+        {sets.length > 0 && !readOnly && (
+          <div className="h-[2px] bg-muted/30 rounded-b-xl overflow-hidden">
+            <div
+              className="h-full bg-primary/40 transition-all duration-300 rounded-b-xl"
+              style={{ width: `${(sets.filter(s => s.is_completed).length / sets.length) * 100}%` }}
+            />
+          </div>
+        )}
       </Card>
 
       <AlertDialog open={!!setToDelete} onOpenChange={(open) => !open && setSetToDelete(null)}>

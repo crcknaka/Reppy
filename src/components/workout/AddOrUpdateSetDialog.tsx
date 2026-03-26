@@ -447,28 +447,6 @@ export function AddOrUpdateSetDialog({
               )
             ) : (
               <div className="space-y-4 max-w-md mx-auto w-full">
-                <div className="space-y-2">
-                  <Label>{t("workout.reps")}</Label>
-                  <SwipeNumberInput
-                    id="add-reps"
-                    type="number"
-                    inputMode="numeric"
-                    enterKeyHint={selectedExercise.type === "weighted" ? "next" : "done"}
-                    min={LIMITS.MIN_REPS}
-                    max={LIMITS.MAX_REPS}
-                    placeholder="0"
-                    value={reps}
-                    suffix={t("units.reps")}
-                    onChange={(e) => setReps(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && selectedExercise.type === "weighted") {
-                        e.preventDefault();
-                        document.getElementById("add-weight")?.focus();
-                      }
-                    }}
-                    autoFocus
-                  />
-                </div>
                 {selectedExercise.type === "weighted" && (
                   <div className="space-y-2">
                     <Label>{t("workout.weight")}</Label>
@@ -476,7 +454,7 @@ export function AddOrUpdateSetDialog({
                       id="add-weight"
                       type="number"
                       inputMode="decimal"
-                      enterKeyHint="done"
+                      enterKeyHint="next"
                       step="0.1"
                       swipeStep="0.5"
                       min={LIMITS.MIN_WEIGHT_KG}
@@ -485,12 +463,35 @@ export function AddOrUpdateSetDialog({
                       value={weight}
                       suffix={units.weight}
                       onChange={(e) => setWeight(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          document.getElementById("add-reps")?.focus();
+                        }
+                      }}
+                      autoFocus
                     />
                     {selectedExercise.name.toLowerCase().includes("гантел") && (
                       <p className="text-xs text-muted-foreground">{t("workout.dumbbellNote")}</p>
                     )}
                   </div>
                 )}
+                <div className="space-y-2">
+                  <Label>{t("workout.reps")}</Label>
+                  <SwipeNumberInput
+                    id="add-reps"
+                    type="number"
+                    inputMode="numeric"
+                    enterKeyHint="done"
+                    min={LIMITS.MIN_REPS}
+                    max={LIMITS.MAX_REPS}
+                    placeholder="0"
+                    value={reps}
+                    suffix={t("units.reps")}
+                    onChange={(e) => setReps(e.target.value)}
+                    autoFocus={selectedExercise.type !== "weighted"}
+                  />
+                </div>
               </div>
             )}
 

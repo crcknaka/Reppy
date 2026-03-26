@@ -99,6 +99,7 @@ export function WorkoutExerciseCard({
   const { t } = useTranslation();
   const { units, convertWeight, convertDistance } = useUnits();
   const [setToDelete, setSetToDelete] = useState<string | null>(null);
+  const [deletingSetId, setDeletingSetId] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null); // "copy:setId" | "complete:setId" | "delete"
 
   const canManageSets = !readOnly && isOwner && !isLocked;
@@ -139,14 +140,21 @@ export function WorkoutExerciseCard({
 
   const confirmDeleteSet = async () => {
     if (!setToDelete || pendingAction) return;
+    const idToDelete = setToDelete;
+    setSetToDelete(null);
+    setDeletingSetId(idToDelete);
     setPendingAction("delete");
+
+    // Wait for fade-out animation
+    await new Promise(r => setTimeout(r, 300));
+
     try {
-      await onDeleteSet(setToDelete);
+      await onDeleteSet(idToDelete);
       toast.success(t("workout.setDeleted"));
-      setSetToDelete(null);
     } catch {
       toast.error(t("workout.setDeleteError"));
     } finally {
+      setDeletingSetId(null);
       setPendingAction(null);
     }
   };
@@ -259,8 +267,10 @@ export function WorkoutExerciseCard({
                             ? "grid-cols-[32px_1fr_1fr]"
                             : "grid-cols-[32px_1fr_1fr_64px]",
                         isRecordSet(set.id) ? "bg-yellow-100 dark:bg-yellow-900/30" : "bg-muted/30",
-                        "animate-in fade-in slide-in-from-bottom-1 duration-200",
-                        set.is_completed && "opacity-40"
+                        deletingSetId === set.id
+                          ? "transition-all duration-300 ease-in-out opacity-0 -translate-x-4 scale-95"
+                          : "animate-in fade-in slide-in-from-bottom-1 duration-200",
+                        set.is_completed && deletingSetId !== set.id && "opacity-40"
                       )}
                       style={{ animationDelay: `${displayIndex * 30}ms`, animationFillMode: "backwards" }}
                       onClick={(e) => {

@@ -289,11 +289,11 @@ export function WorkoutExerciseCard({
                           <button
                             type="button"
                             className={cn(
-                              "inline-flex h-7 w-7 items-center justify-center rounded-[0.65rem] border text-xs font-semibold tabular-nums transition-colors",
+                              "inline-flex h-7 w-7 items-center justify-center rounded-[0.65rem] text-xs font-semibold tabular-nums transition-all duration-200",
                               set.is_completed
-                                ? "border-primary bg-primary text-primary-foreground"
-                                : "border-muted-foreground/40 bg-background text-muted-foreground",
-                              canManageSets && !set.is_completed && "hover:border-primary/60",
+                                ? "border border-primary bg-primary text-primary-foreground"
+                                : "border border-dashed border-muted-foreground/40 bg-background text-muted-foreground",
+                              canManageSets && !set.is_completed && "hover:border-primary/60 hover:text-primary active:scale-95",
                               !canManageSets && "cursor-default"
                             )}
                             aria-label={
@@ -367,7 +367,7 @@ export function WorkoutExerciseCard({
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                className="h-7 w-7 text-muted-foreground hover:text-foreground"
                                 disabled={!!pendingAction}
                                 onClick={() => setSetToDelete(set.id)}
                               >

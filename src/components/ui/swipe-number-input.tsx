@@ -97,10 +97,8 @@ function drawRuler(
   ctx.clearRect(0, 0, w, h);
 
   const centerX = w / 2;
-  // How many steps from 0 to current value
   const stepsFromZero = value / stepSize;
-  // Pixel offset of current value from ruler center
-  const offsetPx = stepsFromZero * TICK_GAP_PX;
+  const fadeZone = w * 0.2; // 20% fade at each edge
 
   // Draw ticks
   const ticksVisible = Math.ceil(w / TICK_GAP_PX) + 2;
@@ -134,6 +132,17 @@ function drawRuler(
       tickWidth = 0.5;
     }
 
+    // Proximity brightness — ticks near center are brighter
+    const distFromCenter = Math.abs(x - centerX);
+    const proximityBoost = Math.max(0, 1 - distFromCenter / (w * 0.35));
+    tickAlpha += proximityBoost * baseAlpha * 0.8;
+
+    // Edge fade — ticks near edges fade out
+    let edgeFade = 1;
+    if (x < fadeZone) edgeFade = x / fadeZone;
+    else if (x > w - fadeZone) edgeFade = (w - x) / fadeZone;
+    tickAlpha *= Math.max(0, edgeFade);
+
     ctx.beginPath();
     ctx.moveTo(x, h);
     ctx.lineTo(x, h - tickH);
@@ -142,16 +151,22 @@ function drawRuler(
     ctx.stroke();
   }
 
-  // Center indicator — primary color
-  const style = getComputedStyle(canvas);
-  const primaryColor = style.getPropertyValue("--primary").trim();
+  // Center indicator — triangle pointer at bottom + line
+  const computedStyle = getComputedStyle(canvas);
+  const primaryColor = computedStyle.getPropertyValue("--primary").trim();
+  const color = primaryColor ? `hsl(${primaryColor})` : "hsl(24, 100%, 50%)";
+  const alpha = isActive ? 0.9 : 0.5;
+
+  ctx.globalAlpha = alpha;
+
+  // Triangle at bottom pointing down
+  ctx.fillStyle = color;
   ctx.beginPath();
   ctx.moveTo(centerX, h);
-  ctx.lineTo(centerX, 0);
-  ctx.strokeStyle = primaryColor ? `hsl(${primaryColor})` : "hsl(24, 100%, 50%)";
-  ctx.lineWidth = 2;
-  ctx.globalAlpha = isActive ? 0.9 : 0.5;
-  ctx.stroke();
+  ctx.lineTo(centerX - 4, h - 5);
+  ctx.lineTo(centerX + 4, h - 5);
+  ctx.closePath();
+  ctx.fill();
   ctx.globalAlpha = 1;
 }
 
@@ -435,7 +450,7 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
             className={cn(
               "flex h-10 w-full bg-transparent px-4 py-2 text-base ring-offset-background transition-all duration-200 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
               type === "number" && "appearance-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
-              swipeEnabled ? "select-none text-center border-0 outline-none focus-visible:ring-0 focus-visible:ring-offset-0" : "rounded-xl border border-input bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:border-ring hover:border-muted-foreground/50",
+              swipeEnabled ? "select-none text-center border-0 outline-none focus-visible:ring-0 focus-visible:ring-offset-0 caret-transparent" : "rounded-xl border border-input bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:border-ring hover:border-muted-foreground/50",
               className,
             )}
             style={swipeEnabled ? { ...style, touchAction: "pan-y" } : style}

@@ -477,7 +477,12 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
             ref={setRefs}
             disabled={disabled}
             readOnly={readOnly}
-            onFocus={(e) => { setIsFocused(true); e.target.select(); props.onFocus?.(e); }}
+            onFocus={(e) => {
+              setIsFocused(true);
+              const input = e.target;
+              setTimeout(() => { input.select(); input.setSelectionRange(0, input.value.length); }, 0);
+              props.onFocus?.(e);
+            }}
             onBlur={(e) => { setIsFocused(false); props.onBlur?.(e); }}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}

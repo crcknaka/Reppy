@@ -2,7 +2,7 @@ import { useState } from "react";
 import { format, type Locale } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Activity, CopyPlus, Dumbbell, History, Loader2, Plus, Timer, Trash2, Trophy, User } from "lucide-react";
+import { Activity, Check, CopyPlus, Dumbbell, History, Loader2, Plus, Timer, Trash2, Trophy, User } from "lucide-react";
 
 import { getExerciseName } from "@/lib/i18n";
 import { LIMITS } from "@/lib/limits";
@@ -319,7 +319,10 @@ export function WorkoutExerciseCard({
                               }
                             }}
                           >
-                            {displayIndex + 1}
+                            {set.is_completed
+                              ? <Check className="h-4 w-4" strokeWidth={3} />
+                              : displayIndex + 1
+                            }
                           </button>
                         )}
                       </div>

@@ -106,6 +106,18 @@ function drawRuler(
   const endIndex = Math.ceil(stepsFromZero + ticksVisible / 2);
 
   const baseAlpha = isActive ? 0.5 : 0.25;
+  const triH = 4;
+
+  // Get primary color for center tint
+  const computedStyle = getComputedStyle(canvas);
+  const primaryColor = computedStyle.getPropertyValue("--primary").trim();
+  const color = primaryColor ? `hsl(${primaryColor})` : "hsl(24, 100%, 50%)";
+
+  // Parse primary HSL for tick blending
+  const hslMatch = primaryColor.match(/([\d.]+)\s+([\d.]+)%?\s+([\d.]+)%?/);
+  const pH = hslMatch ? parseFloat(hslMatch[1]) : 24;
+  const pS = hslMatch ? parseFloat(hslMatch[2]) : 100;
+  const pL = hslMatch ? parseFloat(hslMatch[3]) : 50;
 
   for (let i = startIndex; i <= endIndex; i++) {
     const x = centerX + (i - stepsFromZero) * TICK_GAP_PX;
@@ -119,52 +131,50 @@ function drawRuler(
     let tickWidth: number;
 
     if (isMajor10) {
-      tickH = h * 0.85;
+      tickH = (h - triH) * 0.85;
       tickAlpha = baseAlpha * 1.8;
       tickWidth = 1.5;
     } else if (isMajor5) {
-      tickH = h * 0.6;
+      tickH = (h - triH) * 0.6;
       tickAlpha = baseAlpha * 1.4;
       tickWidth = 1;
     } else {
-      tickH = h * 0.35;
+      tickH = (h - triH) * 0.35;
       tickAlpha = baseAlpha;
       tickWidth = 0.5;
     }
 
-    // Proximity brightness — ticks near center are brighter
+    // Proximity — ticks near center are brighter and tinted primary
     const distFromCenter = Math.abs(x - centerX);
-    const proximityBoost = Math.max(0, 1 - distFromCenter / (w * 0.35));
-    tickAlpha += proximityBoost * baseAlpha * 0.8;
+    const proximity = Math.max(0, 1 - distFromCenter / (w * 0.12));
+    tickAlpha += proximity * baseAlpha * 0.6;
 
-    // Edge fade — ticks near edges fade out
+    // Edge fade
     let edgeFade = 1;
     if (x < fadeZone) edgeFade = x / fadeZone;
     else if (x > w - fadeZone) edgeFade = (w - x) / fadeZone;
     tickAlpha *= Math.max(0, edgeFade);
 
+    // Blend color: grey → primary near center
+    const colorMix = isActive ? proximity * 0.5 : 0;
+    const tickColor = colorMix > 0.1
+      ? `hsla(${pH}, ${pS}%, ${pL}%, ${tickAlpha})`
+      : `rgba(150, 150, 150, ${tickAlpha})`;
+
     ctx.beginPath();
     ctx.moveTo(x, h);
     ctx.lineTo(x, h - tickH);
-    ctx.strokeStyle = `rgba(150, 150, 150, ${tickAlpha})`;
+    ctx.strokeStyle = tickColor;
     ctx.lineWidth = tickWidth;
     ctx.stroke();
   }
 
-  // Center indicator — triangle pointer at bottom + line
-  const computedStyle = getComputedStyle(canvas);
-  const primaryColor = computedStyle.getPropertyValue("--primary").trim();
-  const color = primaryColor ? `hsl(${primaryColor})` : "hsl(24, 100%, 50%)";
-  const alpha = isActive ? 0.9 : 0.5;
-
-  ctx.globalAlpha = alpha;
-
-  // Triangle at bottom pointing down
+  ctx.globalAlpha = isActive ? 0.9 : 0.5;
   ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.moveTo(centerX, h);
-  ctx.lineTo(centerX - 4, h - 5);
-  ctx.lineTo(centerX + 4, h - 5);
+  ctx.moveTo(centerX, triH);
+  ctx.lineTo(centerX - 3.5, 0);
+  ctx.lineTo(centerX + 3.5, 0);
   ctx.closePath();
   ctx.fill();
   ctx.globalAlpha = 1;
@@ -448,9 +458,9 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
             max={max}
             lang={resolvedLang}
             className={cn(
-              "flex h-10 w-full bg-transparent px-4 py-2 text-base ring-offset-background transition-all duration-200 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+              "flex w-full bg-transparent px-4 py-2 ring-offset-background transition-all duration-200 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground/30 disabled:cursor-not-allowed disabled:opacity-50",
               type === "number" && "appearance-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
-              swipeEnabled ? "select-none text-center border-0 outline-none focus-visible:ring-0 focus-visible:ring-offset-0 caret-transparent" : "rounded-xl border border-input bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:border-ring hover:border-muted-foreground/50",
+              swipeEnabled ? "h-12 text-xl font-bold select-none text-center border-0 outline-none focus-visible:ring-0 focus-visible:ring-offset-0 caret-transparent" : "h-10 text-base md:text-sm rounded-xl border border-input bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:border-ring hover:border-muted-foreground/50",
               className,
             )}
             style={swipeEnabled ? { ...style, touchAction: "pan-y" } : style}
@@ -467,7 +477,10 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
           />
           {/* Suffix label (e.g. "km", "min") */}
           {swipeEnabled && suffix && (
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
+            <span className={cn(
+              "absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none transition-colors duration-200",
+              (isFocused || isSwiping) ? "text-primary" : "text-muted-foreground"
+            )}>
               {suffix}
             </span>
           )}

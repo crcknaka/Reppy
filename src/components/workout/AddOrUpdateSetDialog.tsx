@@ -384,7 +384,7 @@ export function AddOrUpdateSetDialog({
                     step="0.1"
                     min={LIMITS.MIN_DISTANCE_KM}
                     max={LIMITS.MAX_DISTANCE_KM}
-                    placeholder="5.5"
+                    placeholder="0"
                     value={distance}
                     suffix={units.distance}
                     onChange={(e) => setDistance(e.target.value)}
@@ -406,7 +406,7 @@ export function AddOrUpdateSetDialog({
                     enterKeyHint="done"
                     min={LIMITS.MIN_DURATION_MINUTES}
                     max={LIMITS.MAX_DURATION_MINUTES}
-                    placeholder="30"
+                    placeholder="0"
                     value={duration}
                     suffix={t("units.min")}
                     onChange={(e) => setDuration(e.target.value)}
@@ -432,7 +432,7 @@ export function AddOrUpdateSetDialog({
                       enterKeyHint="done"
                       min={LIMITS.MIN_TIME_SECONDS}
                       max={LIMITS.MAX_TIME_SECONDS}
-                      placeholder="60"
+                      placeholder="0"
                       value={duration}
                       suffix={t("units.sec")}
                       onChange={(e) => setDuration(e.target.value)}
@@ -456,7 +456,7 @@ export function AddOrUpdateSetDialog({
                     enterKeyHint={selectedExercise.type === "weighted" ? "next" : "done"}
                     min={LIMITS.MIN_REPS}
                     max={LIMITS.MAX_REPS}
-                    placeholder="8"
+                    placeholder="0"
                     value={reps}
                     suffix={t("units.reps")}
                     onChange={(e) => setReps(e.target.value)}
@@ -481,7 +481,7 @@ export function AddOrUpdateSetDialog({
                       swipeStep="0.5"
                       min={LIMITS.MIN_WEIGHT_KG}
                       max={LIMITS.MAX_WEIGHT_KG}
-                      placeholder="18"
+                      placeholder="0"
                       value={weight}
                       suffix={units.weight}
                       onChange={(e) => setWeight(e.target.value)}

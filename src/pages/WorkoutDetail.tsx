@@ -95,20 +95,27 @@ function SortableExerciseCard({ id, children, disabled }: { id: string; children
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.4 : 1,
     zIndex: isDragging ? 50 : undefined,
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...(disabled ? {} : listeners)}>
-      <div className="relative">
-        {!disabled && (
-          <div className="absolute -left-1 top-1/2 -translate-y-1/2 z-10 p-1.5 text-muted-foreground/50">
-            <GripVertical className="h-4 w-4" />
-          </div>
-        )}
-        {children}
-      </div>
+    <div ref={setNodeRef} style={style} {...attributes}>
+      {isDragging ? (
+        <div className="h-16 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5" />
+      ) : (
+        <div className="relative">
+          {!disabled && (
+            <div
+              className="absolute left-1.5 top-3 z-10 p-1 text-muted-foreground/40 cursor-grab active:cursor-grabbing"
+              style={{ touchAction: "none" }}
+              {...listeners}
+            >
+              <GripVertical className="h-4 w-4" />
+            </div>
+          )}
+          {children}
+        </div>
+      )}
     </div>
   );
 }
@@ -360,6 +367,10 @@ export default function WorkoutDetail() {
     if (typeof navigator !== "undefined" && navigator.vibrate) {
       navigator.vibrate(30);
     }
+  }, []);
+
+  const handleDragCancel = useCallback(() => {
+    setActiveExerciseId(null);
   }, []);
 
   const handleDragEnd = useCallback(
@@ -994,6 +1005,7 @@ export default function WorkoutDetail() {
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
         >
           <SortableContext
             items={orderedExerciseEntries.map(([id]) => id)}

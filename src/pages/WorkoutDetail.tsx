@@ -100,14 +100,10 @@ function SortableExerciseCard({ id, children, disabled }: { id: string; children
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
+    <div ref={setNodeRef} style={style} {...attributes} {...(disabled ? {} : listeners)}>
       <div className="relative">
         {!disabled && (
-          <div
-            className="absolute -left-1 top-1/2 -translate-y-1/2 z-10 p-1.5 text-muted-foreground/50 cursor-grab active:cursor-grabbing"
-            style={{ touchAction: "none" }}
-            {...listeners}
-          >
+          <div className="absolute -left-1 top-1/2 -translate-y-1/2 z-10 p-1.5 text-muted-foreground/50">
             <GripVertical className="h-4 w-4" />
           </div>
         )}
@@ -162,10 +158,10 @@ export default function WorkoutDetail() {
   const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null);
   const dndSensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { delay: 250, tolerance: 5 },
+      activationConstraint: { delay: 200, tolerance: 8 },
     }),
     useSensor(TouchSensor, {
-      activationConstraint: { delay: 250, tolerance: 5 },
+      activationConstraint: { delay: 300, tolerance: 10 },
     })
   );
 

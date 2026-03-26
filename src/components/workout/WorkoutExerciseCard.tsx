@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { format, type Locale } from "date-fns";
+import { type Locale } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Activity, Check, CopyPlus, Dumbbell, History, Loader2, Plus, Timer, Trash2, Trophy, User } from "lucide-react";
@@ -11,7 +11,6 @@ import { useUnits } from "@/hooks/useUnits";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -99,7 +98,6 @@ export function WorkoutExerciseCard({
 }: WorkoutExerciseCardProps) {
   const { t } = useTranslation();
   const { units, convertWeight, convertDistance } = useUnits();
-  const [openTooltipId, setOpenTooltipId] = useState<string | null>(null);
   const [setToDelete, setSetToDelete] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null); // "copy:setId" | "complete:setId" | "delete"
 
@@ -245,18 +243,12 @@ export function WorkoutExerciseCard({
             {!readOnly && <div></div>}
           </div>
 
-          <TooltipProvider>
             {sets
               .slice()
               .sort((a, b) => a.set_number - b.set_number)
               .map((set, displayIndex) => (
-                <Tooltip
-                  key={set.id}
-                  open={openTooltipId === set.id}
-                  onOpenChange={(open) => setOpenTooltipId(open ? set.id : null)}
-                >
-                  <TooltipTrigger asChild>
                     <div
+                      key={set.id}
                       className={cn(
                         "relative grid gap-1 items-center py-2 pl-2 pr-2 rounded-md cursor-pointer select-none",
                         exercise?.type === "bodyweight" || exercise?.type === "timed"
@@ -276,7 +268,6 @@ export function WorkoutExerciseCard({
                           onEditSet(set);
                           return;
                         }
-                        setOpenTooltipId(openTooltipId === set.id ? null : set.id);
                       }}
                     >
                       {isRecordSet(set.id) && (
@@ -380,15 +371,7 @@ export function WorkoutExerciseCard({
                         )}
                       </>
                     </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      {t("workout.createdAt")}: {format(new Date(set.created_at), "HH:mm", { locale: dateLocale })}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
               ))}
-          </TooltipProvider>
 
           {canManageSets && (
             <Button

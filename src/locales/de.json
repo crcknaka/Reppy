@@ -241,6 +241,8 @@
     "weight": "Gewicht",
     "weightKg": "Gewicht (kg)",
     "dumbbellNote": "Gib das Gewicht einer Hantel ein",
+    "exercisesShort": "Übungen",
+    "setsShort": "Sätze",
     "noExercises": "Keine Übungen",
     "addFirstSet": "Füge den ersten Satz hinzu, um das Training zu starten",
     "anotherSet": "Weiterer Satz",

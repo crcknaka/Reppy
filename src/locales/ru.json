@@ -314,6 +314,8 @@
     "weight": "Вес",
     "weightKg": "Вес (кг)",
     "dumbbellNote": "Указывай вес одной гантели",
+    "exercisesShort": "упр.",
+    "setsShort": "подх.",
     "noExercises": "Нет упражнений",
     "addFirstSet": "Добавь первый подход для начала тренировки",
     "anotherSet": "Ещё подход",

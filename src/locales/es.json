@@ -241,6 +241,8 @@
     "weight": "Peso",
     "weightKg": "Peso (kg)",
     "dumbbellNote": "Ingresa el peso de una mancuerna",
+    "exercisesShort": "ejerc.",
+    "setsShort": "series",
     "noExercises": "Sin ejercicios",
     "addFirstSet": "Añade la primera serie para comenzar el entrenamiento",
     "anotherSet": "Otra serie",

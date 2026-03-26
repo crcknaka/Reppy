@@ -241,6 +241,8 @@
     "weight": "Poids",
     "weightKg": "Poids (kg)",
     "dumbbellNote": "Entrez le poids d'un haltère",
+    "exercisesShort": "exerc.",
+    "setsShort": "séries",
     "noExercises": "Pas d'exercices",
     "addFirstSet": "Ajoutez la première série pour commencer l'entraînement",
     "anotherSet": "Autre série",

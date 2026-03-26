@@ -266,6 +266,8 @@
     "weight": "Weight",
     "weightKg": "Weight (kg)",
     "dumbbellNote": "Enter weight for one dumbbell",
+    "exercisesShort": "exercises",
+    "setsShort": "sets",
     "noExercises": "No exercises",
     "addFirstSet": "Add the first set to start workout",
     "anotherSet": "Another set",

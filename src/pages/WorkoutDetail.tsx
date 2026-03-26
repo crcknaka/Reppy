@@ -1134,6 +1134,37 @@ export default function WorkoutDetail() {
         </Card>
       ) : (
         <>
+        {/* Workout summary stats */}
+        {workout.workout_sets && workout.workout_sets.length > 0 && (() => {
+          const sets = workout.workout_sets;
+          const exerciseCount = Object.keys(setsByExercise).length;
+          const totalSets = sets.length;
+          const totalVolume = sets.reduce((sum, s) => sum + ((s.reps || 0) * (s.weight || 0)), 0);
+          const totalDistance = sets.reduce((sum, s) => sum + (s.distance_km || 0), 0);
+          const roundedVolume = totalVolume >= 1000
+            ? `${(convertWeight(totalVolume) / 1000).toFixed(1)}t`
+            : `${Math.round(convertWeight(totalVolume))} ${units.weight}`;
+
+          return (
+            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+              <span>{exerciseCount} {t("workout.exercisesShort")}</span>
+              <span className="text-muted-foreground/30">·</span>
+              <span>{totalSets} {t("workout.setsShort")}</span>
+              {totalVolume > 0 && (
+                <>
+                  <span className="text-muted-foreground/30">·</span>
+                  <span>{roundedVolume}</span>
+                </>
+              )}
+              {totalDistance > 0 && (
+                <>
+                  <span className="text-muted-foreground/30">·</span>
+                  <span>{convertDistance(totalDistance).toFixed(1)} {units.distance}</span>
+                </>
+              )}
+            </div>
+          );
+        })()}
         {/* Overall workout progress */}
         {workout.workout_sets && workout.workout_sets.length > 0 && (() => {
           const total = workout.workout_sets.length;

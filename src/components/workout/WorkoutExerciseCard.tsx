@@ -249,7 +249,7 @@ export function WorkoutExerciseCard({
             {sets
               .slice()
               .sort((a, b) => a.set_number - b.set_number)
-              .map((set) => (
+              .map((set, displayIndex) => (
                 <Tooltip
                   key={set.id}
                   open={openTooltipId === set.id}
@@ -280,11 +280,11 @@ export function WorkoutExerciseCard({
                       }}
                     >
                       {isRecordSet(set.id) && (
-                        <Trophy className="absolute -left-0.5 -top-0.5 h-3 w-3 text-yellow-500" />
+                        <Trophy className="absolute -left-0.5 -top-0.5 h-3.5 w-3.5 text-yellow-500" />
                       )}
                       <div className="flex justify-center">
                         {readOnly ? (
-                          <span className="text-sm font-semibold text-muted-foreground tabular-nums">{set.set_number}</span>
+                          <span className="text-sm font-semibold text-muted-foreground tabular-nums">{displayIndex + 1}</span>
                         ) : (
                           <button
                             type="button"
@@ -319,7 +319,7 @@ export function WorkoutExerciseCard({
                               }
                             }}
                           >
-                            {set.set_number}
+                            {displayIndex + 1}
                           </button>
                         )}
                       </div>

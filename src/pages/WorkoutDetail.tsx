@@ -97,14 +97,17 @@ function SortableExerciseCard({ id, children, disabled }: { id: string; children
     transition,
     opacity: isDragging ? 0.4 : 1,
     zIndex: isDragging ? 50 : undefined,
-    touchAction: disabled ? undefined : "none",
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...(disabled ? {} : listeners)}>
+    <div ref={setNodeRef} style={style} {...attributes}>
       <div className="relative">
         {!disabled && (
-          <div className="absolute -left-1 top-1/2 -translate-y-1/2 z-10 p-1.5 text-muted-foreground/50">
+          <div
+            className="absolute -left-1 top-1/2 -translate-y-1/2 z-10 p-1.5 text-muted-foreground/50 cursor-grab active:cursor-grabbing"
+            style={{ touchAction: "none" }}
+            {...listeners}
+          >
             <GripVertical className="h-4 w-4" />
           </div>
         )}

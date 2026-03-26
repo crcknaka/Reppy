@@ -171,18 +171,18 @@ export function WorkoutExerciseCard({
             />
           </div>
         )}
-        <CardHeader className="pb-2 pt-4 px-5">
+        <CardHeader className="pb-1 pt-3 px-4">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <CardTitle className="flex items-center gap-2 text-base truncate">
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <CardTitle className="flex items-center gap-1.5 text-sm truncate">
                 {exercise?.type === "weighted" ? (
-                  <Dumbbell className="h-4 w-4 text-primary flex-shrink-0" />
+                  <Dumbbell className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                 ) : exercise?.type === "cardio" ? (
-                  <Activity className="h-4 w-4 text-primary flex-shrink-0" />
+                  <Activity className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                 ) : exercise?.type === "timed" ? (
-                  <Timer className="h-4 w-4 text-primary flex-shrink-0" />
+                  <Timer className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                 ) : (
-                  <User className="h-4 w-4 text-primary flex-shrink-0" />
+                  <User className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                 )}
                 <span className="truncate">{exercise?.name ? getExerciseName(exercise.name, exercise.name_translations) : ""}</span>
               </CardTitle>
@@ -190,7 +190,7 @@ export function WorkoutExerciseCard({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 flex-shrink-0"
+                  className="h-6 w-6 flex-shrink-0"
                   onClick={() =>
                     exercise &&
                     onOpenExerciseHistory(
@@ -200,7 +200,7 @@ export function WorkoutExerciseCard({
                     )
                   }
                 >
-                  <History className="h-4 w-4 text-muted-foreground" />
+                  <History className="h-3.5 w-3.5 text-muted-foreground" />
                 </Button>
               )}
             </div>
@@ -228,10 +228,10 @@ export function WorkoutExerciseCard({
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-1.5 px-5 pb-4">
+        <CardContent className="space-y-1 px-4 pb-3">
           <div
             className={cn(
-              "grid gap-1 pl-2 pr-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide",
+              "grid gap-1 pl-2 pr-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide",
               exercise?.type === "bodyweight" || exercise?.type === "timed"
                 ? readOnly
                   ? "grid-cols-[32px_1fr]"
@@ -261,7 +261,7 @@ export function WorkoutExerciseCard({
                       )}
                     <div
                       className={cn(
-                        "relative grid gap-1 items-center py-2 pl-2 pr-2 rounded-md cursor-pointer select-none",
+                        "relative grid gap-1 items-center py-1.5 pl-2 pr-2 rounded-md cursor-pointer select-none",
                         exercise?.type === "bodyweight" || exercise?.type === "timed"
                           ? readOnly
                             ? "grid-cols-[32px_1fr]"
@@ -391,7 +391,7 @@ export function WorkoutExerciseCard({
             <Button
               variant="outline"
               size="sm"
-              className="w-full mt-2 gap-1.5 h-8"
+              className="w-full mt-1.5 gap-1.5 h-7 text-xs"
               onClick={() => onAddAnotherSet(exerciseId)}
             >
               <Plus className="h-3.5 w-3.5" />

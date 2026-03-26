@@ -75,6 +75,7 @@ import { useUnits } from "@/hooks/useUnits";
 import { useAutoFillLastSet } from "@/hooks/useAutoFillLastSet";
 import { LIMITS } from "@/lib/limits";
 import { WorkoutExerciseCard } from "@/components/workout/WorkoutExerciseCard";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { CopyWorkoutDialog } from "@/components/workout/CopyWorkoutDialog";
 import type { Exercise } from "@/hooks/useExercises";
 import type { EditSetContext } from "@/components/workout/setDialogTypes";
@@ -825,7 +826,7 @@ export default function WorkoutDetail() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in relative">
+    <div className="space-y-4 animate-fade-in relative">
       {/* Fixed "+" button — appears top-right when scrolled past main Add Exercise button */}
       {isOwner && !workout?.is_locked && createPortal(
         <Button
@@ -1159,7 +1160,7 @@ export default function WorkoutDetail() {
             items={orderedExerciseEntries.map(([id]) => id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="space-y-4">
+            <div className="space-y-3">
               {orderedExerciseEntries.map(([exerciseId, { exercise, sets }], index) => (
                 <SortableExerciseCard
                   key={exerciseId}
@@ -1189,6 +1190,94 @@ export default function WorkoutDetail() {
         </DndContext>
         </>
       )}
+
+      {/* Workout Stats */}
+      {workout.workout_sets && workout.workout_sets.length > 0 && (() => {
+        const sets = workout.workout_sets;
+        const exerciseCount = Object.keys(setsByExercise).length;
+        const totalSets = sets.length;
+        const totalVolume = sets.reduce((sum, s) => sum + ((s.reps || 0) * (s.weight || 0)), 0);
+        const totalReps = sets.reduce((sum, s) => sum + (s.reps || 0), 0);
+        const totalDistance = sets.reduce((sum, s) => sum + (s.distance_km || 0), 0);
+        const totalDurationMin = sets.reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
+        const totalPlankSec = sets.reduce((sum, s) => sum + (s.plank_seconds || 0), 0);
+        const records = recordSetIds.size;
+
+        const formattedVolume = totalVolume >= 1000
+          ? `${(convertWeight(totalVolume) / 1000).toFixed(1)} t`
+          : `${Math.round(convertWeight(totalVolume))} ${units.weight}`;
+
+        return (
+          <Card>
+            <CardHeader className="pb-3 pt-4 px-5">
+              <CardTitle className="text-base flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-primary" />
+                {t("progress.title")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-5 pb-5 space-y-3">
+              {records > 0 && (
+                <div className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-yellow-500/10 to-amber-500/5 border border-yellow-500/20 px-4 py-3">
+                  <div className="flex items-center justify-center h-9 w-9 rounded-full bg-yellow-500/15">
+                    <Trophy className="h-5 w-5 text-yellow-500" />
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-yellow-500 leading-tight"><AnimatedNumber value={records} /> {t("workout.recordsShort")}</div>
+                    <div className="text-[10px] text-yellow-500/60">{t("progress.personalBest")}</div>
+                  </div>
+                </div>
+              )}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
+                  <Dumbbell className="h-4 w-4 text-primary" />
+                  <div className="text-lg font-bold text-foreground leading-none"><AnimatedNumber value={exerciseCount} /></div>
+                  <div className="text-[10px] text-muted-foreground">{t("workout.exercisesShort")}</div>
+                </div>
+                <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
+                  <Repeat className="h-4 w-4 text-primary" />
+                  <div className="text-lg font-bold text-foreground leading-none"><AnimatedNumber value={totalSets} /></div>
+                  <div className="text-[10px] text-muted-foreground">{t("workout.setsShort")}</div>
+                </div>
+                {totalReps > 0 && (
+                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
+                    <Activity className="h-4 w-4 text-primary" />
+                    <div className="text-lg font-bold text-foreground leading-none"><AnimatedNumber value={totalReps} /></div>
+                    <div className="text-[10px] text-muted-foreground">{t("units.reps")}</div>
+                  </div>
+                )}
+                {totalVolume > 0 && (
+                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
+                    <Weight className="h-4 w-4 text-primary" />
+                    <div className="text-lg font-bold text-foreground leading-none">{formattedVolume}</div>
+                    <div className="text-[10px] text-muted-foreground">{t("progress.volume")}</div>
+                  </div>
+                )}
+                {totalDistance > 0 && (
+                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
+                    <Route className="h-4 w-4 text-primary" />
+                    <div className="text-lg font-bold text-foreground leading-none"><AnimatedNumber value={convertDistance(totalDistance)} decimals={1} /> {units.distance}</div>
+                    <div className="text-[10px] text-muted-foreground">{t("progress.distance")}</div>
+                  </div>
+                )}
+                {totalDurationMin > 0 && (
+                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
+                    <Timer className="h-4 w-4 text-primary" />
+                    <div className="text-lg font-bold text-foreground leading-none"><AnimatedNumber value={totalDurationMin} /> {t("units.min")}</div>
+                    <div className="text-[10px] text-muted-foreground">{t("progress.time")}</div>
+                  </div>
+                )}
+                {totalPlankSec > 0 && (
+                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
+                    <Timer className="h-4 w-4 text-primary" />
+                    <div className="text-lg font-bold text-foreground leading-none">{totalPlankSec >= 60 ? `${Math.floor(totalPlankSec / 60)}${t("units.min")} ${totalPlankSec % 60}${t("units.sec")}` : `${totalPlankSec} ${t("units.sec")}`}</div>
+                    <div className="text-[10px] text-muted-foreground">{t("progress.inPlank")}</div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {/* Notes Card */}
       <Card>
@@ -1252,95 +1341,6 @@ export default function WorkoutDetail() {
           )}
         </CardContent>
       </Card>
-
-      {/* Workout Stats */}
-      {workout.workout_sets && workout.workout_sets.length > 0 && (() => {
-        const sets = workout.workout_sets;
-        const exerciseCount = Object.keys(setsByExercise).length;
-        const totalSets = sets.length;
-        const completedSets = sets.filter(s => s.is_completed).length;
-        const totalVolume = sets.reduce((sum, s) => sum + ((s.reps || 0) * (s.weight || 0)), 0);
-        const totalReps = sets.reduce((sum, s) => sum + (s.reps || 0), 0);
-        const totalDistance = sets.reduce((sum, s) => sum + (s.distance_km || 0), 0);
-        const totalDurationMin = sets.reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
-        const totalPlankSec = sets.reduce((sum, s) => sum + (s.plank_seconds || 0), 0);
-        const records = recordSetIds.size;
-
-        const formattedVolume = totalVolume >= 1000
-          ? `${(convertWeight(totalVolume) / 1000).toFixed(1)} t`
-          : `${Math.round(convertWeight(totalVolume))} ${units.weight}`;
-
-        return (
-          <Card>
-            <CardHeader className="pb-3 pt-4 px-5">
-              <CardTitle className="text-base flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-primary" />
-                {t("progress.title")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-5 pb-5 space-y-3">
-              {records > 0 && (
-                <div className="flex items-center gap-3 rounded-xl bg-gradient-to-r from-yellow-500/10 to-amber-500/5 border border-yellow-500/20 px-4 py-3">
-                  <div className="flex items-center justify-center h-9 w-9 rounded-full bg-yellow-500/15">
-                    <Trophy className="h-5 w-5 text-yellow-500" />
-                  </div>
-                  <div>
-                    <div className="text-lg font-bold text-yellow-500 leading-tight">{records} {t("workout.recordsShort")}</div>
-                    <div className="text-[10px] text-yellow-500/60">{t("progress.personalBest")}</div>
-                  </div>
-                </div>
-              )}
-              <div className="grid grid-cols-3 gap-2">
-                <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
-                  <Dumbbell className="h-4 w-4 text-primary" />
-                  <div className="text-lg font-bold text-foreground leading-none">{exerciseCount}</div>
-                  <div className="text-[10px] text-muted-foreground">{t("workout.exercisesShort")}</div>
-                </div>
-                <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
-                  <Repeat className="h-4 w-4 text-primary" />
-                  <div className="text-lg font-bold text-foreground leading-none">{totalSets}</div>
-                  <div className="text-[10px] text-muted-foreground">{t("workout.setsShort")}</div>
-                </div>
-                {totalReps > 0 && (
-                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
-                    <Activity className="h-4 w-4 text-primary" />
-                    <div className="text-lg font-bold text-foreground leading-none">{totalReps}</div>
-                    <div className="text-[10px] text-muted-foreground">{t("units.reps")}</div>
-                  </div>
-                )}
-                {totalVolume > 0 && (
-                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
-                    <Weight className="h-4 w-4 text-primary" />
-                    <div className="text-lg font-bold text-foreground leading-none">{formattedVolume}</div>
-                    <div className="text-[10px] text-muted-foreground">{t("progress.volume")}</div>
-                  </div>
-                )}
-                {totalDistance > 0 && (
-                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
-                    <Route className="h-4 w-4 text-primary" />
-                    <div className="text-lg font-bold text-foreground leading-none">{convertDistance(totalDistance).toFixed(1)} {units.distance}</div>
-                    <div className="text-[10px] text-muted-foreground">{t("progress.distance")}</div>
-                  </div>
-                )}
-                {totalDurationMin > 0 && (
-                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
-                    <Timer className="h-4 w-4 text-primary" />
-                    <div className="text-lg font-bold text-foreground leading-none">{totalDurationMin} {t("units.min")}</div>
-                    <div className="text-[10px] text-muted-foreground">{t("progress.time")}</div>
-                  </div>
-                )}
-                {totalPlankSec > 0 && (
-                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
-                    <Timer className="h-4 w-4 text-primary" />
-                    <div className="text-lg font-bold text-foreground leading-none">{totalPlankSec >= 60 ? `${Math.floor(totalPlankSec / 60)}${t("units.min")} ${totalPlankSec % 60}${t("units.sec")}` : `${totalPlankSec} ${t("units.sec")}`}</div>
-                    <div className="text-[10px] text-muted-foreground">{t("progress.inPlank")}</div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })()}
 
       {/* Photo Card */}
       <Card>

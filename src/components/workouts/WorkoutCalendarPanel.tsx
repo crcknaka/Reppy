@@ -34,13 +34,12 @@ const getIntensity = (dayWorkouts: Workout[] | undefined) => {
   return 4;
 };
 
-const intensityDotClass = (intensity: number) =>
+const intensityBgClass = (intensity: number) =>
   cn(
-    "w-1.5 h-1.5 rounded-full",
-    intensity === 1 && "bg-primary/30",
-    intensity === 2 && "bg-primary/50",
-    intensity === 3 && "bg-primary/75",
-    intensity >= 4 && "bg-primary"
+    intensity === 1 && "bg-primary/15",
+    intensity === 2 && "bg-primary/30",
+    intensity === 3 && "bg-primary/50",
+    intensity >= 4 && "bg-primary/70"
   );
 
 export function WorkoutCalendarPanel({
@@ -97,40 +96,35 @@ export function WorkoutCalendarPanel({
                 key={day.toISOString()}
                 onClick={() => hasWorkouts && onSelectDate(day)}
                 className={cn(
-                  "aspect-square rounded-md flex flex-col items-center justify-center gap-0.5 transition-all duration-200",
-                  isTodayDate && "ring-1 ring-primary ring-offset-1 ring-offset-background",
-                  isSelected && "bg-primary/20",
-                  hasWorkouts && "cursor-pointer hover:bg-muted",
+                  "aspect-square rounded-md flex items-center justify-center transition-all duration-200",
+                  hasWorkouts && intensityBgClass(intensity),
+                  isTodayDate && "ring-1.5 ring-primary ring-offset-1 ring-offset-background",
+                  isSelected && "ring-2 ring-primary ring-offset-1 ring-offset-background",
+                  hasWorkouts && "cursor-pointer hover:brightness-110",
                   !hasWorkouts && "cursor-default"
                 )}
               >
-                <span className={cn("text-xs sm:text-sm", isTodayDate ? "font-bold text-primary" : "text-foreground")}>
+                <span className={cn(
+                  "text-xs sm:text-sm",
+                  isTodayDate && "font-bold text-primary",
+                  hasWorkouts && intensity >= 3 && "text-primary-foreground font-semibold",
+                  hasWorkouts && intensity < 3 && "text-foreground font-medium",
+                  !hasWorkouts && "text-muted-foreground"
+                )}>
                   {format(day, "d")}
                 </span>
-                {hasWorkouts && (
-                  <div className="flex gap-0.5">
-                    {workoutsCount > 1 ? (
-                      <div className="flex items-center gap-0.5">
-                        <div className={intensityDotClass(intensity)} />
-                        <span className="text-[8px] text-primary font-medium">×{workoutsCount}</span>
-                      </div>
-                    ) : (
-                      <div className={intensityDotClass(intensity)} />
-                    )}
-                  </div>
-                )}
               </button>
             );
           })}
         </div>
 
-        <div className="flex items-center justify-center gap-2 mt-3 text-[10px] sm:text-xs text-muted-foreground">
+        <div className="flex items-center justify-center gap-1.5 mt-3 text-[10px] sm:text-xs text-muted-foreground">
           <span>{labels.less}</span>
           <div className="flex gap-0.5">
-            <div className="w-2.5 h-2.5 rounded bg-primary/30" />
-            <div className="w-2.5 h-2.5 rounded bg-primary/50" />
-            <div className="w-2.5 h-2.5 rounded bg-primary/75" />
-            <div className="w-2.5 h-2.5 rounded bg-primary" />
+            <div className="w-3 h-3 rounded-sm bg-primary/15" />
+            <div className="w-3 h-3 rounded-sm bg-primary/30" />
+            <div className="w-3 h-3 rounded-sm bg-primary/50" />
+            <div className="w-3 h-3 rounded-sm bg-primary/70" />
           </div>
           <span>{labels.more}</span>
         </div>

@@ -22,7 +22,7 @@ import { format, isToday, parseISO } from "date-fns";
 import { getDateLocale } from "@/lib/dateLocales";
 import { useTranslation } from "react-i18next";
 import { getExerciseName } from "@/lib/i18n";
-import { ArrowLeft, Plus, Trash2, MessageSquare, Save, Pencil, X, Camera, Loader2, ImageIcon, Trophy, Share2, Copy, Check, Ban, Lock, Unlock, Maximize2, Dumbbell, GripVertical } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, MessageSquare, Save, Pencil, X, Camera, Loader2, ImageIcon, Trophy, Share2, Copy, Check, Ban, Lock, Unlock, Maximize2, Dumbbell, GripVertical, BarChart3, Weight, Repeat, Route, Timer, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -1134,37 +1134,6 @@ export default function WorkoutDetail() {
         </Card>
       ) : (
         <>
-        {/* Workout summary stats */}
-        {workout.workout_sets && workout.workout_sets.length > 0 && (() => {
-          const sets = workout.workout_sets;
-          const exerciseCount = Object.keys(setsByExercise).length;
-          const totalSets = sets.length;
-          const totalVolume = sets.reduce((sum, s) => sum + ((s.reps || 0) * (s.weight || 0)), 0);
-          const totalDistance = sets.reduce((sum, s) => sum + (s.distance_km || 0), 0);
-          const roundedVolume = totalVolume >= 1000
-            ? `${(convertWeight(totalVolume) / 1000).toFixed(1)}t`
-            : `${Math.round(convertWeight(totalVolume))} ${units.weight}`;
-
-          return (
-            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-              <span>{exerciseCount} {t("workout.exercisesShort")}</span>
-              <span className="text-muted-foreground/30">·</span>
-              <span>{totalSets} {t("workout.setsShort")}</span>
-              {totalVolume > 0 && (
-                <>
-                  <span className="text-muted-foreground/30">·</span>
-                  <span>{roundedVolume}</span>
-                </>
-              )}
-              {totalDistance > 0 && (
-                <>
-                  <span className="text-muted-foreground/30">·</span>
-                  <span>{convertDistance(totalDistance).toFixed(1)} {units.distance}</span>
-                </>
-              )}
-            </div>
-          );
-        })()}
         {/* Overall workout progress */}
         {workout.workout_sets && workout.workout_sets.length > 0 && (() => {
           const total = workout.workout_sets.length;
@@ -1283,6 +1252,83 @@ export default function WorkoutDetail() {
           )}
         </CardContent>
       </Card>
+
+      {/* Workout Stats */}
+      {workout.workout_sets && workout.workout_sets.length > 0 && (() => {
+        const sets = workout.workout_sets;
+        const exerciseCount = Object.keys(setsByExercise).length;
+        const totalSets = sets.length;
+        const completedSets = sets.filter(s => s.is_completed).length;
+        const totalVolume = sets.reduce((sum, s) => sum + ((s.reps || 0) * (s.weight || 0)), 0);
+        const totalReps = sets.reduce((sum, s) => sum + (s.reps || 0), 0);
+        const totalDistance = sets.reduce((sum, s) => sum + (s.distance_km || 0), 0);
+        const totalDurationMin = sets.reduce((sum, s) => sum + (s.duration_minutes || 0), 0);
+        const totalPlankSec = sets.reduce((sum, s) => sum + (s.plank_seconds || 0), 0);
+        const records = recordSetIds.size;
+
+        const formattedVolume = totalVolume >= 1000
+          ? `${(convertWeight(totalVolume) / 1000).toFixed(1)} t`
+          : `${Math.round(convertWeight(totalVolume))} ${units.weight}`;
+
+        return (
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-4">
+              <CardTitle className="text-base flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-primary" />
+                {t("progress.title")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center gap-2.5 text-sm">
+                  <Dumbbell className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-muted-foreground">{exerciseCount} {t("workout.exercisesShort")}</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-sm">
+                  <Repeat className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-muted-foreground">{completedSets}/{totalSets} {t("workout.setsShort")}</span>
+                </div>
+                {totalVolume > 0 && (
+                  <div className="flex items-center gap-2.5 text-sm">
+                    <Weight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-muted-foreground">{formattedVolume}</span>
+                  </div>
+                )}
+                {totalReps > 0 && (
+                  <div className="flex items-center gap-2.5 text-sm">
+                    <Activity className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-muted-foreground">{totalReps} {t("units.reps")}</span>
+                  </div>
+                )}
+                {totalDistance > 0 && (
+                  <div className="flex items-center gap-2.5 text-sm">
+                    <Route className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-muted-foreground">{convertDistance(totalDistance).toFixed(1)} {units.distance}</span>
+                  </div>
+                )}
+                {totalDurationMin > 0 && (
+                  <div className="flex items-center gap-2.5 text-sm">
+                    <Timer className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-muted-foreground">{totalDurationMin} {t("units.min")}</span>
+                  </div>
+                )}
+                {totalPlankSec > 0 && (
+                  <div className="flex items-center gap-2.5 text-sm">
+                    <Timer className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-muted-foreground">{totalPlankSec} {t("units.sec")}</span>
+                  </div>
+                )}
+                {records > 0 && (
+                  <div className="flex items-center gap-2.5 text-sm">
+                    <Trophy className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+                    <span className="text-muted-foreground">{records} {records === 1 ? "record" : "records"}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {/* Photo Card */}
       <Card>

@@ -212,6 +212,54 @@ export default function Workouts() {
 
   const selectedWorkouts = selectedCalendarDate ? getWorkoutsForDate(selectedCalendarDate) : null;
 
+  // Count personal records per workout
+  const recordCountByWorkout = useMemo(() => {
+    if (!workouts) return new Map<string, number>();
+
+    // Sort workouts by date ascending to track running bests
+    const sorted = [...workouts].sort((a, b) => a.date.localeCompare(b.date) || a.created_at.localeCompare(b.created_at));
+
+    const bests: Record<string, { maxWeight: number; maxReps: number; maxDistance: number; maxSeconds: number }> = {};
+    const counts = new Map<string, number>();
+
+    for (const w of sorted) {
+      let records = 0;
+      const exerciseGroups: Record<string, typeof w.workout_sets> = {};
+
+      for (const s of w.workout_sets ?? []) {
+        if (!exerciseGroups[s.exercise_id]) exerciseGroups[s.exercise_id] = [];
+        exerciseGroups[s.exercise_id].push(s);
+      }
+
+      for (const [exId, sets] of Object.entries(exerciseGroups)) {
+        const prev = bests[exId] ?? { maxWeight: 0, maxReps: 0, maxDistance: 0, maxSeconds: 0 };
+        const type = sets[0]?.exercise?.type;
+
+        if (type === "weighted") {
+          const maxW = Math.max(...sets.map(s => s.weight || 0));
+          if (maxW > prev.maxWeight && maxW > 0) records++;
+          bests[exId] = { ...prev, maxWeight: Math.max(prev.maxWeight, maxW) };
+        } else if (type === "bodyweight") {
+          const maxR = Math.max(...sets.map(s => s.reps || 0));
+          if (maxR > prev.maxReps && maxR > 0) records++;
+          bests[exId] = { ...prev, maxReps: Math.max(prev.maxReps, maxR) };
+        } else if (type === "cardio") {
+          const maxD = Math.max(...sets.map(s => s.distance_km || 0));
+          if (maxD > prev.maxDistance && maxD > 0) records++;
+          bests[exId] = { ...prev, maxDistance: Math.max(prev.maxDistance, maxD) };
+        } else if (type === "timed") {
+          const maxS = Math.max(...sets.map(s => s.plank_seconds || 0));
+          if (maxS > prev.maxSeconds && maxS > 0) records++;
+          bests[exId] = { ...prev, maxSeconds: Math.max(prev.maxSeconds, maxS) };
+        }
+      }
+
+      if (records > 0) counts.set(w.id, records);
+    }
+
+    return counts;
+  }, [workouts]);
+
   // Filter workouts by date range
   const filteredWorkouts = useMemo(() => {
     if (!workouts) return [];
@@ -614,6 +662,7 @@ export default function Workouts() {
               todayLabel={t("workouts.today")}
               onOpen={(workoutId) => navigate(`/workout/${workoutId}`)}
               onDelete={handleDeleteWorkout}
+              recordCount={recordCountByWorkout.get(workout.id)}
             />
           ))}
 

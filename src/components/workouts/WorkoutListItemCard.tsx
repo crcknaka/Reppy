@@ -1,6 +1,6 @@
 import { format, isToday, parseISO } from "date-fns";
 import type { Locale } from "date-fns";
-import { Dumbbell, Layers, MessageSquare, Route, Trash2 } from "lucide-react";
+import { Dumbbell, Layers, MessageSquare, Route, Trash2, Trophy } from "lucide-react";
 import type React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ interface WorkoutListItemCardProps {
   todayLabel: string;
   onOpen: (workoutId: string) => void;
   onDelete?: (workoutId: string, event: React.MouseEvent) => void;
+  recordCount?: number;
 }
 
 const isWeekend = (dateStr: string) => {
@@ -47,6 +48,7 @@ export function WorkoutListItemCard({
   todayLabel,
   onOpen,
   onDelete,
+  recordCount,
 }: WorkoutListItemCardProps) {
   const totalDistance = getTotalDistance(workout);
   const isWorkoutToday = isToday(parseISO(workout.date));
@@ -107,6 +109,12 @@ export function WorkoutListItemCard({
               <span className="flex items-center gap-1">
                 <Route className="h-3.5 w-3.5" />
                 {convertDistance(totalDistance)} {distanceUnit}
+              </span>
+            )}
+            {!!recordCount && recordCount > 0 && (
+              <span className="flex items-center gap-1 text-yellow-500">
+                <Trophy className="h-3.5 w-3.5" />
+                {recordCount}
               </span>
             )}
           </div>

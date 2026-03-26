@@ -153,7 +153,7 @@ export function WorkoutExerciseCard({
 
   return (
     <>
-      <Card className="relative animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+      <Card className={cn("relative animate-fade-in transition-all duration-300", sets.length > 0 && sets.every(s => s.is_completed) && "opacity-40 saturate-50")} style={{ animationDelay: `${index * 50}ms` }}>
         {showSelectionCheckbox && (
           <div className="absolute left-2 top-2 z-10">
             <Checkbox
@@ -258,7 +258,8 @@ export function WorkoutExerciseCard({
                           : readOnly
                             ? "grid-cols-[32px_1fr_1fr]"
                             : "grid-cols-[32px_1fr_1fr_64px]",
-                        isRecordSet(set.id) ? "bg-yellow-100 dark:bg-yellow-900/30" : "bg-muted/30"
+                        isRecordSet(set.id) ? "bg-yellow-100 dark:bg-yellow-900/30" : "bg-muted/30",
+                        set.is_completed && "opacity-40"
                       )}
                       onClick={(e) => {
                         if ((e.target as HTMLElement).closest("button")) {

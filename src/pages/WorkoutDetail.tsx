@@ -64,6 +64,7 @@ import {
   getRecentSetsForExercise,
   RecentSetData,
 } from "@/offline";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -143,6 +144,35 @@ export default function WorkoutDetail() {
 
   // Fetch workout owner's profile for banner (only when viewing others)
   const { data: workoutOwnerProfile } = useUserProfile(!isOwner && workout ? workout.user_id : null);
+
+  // Get recent sets — use IndexedDB for own data, Supabase for friends
+  const getRecentSetsForUser = useCallback(async (exerciseId: string, userId: string, limit: number): Promise<RecentSetData[]> => {
+    if (userId === effectiveUserId) {
+      return getRecentSetsForExercise(exerciseId, userId, limit);
+    }
+    // Fetch from server for other users
+    try {
+      const { data, error } = await supabase
+        .from("workout_sets")
+        .select("reps, weight, distance_km, duration_minutes, plank_seconds, created_at, workout:workouts!inner(user_id, date)")
+        .eq("exercise_id", exerciseId)
+        .eq("workout.user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (error || !data) return [];
+      return data.map((s: Record<string, unknown>) => ({
+        reps: (s.reps as number) || undefined,
+        weight: (s.weight as number) || undefined,
+        distance_km: (s.distance_km as number) || undefined,
+        duration_minutes: (s.duration_minutes as number) || undefined,
+        plank_seconds: (s.plank_seconds as number) || undefined,
+        date: ((s.workout as Record<string, unknown>)?.date as string) || "",
+        created_at: (s.created_at as string) || "",
+      }));
+    } catch {
+      return [];
+    }
+  }, [effectiveUserId]);
 
   const [addExerciseDialogOpen, setAddExerciseDialogOpen] = useState(false);
   const [setDialogOpen, setSetDialogOpen] = useState(false);
@@ -483,11 +513,12 @@ export default function WorkoutDetail() {
 
   const loadMoreHistory = async () => {
     const exerciseId = historyExercise?.id;
-    if (!exerciseId || !effectiveUserId) return;
+    const historyUserId = workout?.user_id ?? effectiveUserId;
+    if (!exerciseId || !historyUserId) return;
 
     const newLimit = historyLimit + 5;
     try {
-      const history = await getRecentSetsForExercise(exerciseId, effectiveUserId, newLimit + 1);
+      const history = await getRecentSetsForUser(exerciseId, historyUserId, newLimit + 1);
       if (history.length > newLimit) {
         setRecentSets(history.slice(0, newLimit));
         setHasMoreHistory(true);
@@ -502,7 +533,8 @@ export default function WorkoutDetail() {
   };
 
   const openExerciseHistory = async (exerciseId: string, exerciseName: string, exerciseType: string) => {
-    if (!effectiveUserId) return;
+    const historyUserId = workout?.user_id ?? effectiveUserId;
+    if (!historyUserId) return;
 
     setHistoryExercise({ id: exerciseId, name: exerciseName, type: exerciseType });
     setRecentSets([]);
@@ -512,7 +544,7 @@ export default function WorkoutDetail() {
     setIsLoadingHistory(true);
 
     try {
-      const history = await getRecentSetsForExercise(exerciseId, effectiveUserId, 6);
+      const history = await getRecentSetsForUser(exerciseId, historyUserId, 6);
       if (history.length > 5) {
         setRecentSets(history.slice(0, 5));
         setHasMoreHistory(true);
@@ -1561,6 +1593,9 @@ export default function WorkoutDetail() {
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>{historyExercise?.name} - {t("workout.recentSets")}</DrawerTitle>
+            {!isOwner && workoutOwnerProfile && (
+              <p className="text-sm text-muted-foreground">{workoutOwnerProfile.display_name}</p>
+            )}
           </DrawerHeader>
           <div className="px-4 pb-6 max-h-[60vh] overflow-y-auto">
             {isLoadingHistory ? (

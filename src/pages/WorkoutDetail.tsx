@@ -135,7 +135,7 @@ export default function WorkoutDetail() {
   const deleteSet = useOfflineDeleteSet();
   const updateSet = useOfflineUpdateSet();
   const updateWorkout = useOfflineUpdateWorkout();
-  const { data: allTimeBests } = useUserAllTimeBests(user?.id, id);
+  const { data: allTimeBests } = useUserAllTimeBests(workout?.user_id ?? user?.id, id);
 
   // Check if current user is the owner (works for both authenticated users and guests)
   const isOwner = workout?.user_id === effectiveUserId;

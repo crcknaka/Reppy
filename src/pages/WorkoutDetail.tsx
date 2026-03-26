@@ -4,11 +4,11 @@ import {
   DndContext,
   closestCenter,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
   type DragStartEvent,
-  DragOverlay,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -92,11 +92,12 @@ function SortableExerciseCard({ id, children, disabled }: { id: string; children
     isDragging,
   } = useSortable({ id, disabled });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.4 : 1,
     zIndex: isDragging ? 50 : undefined,
+    touchAction: disabled ? undefined : "none",
   };
 
   return (
@@ -158,7 +159,10 @@ export default function WorkoutDetail() {
   const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null);
   const dndSensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { delay: 200, tolerance: 5 },
+      activationConstraint: { delay: 250, tolerance: 5 },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 250, tolerance: 5 },
     })
   );
 

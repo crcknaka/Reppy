@@ -456,7 +456,7 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
       <div
         className={cn(
           "relative",
-          swipeEnabled && "rounded-xl border border-input bg-background transition-all duration-200 hover:border-muted-foreground/50",
+          swipeEnabled && "rounded-xl border border-input bg-background transition-all duration-200 hover:border-muted-foreground/50 overflow-hidden",
           swipeEnabled && (isFocused || isSwiping) && "border-ring ring-2 ring-ring/30",
         )}
       >

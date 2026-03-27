@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import type { Locale } from "date-fns";
 import { Activity, Dumbbell, MessageSquare, Timer, User } from "lucide-react";
 
+import { motion, scaleIn, defaultTransition, useMotionEnabled } from "@/components/ui/motion";
 import { getExerciseName } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -88,9 +89,18 @@ export function WorkoutCalendarDetailCard({
   labels,
 }: WorkoutCalendarDetailCardProps) {
   const exerciseSummaries = getExerciseSummaries(workout, labels.exerciseFallback);
+  const motionEnabled = useMotionEnabled();
 
   return (
-    <Card className="animate-scale-in">
+    <motion.div
+      {...(motionEnabled ? {
+        variants: scaleIn,
+        initial: "hidden",
+        animate: "visible",
+        transition: defaultTransition,
+      } : {})}
+    >
+    <Card>
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
           <span className="font-semibold">
@@ -168,6 +178,7 @@ export function WorkoutCalendarDetailCard({
         )}
       </CardContent>
     </Card>
+    </motion.div>
   );
 }
 

@@ -113,6 +113,10 @@
       "off": "Aus",
       "description": "Automatisch Daten vom letzten Satz einfügen bei Übungsauswahl"
     },
+    "animations": {
+      "title": "Animationen",
+      "description": "Sanfte Übergänge und Effekte in der Oberfläche"
+    },
     "export": "Exportieren",
     "exportDescription": "Lade alle deine Trainings zur Sicherung oder Analyse herunter",
     "security": "Sicherheit",

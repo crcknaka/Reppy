@@ -83,6 +83,7 @@ import type { Exercise } from "@/hooks/useExercises";
 import type { EditSetContext } from "@/components/workout/setDialogTypes";
 import { AddExerciseDialog } from "@/components/workout/AddExerciseDialog";
 import { AddOrUpdateSetDialog } from "@/components/workout/AddOrUpdateSetDialog";
+import { motion, AnimatePresence, staggerContainer, staggerItem, defaultTransition, useMotionEnabled } from "@/components/ui/motion";
 
 // Sortable wrapper for exercise cards
 function SortableExerciseCard({ id, children, disabled }: { id: string; children: React.ReactNode; disabled?: boolean }) {
@@ -121,6 +122,7 @@ function SortableExerciseCard({ id, children, disabled }: { id: string; children
 
 export default function WorkoutDetail() {
   const { t, i18n } = useTranslation();
+  const motionEnabled = useMotionEnabled();
   const dateLocale = getDateLocale(i18n.language);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -873,7 +875,7 @@ export default function WorkoutDetail() {
   };
 
   return (
-    <div className="space-y-4 animate-fade-in relative">
+    <div className="space-y-4 relative">
       {/* Fixed "+" button — appears top-right when scrolled past main Add Exercise button */}
       {isOwner && !workout?.is_locked && createPortal(
         <Button
@@ -890,7 +892,7 @@ export default function WorkoutDetail() {
       )}
       {/* Celebration animation on 100% completion */}
       {showCelebration && createPortal(
-        <div className="fixed inset-0 z-[99999] pointer-events-none overflow-hidden">
+        <div className="fixed inset-0 z-[99999] pointer-events-none overflow-hidden" data-animations-always>
           {Array.from({ length: 24 }).map((_, i) => (
             <span
               key={i}
@@ -916,7 +918,7 @@ export default function WorkoutDetail() {
       )}
       {/* Record celebration — golden trophies rising */}
       {showRecordCelebration && createPortal(
-        <div className="fixed inset-0 z-[99999] pointer-events-none overflow-hidden">
+        <div className="fixed inset-0 z-[99999] pointer-events-none overflow-hidden" data-animations-always>
           {Array.from({ length: 20 }).map((_, i) => {
             const size = [0.8, 1, 1.2, 1.5, 1.8, 2.2][Math.floor(Math.random() * 6)];
             return (
@@ -1073,7 +1075,7 @@ export default function WorkoutDetail() {
                   variant="outline"
                   size="icon"
                   onClick={() => setUnlockDialogOpen(true)}
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  className="h-8 w-8 border-primary/50 bg-primary/10 text-primary hover:bg-primary/20"
                 >
                   <Lock className="h-4 w-4" />
                 </Button>
@@ -1207,10 +1209,13 @@ export default function WorkoutDetail() {
             items={orderedExerciseEntries.map(([id]) => id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="space-y-3">
+            <motion.div
+              className="space-y-3"
+              {...(motionEnabled ? { variants: staggerContainer, initial: "hidden", animate: "visible" } : {})}
+            >
               {orderedExerciseEntries.map(([exerciseId, { exercise, sets }], index) => (
+                <motion.div key={exerciseId} {...(motionEnabled ? { variants: staggerItem, transition: defaultTransition } : {})}>
                 <SortableExerciseCard
-                  key={exerciseId}
                   id={exerciseId}
                   disabled={!isOwner || !!workout?.is_locked}
                 >
@@ -1230,8 +1235,9 @@ export default function WorkoutDetail() {
                     onToggleSetCompleted={toggleWorkoutSetCompleted}
                   />
                 </SortableExerciseCard>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </SortableContext>
         </DndContext>
         </>

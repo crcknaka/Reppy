@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { motion, AnimatePresence, useMotionEnabled } from "@/components/ui/motion";
 import { Activity, Check, CopyPlus, Dumbbell, History, Loader2, Plus, Timer, Trash2, Trophy, User } from "lucide-react";
 
 import { getExerciseName } from "@/lib/i18n";
@@ -95,11 +96,12 @@ export function WorkoutExerciseCard({
 }: WorkoutExerciseCardProps) {
   const { t } = useTranslation();
   const { units, convertWeight, convertDistance } = useUnits();
+  const motionEnabled = useMotionEnabled();
   const [setToDelete, setSetToDelete] = useState<string | null>(null);
-  const [deletingSetId, setDeletingSetId] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null); // "copy:setId" | "complete:setId" | "delete"
 
   const canManageSets = !readOnly && isOwner && !isLocked;
+  const allCompleted = sets.length > 0 && sets.every(s => s.is_completed);
   const showSelectionCheckbox = readOnly && typeof onSelectionChange === "function";
 
   const handleCopySet = async (set: WorkoutSet) => {
@@ -139,11 +141,7 @@ export function WorkoutExerciseCard({
     if (!setToDelete || pendingAction) return;
     const idToDelete = setToDelete;
     setSetToDelete(null);
-    setDeletingSetId(idToDelete);
     setPendingAction("delete");
-
-    // Wait for fade-out animation
-    await new Promise(r => setTimeout(r, 300));
 
     try {
       await onDeleteSet(idToDelete);
@@ -151,14 +149,13 @@ export function WorkoutExerciseCard({
     } catch {
       toast.error(t("workout.setDeleteError"));
     } finally {
-      setDeletingSetId(null);
       setPendingAction(null);
     }
   };
 
   return (
     <>
-      <Card className={cn("relative animate-fade-in transition-all duration-300", sets.length > 0 && sets.every(s => s.is_completed) && "opacity-40 saturate-50")} style={{ animationDelay: `${index * 50}ms` }}>
+      <Card className="relative">
         {showSelectionCheckbox && (
           <div className="absolute left-2 top-2 z-10">
             <Checkbox
@@ -168,7 +165,7 @@ export function WorkoutExerciseCard({
             />
           </div>
         )}
-        <CardHeader className="pb-1 pt-3 px-4">
+        <CardHeader className={cn("pb-1 pt-3 px-4", allCompleted && "opacity-60")}>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
               <CardTitle className="flex items-center gap-1.5 text-sm truncate">
@@ -226,6 +223,7 @@ export function WorkoutExerciseCard({
         </CardHeader>
 
         <CardContent className="space-y-1 px-4 pb-3">
+          <div className={cn(allCompleted && "opacity-60")}>
           <div
             className={cn(
               "grid gap-1 pl-2 pr-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide",
@@ -248,11 +246,22 @@ export function WorkoutExerciseCard({
             {!readOnly && <div></div>}
           </div>
 
+          <AnimatePresence>
             {sets
               .slice()
               .sort((a, b) => a.set_number - b.set_number)
               .map((set, displayIndex) => (
-                    <div key={set.id} className="relative">
+                    <motion.div
+                      key={set.id}
+                      className="relative"
+                      {...(motionEnabled ? {
+                        initial: { opacity: 0, y: 6 },
+                        animate: { opacity: 1, y: 0 },
+                        exit: { opacity: 0, x: -20, scale: 0.95 },
+                        transition: { duration: 0.2, delay: displayIndex * 0.03 },
+                      } : {})
+                      }
+                    >
                       {isRecordSet(set.id) && (
                         <Trophy className="absolute -left-0.5 -top-0.5 h-4 w-4 text-yellow-500 z-10 drop-shadow-sm" />
                       )}
@@ -267,12 +276,8 @@ export function WorkoutExerciseCard({
                             ? "grid-cols-[32px_1fr_1fr]"
                             : "grid-cols-[32px_1fr_1fr_64px]",
                         isRecordSet(set.id) ? "bg-yellow-100 dark:bg-yellow-900/30" : "bg-muted/30",
-                        deletingSetId === set.id
-                          ? "transition-all duration-300 ease-in-out opacity-0 -translate-x-4 scale-95"
-                          : "animate-in fade-in slide-in-from-bottom-1 duration-200",
-                        set.is_completed && deletingSetId !== set.id && "opacity-40"
+                        set.is_completed && "opacity-60"
                       )}
-                      style={{ animationDelay: `${displayIndex * 30}ms`, animationFillMode: "backwards" }}
                       onClick={(e) => {
                         if ((e.target as HTMLElement).closest("button")) {
                           return;
@@ -381,8 +386,10 @@ export function WorkoutExerciseCard({
                         )}
                       </>
                     </div>
-                    </div>
+                    </motion.div>
               ))}
+          </AnimatePresence>
+          </div>
 
           {canManageSets && (
             <Button

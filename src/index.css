@@ -18,14 +18,12 @@
   -webkit-touch-callout: none;
 }
 
-/* Disable all animations and transitions globally */
-*,
-*::before,
-*::after {
+/* Disable remaining CSS animations when toggle is off (Framer Motion handles its own via MotionConfig) */
+[data-animations-disabled] *:not([data-animations-always] *),
+[data-animations-disabled] *:not([data-animations-always] *)::before,
+[data-animations-disabled] *:not([data-animations-always] *)::after {
   animation-duration: 0s !important;
   animation-delay: 0s !important;
-  transition-duration: 0s !important;
-  transition-delay: 0s !important;
 }
 
 /* Disable image long-press context menu */

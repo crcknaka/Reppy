@@ -8,6 +8,7 @@ import { OfflineProvider } from "@/contexts/OfflineContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { OfflineIndicator } from "@/offline/components/OfflineIndicator";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { MotionProvider } from "@/components/ui/motion";
 import Layout from "@/components/Layout";
 import { AdminProtectedRoute } from "@/components/admin/AdminProtectedRoute";
 import { Loader2 } from "lucide-react";
@@ -251,8 +252,10 @@ const App = () => (
           >
             <AuthProvider>
               <OfflineProvider>
-                <OfflineIndicator />
-                <AppRoutes />
+                <MotionProvider>
+                  <OfflineIndicator />
+                  <AppRoutes />
+                </MotionProvider>
               </OfflineProvider>
             </AuthProvider>
           </BrowserRouter>

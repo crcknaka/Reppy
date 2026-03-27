@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { usePendingRequestsCount } from "@/hooks/useFriends";
 import { useProfile } from "@/hooks/useProfile";
 import { useShowAdminNav } from "@/hooks/useShowAdminNav";
+import { motion, AnimatePresence, pageTransition, defaultTransition, useMotionEnabled } from "@/components/ui/motion";
 import { GuestRegistrationReminder } from "@/components/GuestRegistrationReminder";
 import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 import { GuestDataMigrationDialog } from "@/components/GuestDataMigrationDialog";
@@ -49,6 +50,7 @@ export default function Layout({ children }: LayoutProps) {
   const { t } = useTranslation();
   const { signOut, isGuest, showMigrationDialog, pendingMigrationWorkoutCount, confirmMigration, discardGuestData } = useAuth();
   const location = useLocation();
+  const motionEnabled = useMotionEnabled();
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const logoSrc = resolvedTheme === "dark" ? "/logo-white.png" : "/logo-black.png";
@@ -89,7 +91,20 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main Content */}
       <main className="flex-1 pb-24 md:pb-8 md:ml-64">
         <div className="container max-w-3xl py-6 md:py-8 overflow-x-hidden">
-          {children}
+          {motionEnabled ? (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                variants={pageTransition}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={defaultTransition}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          ) : children}
         </div>
       </main>
 
@@ -172,7 +187,6 @@ export default function Layout({ children }: LayoutProps) {
               <NavLink
                 key={item.to}
                 to={item.to}
-                style={{ animationDelay: `${index * 50}ms` }}
                 className={cn(
                   "relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
                   isActive

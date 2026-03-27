@@ -47,6 +47,7 @@ import { WorkoutListItemCard } from "@/components/workouts/WorkoutListItemCard";
 import { WorkoutCalendarDetailCard } from "@/components/workouts/WorkoutCalendarDetailCard";
 import { WorkoutCalendarPanel } from "@/components/workouts/WorkoutCalendarPanel";
 import { ListSkeleton } from "@/components/ui/page-skeleton";
+import { motion, AnimatePresence, staggerContainer, staggerItem, defaultTransition, useMotionEnabled } from "@/components/ui/motion";
 
 export default function Workouts() {
   const { t, i18n } = useTranslation();
@@ -56,6 +57,7 @@ export default function Workouts() {
   const { user, isGuest } = useAuth();
   const { isOnline } = useOffline();
   const { convertDistance, units } = useUnits();
+  const motionEnabled = useMotionEnabled();
 
   const viewingUserId = searchParams.get("user");
   const isViewingOther = viewingUserId && viewingUserId !== user?.id;
@@ -327,7 +329,7 @@ export default function Workouts() {
   };
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-4">
       {/* Header row: title + user indicator/selector */}
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">{t("workouts.title")}</h1>
@@ -641,22 +643,33 @@ export default function Workouts() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <motion.div className="space-y-3" {...(motionEnabled ? { variants: staggerContainer, initial: "hidden", animate: "visible" } : {})}>
+          <AnimatePresence>
           {visibleWorkouts.map((workout, index) => (
-            <WorkoutListItemCard
+            <motion.div
               key={workout.id}
-              workout={workout}
-              index={index}
-              dateLocale={dateLocale}
-              isViewingOther={!!isViewingOther}
-              convertDistance={convertDistance}
-              distanceUnit={units.distance}
-              todayLabel={t("workouts.today")}
-              onOpen={(workoutId) => navigate(`/workout/${workoutId}`)}
-              onDelete={handleDeleteWorkout}
-              recordCount={recordCountByWorkout.get(workout.id)}
-            />
+              layout={motionEnabled}
+              {...(motionEnabled ? {
+                variants: staggerItem,
+                transition: defaultTransition,
+                exit: { opacity: 0, x: -30, scale: 0.95, transition: { duration: 0.25 } },
+              } : {})}
+            >
+              <WorkoutListItemCard
+                workout={workout}
+                index={index}
+                dateLocale={dateLocale}
+                isViewingOther={!!isViewingOther}
+                convertDistance={convertDistance}
+                distanceUnit={units.distance}
+                todayLabel={t("workouts.today")}
+                onOpen={(workoutId) => navigate(`/workout/${workoutId}`)}
+                onDelete={handleDeleteWorkout}
+                recordCount={recordCountByWorkout.get(workout.id)}
+              />
+            </motion.div>
           ))}
+          </AnimatePresence>
 
           {/* Load More Button */}
           {hasMore && (
@@ -668,7 +681,7 @@ export default function Workouts() {
               {t("workouts.loadMore")} ({filteredWorkouts.length - visibleCount} {t("workouts.remaining")})
             </Button>
           )}
-          </div>
+          </motion.div>
         )}
         </>
       )}

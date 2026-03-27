@@ -21,7 +21,7 @@ export function GuestFriendsCTA() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
           {t("friends.title")}

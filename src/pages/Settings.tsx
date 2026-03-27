@@ -21,6 +21,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAccentColor, ACCENT_COLORS } from "@/hooks/useAccentColor";
 import { useUnits, UNIT_SYSTEMS } from "@/hooks/useUnits";
 import { useAutoFillLastSet } from "@/hooks/useAutoFillLastSet";
+import { useAnimationsEnabled } from "@/hooks/useAnimationsEnabled";
 import { useShowAdminNav } from "@/hooks/useShowAdminNav";
 import { useDeleteAccount } from "@/hooks/useDeleteAccount";
 import { LANGUAGES } from "@/lib/i18n";
@@ -94,6 +95,7 @@ export default function Settings() {
   const { unitSystem, setUnitSystem, units, convertWeight, convertHeight, toMetricWeight, toMetricHeight } = useUnits();
   const isMetric = unitSystem === "metric";
   const { autoFillEnabled, setAutoFillEnabled } = useAutoFillLastSet();
+  const { animationsEnabled, setAnimationsEnabled } = useAnimationsEnabled();
   const { showAdminNav, setShowAdminNav } = useShowAdminNav();
   const logoSrc = resolvedTheme === "dark" ? "/logo-white.png" : "/logo-black.png";
   const [exportLoading, setExportLoading] = useState(false);
@@ -558,7 +560,7 @@ export default function Settings() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-6">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
             {t("settings.title")}
@@ -570,7 +572,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="space-y-4 animate-fade-in">
+    <div className="space-y-4">
       <div className="flex items-center gap-4">
         {/* Title and subtitle */}
         <div className="flex-1 space-y-1">
@@ -1206,6 +1208,24 @@ export default function Settings() {
                 <Checkbox
                   checked={autoFillEnabled}
                   onCheckedChange={(checked) => { setAutoFillEnabled(checked === true); showAppSaved(); }}
+                  className="h-5 w-5"
+                />
+              </div>
+
+              {/* Animations toggle */}
+              <div className="flex items-center gap-3 py-3">
+                <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-500/10">
+                  <Sparkles className="h-4 w-4 text-blue-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{t("settings.animations.title")}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("settings.animations.description")}
+                  </p>
+                </div>
+                <Checkbox
+                  checked={animationsEnabled}
+                  onCheckedChange={(checked) => { setAnimationsEnabled(checked === true); showAppSaved(); }}
                   className="h-5 w-5"
                 />
               </div>

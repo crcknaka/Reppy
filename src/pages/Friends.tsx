@@ -29,11 +29,13 @@ import {
   useCancelFriendRequest,
 } from "@/hooks/useFriends";
 import { toast } from "sonner";
+import { motion, staggerContainer, staggerItem, defaultTransition, useMotionEnabled } from "@/components/ui/motion";
 
 export default function Friends() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isGuest } = useAuth();
+  const motionEnabled = useMotionEnabled();
   const [friendToRemove, setFriendToRemove] = useState<{ id: string; name: string } | null>(null);
 
   const { data: friends, isLoading: friendsLoading } = useFriends();
@@ -91,7 +93,7 @@ export default function Friends() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
@@ -159,12 +161,11 @@ export default function Friends() {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-2">
+            <motion.div className="space-y-2" {...(motionEnabled ? { variants: staggerContainer, initial: "hidden", animate: "visible" } : {})}>
               {friends?.map((friendship, index) => (
-                <div
+                <motion.div
                   key={friendship.id}
-                  className="animate-fade-in"
-                  style={{ animationDelay: `${index * 50}ms` }}
+                  {...(motionEnabled ? { variants: staggerItem, transition: defaultTransition } : {})}
                 >
                   <FriendCard
                     avatar={friendship.friend.avatar}
@@ -180,9 +181,9 @@ export default function Friends() {
                     onClick={() => navigate(`/?user=${friendship.friend.user_id}`)}
                     isLoading={removeFriend.isPending}
                   />
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
         </TabsContent>
 
@@ -209,12 +210,11 @@ export default function Friends() {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-2">
+            <motion.div className="space-y-2" {...(motionEnabled ? { variants: staggerContainer, initial: "hidden", animate: "visible" } : {})}>
               {pendingRequests?.map((request, index) => (
-                <div
+                <motion.div
                   key={request.id}
-                  className="animate-fade-in"
-                  style={{ animationDelay: `${index * 50}ms` }}
+                  {...(motionEnabled ? { variants: staggerItem, transition: defaultTransition } : {})}
                 >
                   <FriendCard
                     avatar={request.requester.avatar}
@@ -225,9 +225,9 @@ export default function Friends() {
                     onReject={() => handleReject(request.id)}
                     isLoading={acceptRequest.isPending || rejectRequest.isPending}
                   />
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
         </TabsContent>
 
@@ -254,12 +254,11 @@ export default function Friends() {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-2">
+            <motion.div className="space-y-2" {...(motionEnabled ? { variants: staggerContainer, initial: "hidden", animate: "visible" } : {})}>
               {sentRequests?.map((request, index) => (
-                <div
+                <motion.div
                   key={request.id}
-                  className="animate-fade-in"
-                  style={{ animationDelay: `${index * 50}ms` }}
+                  {...(motionEnabled ? { variants: staggerItem, transition: defaultTransition } : {})}
                 >
                   <FriendCard
                     avatar={request.addressee.avatar}
@@ -269,9 +268,9 @@ export default function Friends() {
                     onCancel={() => handleCancelRequest(request.id)}
                     isLoading={cancelRequest.isPending}
                   />
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
         </TabsContent>
       </Tabs>

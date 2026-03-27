@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { calculateTotalVolume } from "@/lib/volumeUtils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { cn } from "@/lib/utils";
+import { motion, staggerContainer, staggerItem, defaultTransition, useMotionEnabled } from "@/components/ui/motion";
 import { useFriends } from "@/hooks/useFriends";
 import { useUnits } from "@/hooks/useUnits";
 import { AuthModal } from "@/components/AuthModal";
@@ -156,6 +157,7 @@ export default function Progress() {
   const { t, i18n } = useTranslation();
   const dateLocale = getDateLocale(i18n.language);
   const navigate = useNavigate();
+  const motionEnabled = useMotionEnabled();
   // Use offline hooks for workouts and exercises (can view progress offline)
   const { data: workouts } = useOfflineWorkouts();
   const { data: exercises } = useOfflineExercises();
@@ -708,7 +710,7 @@ export default function Progress() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-lg font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">{t("progress.title")}</h1>
@@ -913,9 +915,9 @@ export default function Progress() {
 
       {/* Stats cards */}
       {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <motion.div className="grid grid-cols-2 sm:grid-cols-3 gap-2" {...(motionEnabled ? { variants: staggerContainer, initial: "hidden", animate: "visible" } : {})}>
           {selectedExerciseData?.type !== "cardio" && selectedExerciseData?.type !== "timed" && (
-            <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3">
+            <motion.div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3" {...(motionEnabled ? { variants: staggerItem, transition: defaultTransition } : {})}>
               <Repeat className="h-4 w-4 text-primary" />
               <div className="text-lg font-bold text-foreground leading-none">{stats.totalReps}</div>
               <div className="text-[10px] text-muted-foreground">{t("progress.repetitions")}</div>
@@ -924,27 +926,27 @@ export default function Progress() {
                   {stats.repsTrend > 0 ? "+" : ""}{stats.repsTrend.toFixed(0)}%
                 </div>
               )}
-            </div>
+            </motion.div>
           )}
 
           {selectedExerciseData?.type !== "bodyweight" && selectedExerciseData?.type !== "cardio" && selectedExerciseData?.type !== "timed" && (
-            <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3">
+            <motion.div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3" {...(motionEnabled ? { variants: staggerItem, transition: defaultTransition } : {})}>
               <Weight className="h-4 w-4 text-primary" />
               <div className="text-lg font-bold text-foreground leading-none">
                 {stats.maxWeight > 0 ? `${convertWeight(stats.maxWeight)} ${units.weight}` : "—"}
               </div>
               <div className="text-[10px] text-muted-foreground">{t("progress.maxWeight")}</div>
-            </div>
+            </motion.div>
           )}
 
-          <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3">
+          <motion.div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3" {...(motionEnabled ? { variants: staggerItem, transition: defaultTransition } : {})}>
             <Zap className="h-4 w-4 text-primary" />
             <div className="text-lg font-bold text-foreground leading-none">{stats.workoutCount}</div>
             <div className="text-[10px] text-muted-foreground">{t("progress.workoutsCount")}</div>
-          </div>
+          </motion.div>
 
           {selectedExerciseData?.type !== "bodyweight" && selectedExerciseData?.type !== "cardio" && selectedExerciseData?.type !== "timed" && (
-            <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3">
+            <motion.div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3" {...(motionEnabled ? { variants: staggerItem, transition: defaultTransition } : {})}>
               <TrendingUp className="h-4 w-4 text-primary" />
               <div className="text-lg font-bold text-foreground leading-none">
                 {convertWeight(stats.totalVolume) >= 1000
@@ -952,21 +954,21 @@ export default function Progress() {
                   : `${Math.round(convertWeight(stats.totalVolume))} ${units.weight}`}
               </div>
               <div className="text-[10px] text-muted-foreground">{t("progress.volume")}</div>
-            </div>
+            </motion.div>
           )}
 
           {stats.totalDistance > 0 && (
-            <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3">
+            <motion.div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3" {...(motionEnabled ? { variants: staggerItem, transition: defaultTransition } : {})}>
               <Activity className="h-4 w-4 text-primary" />
               <div className="text-lg font-bold text-foreground leading-none">
                 {convertDistance(stats.totalDistance).toFixed(1)} {units.distance}
               </div>
               <div className="text-[10px] text-muted-foreground">{t("progress.ranDistance")}</div>
-            </div>
+            </motion.div>
           )}
 
           {stats.totalDurationMinutes > 0 && (selectedExerciseData?.type === "cardio" || selectedExercise === "all") && (
-            <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3">
+            <motion.div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3" {...(motionEnabled ? { variants: staggerItem, transition: defaultTransition } : {})}>
               <Clock className="h-4 w-4 text-primary" />
               <div className="text-lg font-bold text-foreground leading-none">
                 {stats.totalDurationMinutes >= 60
@@ -974,11 +976,11 @@ export default function Progress() {
                   : `${stats.totalDurationMinutes.toFixed(0)} ${t("units.min")}`}
               </div>
               <div className="text-[10px] text-muted-foreground">{t("progress.timeRunning")}</div>
-            </div>
+            </motion.div>
           )}
 
           {stats.totalPlankSeconds > 0 && (selectedExerciseData?.type === "timed" || selectedExercise === "all") && (
-            <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3">
+            <motion.div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3" {...(motionEnabled ? { variants: staggerItem, transition: defaultTransition } : {})}>
               <Clock className="h-4 w-4 text-primary" />
               <div className="text-lg font-bold text-foreground leading-none">
                 {stats.totalPlankSeconds >= 60
@@ -986,9 +988,9 @@ export default function Progress() {
                   : `${stats.totalPlankSeconds} ${t("units.sec")}`}
               </div>
               <div className="text-[10px] text-muted-foreground">{t("progress.inPlank")}</div>
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
       )}
 
       {/* Exercise history collapsible */}
@@ -1345,10 +1347,10 @@ export default function Progress() {
 
           {/* Leaderboard table */}
           {leaderboardData && leaderboardData.length > 0 ? (
-            <div className="space-y-2">
+            <motion.div className="space-y-2" {...(motionEnabled ? { variants: staggerContainer, initial: "hidden", animate: "visible" } : {})}>
               {leaderboardData.map((entry, index) => (
+                <motion.div key={entry.user_id} {...(motionEnabled ? { variants: staggerItem, transition: defaultTransition } : {})}>
                 <LeaderboardRow
-                  key={entry.user_id}
                   entry={entry}
                   index={index}
                   isCurrentUser={entry.user_id === effectiveUserId}
@@ -1359,8 +1361,9 @@ export default function Progress() {
                   convertHeight={convertHeight}
                   units={units}
                 />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="p-4 bg-muted rounded-full mb-4">

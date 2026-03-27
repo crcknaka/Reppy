@@ -57,28 +57,34 @@ export function WorkoutListItemCard({
   return (
     <Card
       className={cn(
-        "cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/30",
-        "animate-fade-in",
+        "cursor-pointer hover:shadow-md hover:border-primary/30",
         isWorkoutToday && "border-green-500/50 dark:border-green-400/50"
       )}
-      style={{ animationDelay: `${index * 50}ms` }}
       onClick={() => onOpen(workout.id)}
     >
       <CardContent className="p-3 flex items-center gap-3">
-        <div
-          className={cn(
-            "flex-shrink-0 w-14 h-14 rounded-lg flex flex-col items-center justify-center",
-            isWorkoutToday
-              ? "bg-green-500/15 text-green-600 dark:text-green-400"
-              : isWorkoutWeekend
-                ? "bg-primary/10 text-primary"
-                : "bg-muted text-foreground"
+        <div className="relative flex-shrink-0">
+          {!!recordCount && recordCount > 0 && (
+            <div className="absolute -top-1.5 -left-1.5 z-10 flex items-center gap-0.5 rounded-full bg-yellow-500/20 border border-yellow-500/30 px-1 py-0.5">
+              <Trophy className="h-3 w-3 text-yellow-500" />
+              <span className="text-[9px] font-bold text-yellow-500">{recordCount}</span>
+            </div>
           )}
-        >
-          <span className="text-xl font-bold leading-none">{format(new Date(workout.date), "d")}</span>
-          <span className="text-[10px] font-medium uppercase mt-0.5">
-            {format(new Date(workout.date), "MMM", { locale: dateLocale })}
-          </span>
+          <div
+            className={cn(
+              "w-14 h-14 rounded-lg flex flex-col items-center justify-center",
+              isWorkoutToday
+                ? "bg-green-500/15 text-green-600 dark:text-green-400"
+                : isWorkoutWeekend
+                  ? "bg-primary/10 text-primary"
+                  : "bg-muted text-foreground"
+            )}
+          >
+            <span className="text-xl font-bold leading-none">{format(new Date(workout.date), "d")}</span>
+            <span className="text-[10px] font-medium uppercase mt-0.5">
+              {format(new Date(workout.date), "MMM", { locale: dateLocale })}
+            </span>
+          </div>
         </div>
 
         <div className="flex-1 min-w-0">
@@ -97,12 +103,6 @@ export function WorkoutListItemCard({
             </span>
           </div>
           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-            {!!recordCount && recordCount > 0 && (
-              <span className="flex items-center gap-1 text-yellow-500">
-                <Trophy className="h-4 w-4" />
-                {recordCount}
-              </span>
-            )}
             <span className="flex items-center gap-1">
               <Dumbbell className="h-3.5 w-3.5" />
               {getUniqueExercises(workout)}

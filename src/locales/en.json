@@ -138,6 +138,10 @@
       "off": "Off",
       "description": "Automatically fill in data from the last set when selecting an exercise"
     },
+    "animations": {
+      "title": "Animations",
+      "description": "Smooth transitions and effects in the interface"
+    },
     "export": "Export",
     "exportDescription": "Download all your workouts for backup or analysis",
     "security": "Security",

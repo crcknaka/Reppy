@@ -113,6 +113,10 @@
       "off": "Desativado",
       "description": "Preencher automaticamente os dados da última série ao selecionar um exercício"
     },
+    "animations": {
+      "title": "Animações",
+      "description": "Transições e efeitos suaves na interface"
+    },
     "export": "Exportar",
     "exportDescription": "Baixe todos os seus treinos para backup ou análise",
     "security": "Segurança",

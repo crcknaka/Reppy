@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getExerciseName } from "@/lib/i18n";
+import { motion, staggerContainer, staggerItem, defaultTransition, useMotionEnabled } from "@/components/ui/motion";
 import { Plus, User, Dumbbell, Trash2, Search, Activity, Timer, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,6 +28,7 @@ import { cn } from "@/lib/utils";
 export default function Exercises() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const motionEnabled = useMotionEnabled();
   // Use offline hooks for exercises and workouts (read from cache)
   const { data: exercises, isLoading } = useOfflineExercises();
   const { data: workouts } = useOfflineWorkouts();
@@ -108,7 +110,7 @@ export default function Exercises() {
   const customExercises = filteredExercises?.filter((e) => !e.is_preset);
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       {/* Modern Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
@@ -242,7 +244,7 @@ export default function Exercises() {
       {isLoading ? (
         <div className="grid grid-cols-2 gap-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="animate-pulse">
+            <Card key={i} className="">
               <CardContent className="p-3">
                 <div className="aspect-[4/3] bg-muted rounded-lg mb-2" />
                 <div className="h-3 bg-muted rounded w-2/3 mx-auto" />
@@ -259,12 +261,11 @@ export default function Exercises() {
                 <div className="h-4 w-0.5 bg-primary rounded-full"></div>
                 {t("exercises.customExercises")}
               </h3>
-              <div className="grid grid-cols-2 gap-3">
+              <motion.div className="grid grid-cols-2 gap-3" {...(motionEnabled ? { variants: staggerContainer, initial: "hidden", animate: "visible" } : {})}>
                 {customExercises.map((exercise, index) => (
+                  <motion.div key={exercise.id} {...(motionEnabled ? { variants: staggerItem, transition: defaultTransition } : {})}>
                   <Card
-                    key={exercise.id}
-                    className="animate-fade-in relative group hover:shadow-lg transition-all duration-200 overflow-hidden cursor-pointer"
-                    style={{ animationDelay: `${index * 30}ms` }}
+                    className="relative group hover:shadow-lg transition-all duration-200 overflow-hidden cursor-pointer"
                     onClick={() => handleExerciseClick(exercise.id)}
                   >
                     <CardContent className="p-3 flex flex-col gap-2">
@@ -308,8 +309,9 @@ export default function Exercises() {
                       </Button>
                     </CardContent>
                   </Card>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </div>
           )}
 
@@ -320,12 +322,11 @@ export default function Exercises() {
                 <div className="h-4 w-0.5 bg-primary rounded-full"></div>
                 {t("exercises.baseExercises")}
               </h3>
-              <div className="grid grid-cols-2 gap-3">
+              <motion.div className="grid grid-cols-2 gap-3" {...(motionEnabled ? { variants: staggerContainer, initial: "hidden", animate: "visible" } : {})}>
                 {presetExercises.map((exercise, index) => (
+                  <motion.div key={exercise.id} {...(motionEnabled ? { variants: staggerItem, transition: defaultTransition } : {})}>
                   <Card
-                    key={exercise.id}
-                    className="animate-fade-in group hover:shadow-lg transition-all duration-200 cursor-pointer"
-                    style={{ animationDelay: `${(customExercises?.length || 0) * 30 + index * 30}ms` }}
+                    className="group hover:shadow-lg transition-all duration-200 cursor-pointer"
                     onClick={() => handleExerciseClick(exercise.id)}
                   >
                     <CardContent className="p-3 flex flex-col gap-2">
@@ -362,8 +363,9 @@ export default function Exercises() {
                       </div>
                     </CardContent>
                   </Card>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </div>
           )}
 

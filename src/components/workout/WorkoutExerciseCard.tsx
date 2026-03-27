@@ -362,7 +362,7 @@ export function WorkoutExerciseCard({
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                className="h-7 w-7 text-muted-foreground hover:text-foreground active:bg-transparent [-webkit-tap-highlight-color:transparent]"
                                 disabled={!!pendingAction}
                                 onClick={() => handleCopySet(set)}
                               >
@@ -371,7 +371,7 @@ export function WorkoutExerciseCard({
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                className="h-7 w-7 text-muted-foreground hover:text-foreground active:bg-transparent [-webkit-tap-highlight-color:transparent]"
                                 disabled={!!pendingAction}
                                 onClick={() => setSetToDelete(set.id)}
                               >

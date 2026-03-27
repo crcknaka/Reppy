@@ -1,6 +1,6 @@
 import { format, isToday, parseISO } from "date-fns";
 import type { Locale } from "date-fns";
-import { Dumbbell, Layers, MessageSquare, Route, Trash2, Trophy } from "lucide-react";
+import { Dumbbell, Layers, Lock, MessageSquare, Route, Trash2, Trophy } from "lucide-react";
 import type React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -68,6 +68,11 @@ export function WorkoutListItemCard({
             <div className="absolute -top-1.5 -left-1.5 z-10 flex items-center gap-0.5 rounded-full bg-yellow-500/20 border border-yellow-500/30 px-1 py-0.5">
               <Trophy className="h-3 w-3 text-yellow-500" />
               <span className="text-[9px] font-bold text-yellow-500">{recordCount}</span>
+            </div>
+          )}
+          {workout.is_locked && (
+            <div className="absolute -bottom-1 -right-1 z-10 flex items-center justify-center h-4.5 w-4.5 rounded-full bg-primary/15 border border-primary/30">
+              <Lock className="h-2.5 w-2.5 text-primary" />
             </div>
           )}
           <div

@@ -18,6 +18,16 @@
   -webkit-touch-callout: none;
 }
 
+/* Disable all animations and transitions globally */
+*,
+*::before,
+*::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+}
+
 /* Disable image long-press context menu */
 img {
   -webkit-touch-callout: none;

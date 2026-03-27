@@ -46,6 +46,7 @@ import { ViewingUserBanner } from "@/components/ViewingUserBanner";
 import { WorkoutListItemCard } from "@/components/workouts/WorkoutListItemCard";
 import { WorkoutCalendarDetailCard } from "@/components/workouts/WorkoutCalendarDetailCard";
 import { WorkoutCalendarPanel } from "@/components/workouts/WorkoutCalendarPanel";
+import { ListSkeleton } from "@/components/ui/page-skeleton";
 
 export default function Workouts() {
   const { t, i18n } = useTranslation();
@@ -622,16 +623,7 @@ export default function Workouts() {
       {viewMode === "list" && (
         <>
       {isLoading ? (
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-6 bg-muted rounded w-1/3 mb-2" />
-                <div className="h-4 bg-muted rounded w-1/2" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <ListSkeleton />
       ) : visibleWorkouts.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">

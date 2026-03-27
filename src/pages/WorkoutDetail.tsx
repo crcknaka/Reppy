@@ -77,6 +77,7 @@ import { useAutoFillLastSet } from "@/hooks/useAutoFillLastSet";
 import { LIMITS } from "@/lib/limits";
 import { WorkoutExerciseCard } from "@/components/workout/WorkoutExerciseCard";
 import { AnimatedNumber } from "@/components/ui/animated-number";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { CopyWorkoutDialog } from "@/components/workout/CopyWorkoutDialog";
 import type { Exercise } from "@/hooks/useExercises";
 import type { EditSetContext } from "@/components/workout/setDialogTypes";
@@ -483,11 +484,7 @@ export default function WorkoutDetail() {
 
   // Show loader while loading or fetching (includes retries)
   if (isWorkoutLoading || (isFetching && !workout)) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   // Redirect to workouts list if workout not found (deleted on another device)

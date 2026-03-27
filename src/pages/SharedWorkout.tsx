@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSharedWorkout } from "@/hooks/useWorkoutShare";
 import { useUserProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { AuthModal } from "@/components/AuthModal";
 import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 import { cn } from "@/lib/utils";
@@ -122,8 +123,8 @@ export default function SharedWorkout() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="p-4">
+        <PageSkeleton />
       </div>
     );
   }

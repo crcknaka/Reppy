@@ -106,7 +106,7 @@ function drawRuler(
   const endIndex = Math.ceil(stepsFromZero + ticksVisible / 2);
 
   const baseAlpha = isActive ? 0.5 : 0.25;
-  const triH = 4;
+  const triH = 6;
 
   // Get primary color for center tint
   const computedStyle = getComputedStyle(canvas);
@@ -173,8 +173,8 @@ function drawRuler(
   ctx.fillStyle = color;
   ctx.beginPath();
   ctx.moveTo(centerX, triH);
-  ctx.lineTo(centerX - 3.5, 0);
-  ctx.lineTo(centerX + 3.5, 0);
+  ctx.lineTo(centerX - 5, 0);
+  ctx.lineTo(centerX + 5, 0);
   ctx.closePath();
   ctx.fill();
   ctx.globalAlpha = 1;

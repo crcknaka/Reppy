@@ -1279,50 +1279,50 @@ export default function WorkoutDetail() {
                   </div>
                 </div>
               )}
-              <div className="grid grid-cols-3 gap-2">
-                <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
-                  <Dumbbell className="h-4 w-4 text-primary" />
-                  <div className="text-lg font-bold text-foreground leading-none"><AnimatedNumber value={exerciseCount} /></div>
-                  <div className="text-[10px] text-muted-foreground">{t("workout.exercisesShort")}</div>
+              <div className="grid grid-cols-4 gap-1.5">
+                <div className="flex flex-col items-center gap-0.5 rounded-lg bg-muted/50 px-1.5 py-2">
+                  <Dumbbell className="h-3.5 w-3.5 text-primary" />
+                  <div className="text-sm font-bold text-foreground leading-none"><AnimatedNumber value={exerciseCount} /></div>
+                  <div className="text-[9px] text-muted-foreground">{t("workout.exercisesShort")}</div>
                 </div>
-                <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
-                  <Repeat className="h-4 w-4 text-primary" />
-                  <div className="text-lg font-bold text-foreground leading-none"><AnimatedNumber value={totalSets} /></div>
-                  <div className="text-[10px] text-muted-foreground">{t("workout.setsShort")}</div>
+                <div className="flex flex-col items-center gap-0.5 rounded-lg bg-muted/50 px-1.5 py-2">
+                  <Repeat className="h-3.5 w-3.5 text-primary" />
+                  <div className="text-sm font-bold text-foreground leading-none"><AnimatedNumber value={totalSets} /></div>
+                  <div className="text-[9px] text-muted-foreground">{t("workout.setsShort")}</div>
                 </div>
                 {totalReps > 0 && (
-                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
-                    <Activity className="h-4 w-4 text-primary" />
-                    <div className="text-lg font-bold text-foreground leading-none"><AnimatedNumber value={totalReps} /></div>
-                    <div className="text-[10px] text-muted-foreground">{t("units.reps")}</div>
+                  <div className="flex flex-col items-center gap-0.5 rounded-lg bg-muted/50 px-1.5 py-2">
+                    <Activity className="h-3.5 w-3.5 text-primary" />
+                    <div className="text-sm font-bold text-foreground leading-none"><AnimatedNumber value={totalReps} /></div>
+                    <div className="text-[9px] text-muted-foreground">{t("units.reps")}</div>
                   </div>
                 )}
                 {totalVolume > 0 && (
-                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
-                    <Weight className="h-4 w-4 text-primary" />
-                    <div className="text-lg font-bold text-foreground leading-none">{formattedVolume}</div>
-                    <div className="text-[10px] text-muted-foreground">{t("progress.volume")}</div>
+                  <div className="flex flex-col items-center gap-0.5 rounded-lg bg-muted/50 px-1.5 py-2">
+                    <Weight className="h-3.5 w-3.5 text-primary" />
+                    <div className="text-sm font-bold text-foreground leading-none">{formattedVolume}</div>
+                    <div className="text-[9px] text-muted-foreground">{t("progress.volume")}</div>
                   </div>
                 )}
                 {totalDistance > 0 && (
-                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
-                    <Route className="h-4 w-4 text-primary" />
-                    <div className="text-lg font-bold text-foreground leading-none"><AnimatedNumber value={convertDistance(totalDistance)} decimals={1} /> {units.distance}</div>
-                    <div className="text-[10px] text-muted-foreground">{t("progress.distance")}</div>
+                  <div className="flex flex-col items-center gap-0.5 rounded-lg bg-muted/50 px-1.5 py-2">
+                    <Route className="h-3.5 w-3.5 text-primary" />
+                    <div className="text-sm font-bold text-foreground leading-none"><AnimatedNumber value={convertDistance(totalDistance)} decimals={1} />{units.distance}</div>
+                    <div className="text-[9px] text-muted-foreground">{t("progress.distance")}</div>
                   </div>
                 )}
                 {totalDurationMin > 0 && (
-                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
-                    <Timer className="h-4 w-4 text-primary" />
-                    <div className="text-lg font-bold text-foreground leading-none"><AnimatedNumber value={totalDurationMin} /> {t("units.min")}</div>
-                    <div className="text-[10px] text-muted-foreground">{t("progress.time")}</div>
+                  <div className="flex flex-col items-center gap-0.5 rounded-lg bg-muted/50 px-1.5 py-2">
+                    <Timer className="h-3.5 w-3.5 text-primary" />
+                    <div className="text-sm font-bold text-foreground leading-none"><AnimatedNumber value={totalDurationMin} />{t("units.min")}</div>
+                    <div className="text-[9px] text-muted-foreground">{t("progress.time")}</div>
                   </div>
                 )}
                 {totalPlankSec > 0 && (
-                  <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-2.5">
-                    <Timer className="h-4 w-4 text-primary" />
-                    <div className="text-lg font-bold text-foreground leading-none">{totalPlankSec >= 60 ? `${Math.floor(totalPlankSec / 60)}${t("units.min")} ${totalPlankSec % 60}${t("units.sec")}` : `${totalPlankSec} ${t("units.sec")}`}</div>
-                    <div className="text-[10px] text-muted-foreground">{t("progress.inPlank")}</div>
+                  <div className="flex flex-col items-center gap-0.5 rounded-lg bg-muted/50 px-1.5 py-2">
+                    <Timer className="h-3.5 w-3.5 text-primary" />
+                    <div className="text-sm font-bold text-foreground leading-none">{totalPlankSec >= 60 ? `${Math.floor(totalPlankSec / 60)}${t("units.min")}${totalPlankSec % 60}${t("units.sec")}` : `${totalPlankSec}${t("units.sec")}`}</div>
+                    <div className="text-[9px] text-muted-foreground">{t("progress.inPlank")}</div>
                   </div>
                 )}
               </div>

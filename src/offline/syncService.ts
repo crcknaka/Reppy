@@ -153,7 +153,16 @@ class SyncService {
     const result = { ...data };
 
     for (const [key, value] of Object.entries(result)) {
-      if (typeof value === "string" && isOfflineId(value)) {
+      if (Array.isArray(value)) {
+        result[key] = await Promise.all(
+          value.map(async (item) => {
+            if (typeof item === "string" && isOfflineId(item)) {
+              return (await this.getServerId(item)) || item;
+            }
+            return item;
+          })
+        );
+      } else if (typeof value === "string" && isOfflineId(value)) {
         const realId = await this.getServerId(value);
         if (realId) {
           result[key] = realId;

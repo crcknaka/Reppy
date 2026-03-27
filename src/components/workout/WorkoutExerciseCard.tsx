@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { type Locale } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Activity, Check, CopyPlus, Dumbbell, History, Loader2, Plus, Timer, Trash2, Trophy, User } from "lucide-react";
@@ -68,7 +67,6 @@ interface WorkoutExerciseCardProps {
   isOwner: boolean;
   isLocked: boolean;
   isRecordSet: (setId: string) => boolean;
-  dateLocale: Locale;
   onOpenExerciseHistory: (exerciseId: string, exerciseName: string, exerciseType: string) => void;
   onAddAnotherSet: (exerciseId: string) => Promise<void>;
   onCreateSet: (payload: SetPayload) => Promise<void>;
@@ -88,7 +86,6 @@ export function WorkoutExerciseCard({
   isOwner,
   isLocked,
   isRecordSet,
-  dateLocale,
   onOpenExerciseHistory,
   onAddAnotherSet,
   onCreateSet,

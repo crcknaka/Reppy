@@ -913,7 +913,7 @@ export default function Progress() {
 
       {/* Stats cards */}
       {stats && (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {selectedExerciseData?.type !== "cardio" && selectedExerciseData?.type !== "timed" && (
             <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 px-2 py-3">
               <Repeat className="h-4 w-4 text-primary" />

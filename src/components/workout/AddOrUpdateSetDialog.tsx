@@ -427,6 +427,7 @@ export function AddOrUpdateSetDialog({
                   <div className="space-y-1">
                     <Label>{t("workout.timeSec")}</Label>
                     <SwipeNumberInput
+                      id="add-duration"
                       type="number"
                       inputMode="numeric"
                       enterKeyHint="done"
@@ -471,7 +472,7 @@ export function AddOrUpdateSetDialog({
                       }}
                       autoFocus
                     />
-                    {selectedExercise.name.toLowerCase().includes("гантел") && (
+                    {["гантел", "dumbbell", "hantel", "mancuerna", "haltère", "halter"].some(kw => selectedExercise.name.toLowerCase().includes(kw)) && (
                       <p className="text-xs text-muted-foreground">{t("workout.dumbbellNote")}</p>
                     )}
                   </div>

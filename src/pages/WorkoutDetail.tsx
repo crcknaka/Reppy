@@ -1225,7 +1225,6 @@ export default function WorkoutDetail() {
                     isOwner={isOwner}
                     isLocked={!!workout?.is_locked}
                     isRecordSet={(setId) => recordSetIds.has(setId)}
-                    dateLocale={dateLocale}
                     onOpenExerciseHistory={openExerciseHistory}
                     onAddAnotherSet={handleAddAnotherSet}
                     onCreateSet={createSetForWorkout}

@@ -329,7 +329,6 @@ export function CopyWorkoutDialog({
                       isOwner={false}
                       isLocked
                       isRecordSet={() => false}
-                      dateLocale={dateLocale}
                       onOpenExerciseHistory={() => undefined}
                       onAddAnotherSet={async () => undefined}
                       onCreateSet={async () => undefined}

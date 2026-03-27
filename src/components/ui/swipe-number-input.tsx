@@ -468,10 +468,10 @@ const SwipeNumberInput = React.forwardRef<HTMLInputElement, SwipeNumberInputProp
             max={max}
             lang={resolvedLang}
             className={cn(
-              "flex w-full bg-transparent px-4 py-2 ring-offset-background transition-all duration-200 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground/30 disabled:cursor-not-allowed disabled:opacity-50",
+              "flex w-full bg-transparent px-3 py-1 ring-offset-background transition-all duration-200 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground/30 disabled:cursor-not-allowed disabled:opacity-50",
               type === "number" && "appearance-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
               swipeEnabled ? cn(
-                "h-12 text-xl font-bold select-none text-center border-none outline-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 [&]:border-none [&]:outline-none [-webkit-tap-highlight-color:transparent]",
+                "h-10 text-lg font-bold select-none text-center border-none outline-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 [&]:border-none [&]:outline-none [-webkit-tap-highlight-color:transparent]",
                 isSwiping ? "caret-transparent" : "caret-primary"
               ) : "h-10 text-base md:text-sm rounded-xl border border-input bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:border-ring hover:border-muted-foreground/50",
               className,

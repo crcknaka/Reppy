@@ -373,8 +373,8 @@ export function AddOrUpdateSetDialog({
             }}
           >
             {selectedExercise.type === "cardio" ? (
-              <div className="space-y-4 max-w-md mx-auto w-full">
-                <div className="space-y-2">
+              <div className="space-y-3 max-w-md mx-auto w-full">
+                <div className="space-y-1">
                   <Label>{t("workout.distance")}</Label>
                   <SwipeNumberInput
                     id="add-distance"
@@ -397,7 +397,7 @@ export function AddOrUpdateSetDialog({
                     autoFocus
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label>{t("workout.timeMin")}</Label>
                   <SwipeNumberInput
                     id="add-duration"
@@ -423,8 +423,8 @@ export function AddOrUpdateSetDialog({
                   onCancel={() => setShowTimer(false)}
                 />
               ) : (
-                <div className="space-y-4 max-w-md mx-auto w-full">
-                  <div className="space-y-2">
+                <div className="space-y-3 max-w-md mx-auto w-full">
+                  <div className="space-y-1">
                     <Label>{t("workout.timeSec")}</Label>
                     <SwipeNumberInput
                       type="number"
@@ -446,9 +446,9 @@ export function AddOrUpdateSetDialog({
                 </div>
               )
             ) : (
-              <div className="space-y-4 max-w-md mx-auto w-full">
+              <div className="space-y-3 max-w-md mx-auto w-full">
                 {selectedExercise.type === "weighted" && (
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     <Label>{t("workout.weight")}</Label>
                     <SwipeNumberInput
                       id="add-weight"
@@ -476,7 +476,7 @@ export function AddOrUpdateSetDialog({
                     )}
                   </div>
                 )}
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label>{t("workout.reps")}</Label>
                   <SwipeNumberInput
                     id="add-reps"
@@ -496,7 +496,7 @@ export function AddOrUpdateSetDialog({
             )}
 
             {!(selectedExercise.type === "timed" && showTimer) && (
-              <Button type="submit" className="w-full mt-4" disabled={isSubmitting}>
+              <Button type="submit" className="w-full mt-3" disabled={isSubmitting}>
                 {isEditMode ? t("common.save") : t("common.add")}
               </Button>
             )}

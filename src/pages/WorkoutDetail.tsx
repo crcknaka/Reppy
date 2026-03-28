@@ -9,7 +9,7 @@ import {
   useSensors,
   type DragEndEvent,
   type DragStartEvent,
-  type Modifier,
+  type DragMoveEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -203,63 +203,59 @@ export default function WorkoutDetail() {
     })
   );
 
-  // Auto-scroll when dragging near edges
+  // Auto-scroll during drag — uses DndContext onDragMove for reliable pointer position
   const autoScrollRef = useRef<number | null>(null);
-  const dragActiveRef = useRef(false);
-  const lastPointerY = useRef(0);
+  const dragPointerY = useRef(0);
+  const dragScrollSpeed = useRef(0);
 
-  useEffect(() => {
-    const onPointerMove = (e: PointerEvent) => { lastPointerY.current = e.clientY; };
-    const onTouchMove = (e: TouchEvent) => { lastPointerY.current = e.touches[0].clientY; };
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    window.addEventListener("touchmove", onTouchMove, { passive: true });
-    return () => {
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("touchmove", onTouchMove);
+  const updateAutoScroll = useCallback(() => {
+    const tick = () => {
+      if (dragScrollSpeed.current !== 0) {
+        window.scrollBy(0, dragScrollSpeed.current);
+      }
+      autoScrollRef.current = requestAnimationFrame(tick);
     };
+    if (!autoScrollRef.current) {
+      autoScrollRef.current = requestAnimationFrame(tick);
+    }
   }, []);
 
-  useEffect(() => {
-    if (!activeExerciseId) {
-      dragActiveRef.current = false;
-      if (autoScrollRef.current) {
-        cancelAnimationFrame(autoScrollRef.current);
-        autoScrollRef.current = null;
-      }
+  const stopAutoScroll = useCallback(() => {
+    if (autoScrollRef.current) {
+      cancelAnimationFrame(autoScrollRef.current);
+      autoScrollRef.current = null;
+    }
+    dragScrollSpeed.current = 0;
+  }, []);
+
+  const handleDragMove = useCallback((event: DragMoveEvent) => {
+    // activatorEvent gives us the original pointer event with clientY
+    const pointerEvent = event.activatorEvent as PointerEvent | TouchEvent;
+    let clientY: number;
+    if ("clientY" in pointerEvent) {
+      clientY = pointerEvent.clientY + (event.delta.y || 0);
+    } else if ("touches" in pointerEvent && pointerEvent.touches[0]) {
+      clientY = pointerEvent.touches[0].clientY + (event.delta.y || 0);
+    } else {
       return;
     }
 
-    dragActiveRef.current = true;
+    dragPointerY.current = clientY;
+    const vh = window.innerHeight;
+    const topZone = 150;
+    const bottomZone = 200;
+    const maxSpeed = 18;
 
-    const scrollLoop = () => {
-      if (!dragActiveRef.current) return;
-      const y = lastPointerY.current;
-      const vh = window.innerHeight;
-      const topZone = 200;
-      const bottomStart = vh * 0.5;
-      const maxSpeed = 100;
-
-      if (y > 0 && y < topZone) {
-        const factor = 1 - y / topZone;
-        window.scrollBy(0, -(maxSpeed * factor));
-      } else if (y > bottomStart) {
-        // The closer to bottom (or beyond), the faster — no cap
-        const distPastMid = y - bottomStart;
-        const range = vh - bottomStart;
-        const factor = Math.min(distPastMid / range, 1);
-        window.scrollBy(0, maxSpeed * factor);
-      }
-      autoScrollRef.current = requestAnimationFrame(scrollLoop);
-    };
-    autoScrollRef.current = requestAnimationFrame(scrollLoop);
-
-    return () => {
-      if (autoScrollRef.current) {
-        cancelAnimationFrame(autoScrollRef.current);
-        autoScrollRef.current = null;
-      }
-    };
-  }, [activeExerciseId]);
+    if (clientY < topZone) {
+      const factor = 1 - clientY / topZone;
+      dragScrollSpeed.current = -(maxSpeed * factor);
+    } else if (clientY > vh - bottomZone) {
+      const factor = 1 - (vh - clientY) / bottomZone;
+      dragScrollSpeed.current = maxSpeed * factor;
+    } else {
+      dragScrollSpeed.current = 0;
+    }
+  }, []);
 
   const [showCelebration, setShowCelebration] = useState(false);
   const [showRecordCelebration, setShowRecordCelebration] = useState(false);
@@ -513,21 +509,21 @@ export default function WorkoutDetail() {
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveExerciseId(event.active.id as string);
-    dragActiveRef.current = true;
+    updateAutoScroll();
     if (typeof navigator !== "undefined" && navigator.vibrate) {
       navigator.vibrate(30);
     }
-  }, []);
+  }, [updateAutoScroll]);
 
   const handleDragCancel = useCallback(() => {
     setActiveExerciseId(null);
-    dragActiveRef.current = false;
-  }, []);
+    stopAutoScroll();
+  }, [stopAutoScroll]);
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       setActiveExerciseId(null);
-      dragActiveRef.current = false;
+      stopAutoScroll();
       const { active, over } = event;
       if (!over || active.id === over.id || !workout) return;
 
@@ -1267,6 +1263,7 @@ export default function WorkoutDetail() {
           sensors={dndSensors}
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
+          onDragMove={handleDragMove}
           onDragEnd={handleDragEnd}
           onDragCancel={handleDragCancel}
         >

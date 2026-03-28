@@ -204,8 +204,8 @@ export default function WorkoutDetail() {
   // Auto-scroll config for @dnd-kit built-in auto-scroll
   const autoScrollConfig = useMemo(() => ({
     enabled: true,
-    threshold: { x: 0, y: 0.2 },
-    acceleration: 20,
+    threshold: { x: 0, y: 0.4 },
+    acceleration: 25,
     interval: 5,
   }), []);
 

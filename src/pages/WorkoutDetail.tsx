@@ -201,58 +201,13 @@ export default function WorkoutDetail() {
     })
   );
 
-  // Auto-scroll during drag — capture pointermove at document level
-  const autoScrollRef = useRef<number | null>(null);
-  const dragScrollSpeed = useRef(0);
-  const isDraggingRef = useRef(false);
-
-  const stopAutoScroll = useCallback(() => {
-    isDraggingRef.current = false;
-    if (autoScrollRef.current) {
-      cancelAnimationFrame(autoScrollRef.current);
-      autoScrollRef.current = null;
-    }
-    dragScrollSpeed.current = 0;
-  }, []);
-
-  const startAutoScroll = useCallback(() => {
-    isDraggingRef.current = true;
-
-    // Capture pointer/touch events at document level to track finger position
-    const updateSpeed = (clientY: number) => {
-      const vh = window.innerHeight;
-      const topZone = 120;
-      const bottomZone = 200;
-      const maxSpeed = 20;
-
-      if (clientY < topZone && clientY > 0) {
-        dragScrollSpeed.current = -(maxSpeed * (1 - clientY / topZone));
-      } else if (clientY > vh - bottomZone) {
-        dragScrollSpeed.current = maxSpeed * (1 - Math.max(0, vh - clientY) / bottomZone);
-      } else {
-        dragScrollSpeed.current = 0;
-      }
-    };
-
-    const onPointer = (e: PointerEvent) => { if (isDraggingRef.current) updateSpeed(e.clientY); };
-    const onTouch = (e: TouchEvent) => { if (isDraggingRef.current && e.touches[0]) updateSpeed(e.touches[0].clientY); };
-
-    document.addEventListener("pointermove", onPointer, { capture: true });
-    document.addEventListener("touchmove", onTouch, { capture: true });
-
-    const tick = () => {
-      if (!isDraggingRef.current) {
-        document.removeEventListener("pointermove", onPointer, { capture: true });
-        document.removeEventListener("touchmove", onTouch, { capture: true });
-        return;
-      }
-      if (dragScrollSpeed.current !== 0) {
-        window.scrollBy(0, dragScrollSpeed.current);
-      }
-      autoScrollRef.current = requestAnimationFrame(tick);
-    };
-    autoScrollRef.current = requestAnimationFrame(tick);
-  }, []);
+  // Auto-scroll config for @dnd-kit built-in auto-scroll
+  const autoScrollConfig = useMemo(() => ({
+    enabled: true,
+    threshold: { x: 0, y: 0.2 },
+    acceleration: 20,
+    interval: 5,
+  }), []);
 
   const [showCelebration, setShowCelebration] = useState(false);
   const [showRecordCelebration, setShowRecordCelebration] = useState(false);
@@ -506,19 +461,16 @@ export default function WorkoutDetail() {
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveExerciseId(event.active.id as string);
-    startAutoScroll();
     try { navigator.vibrate?.(30); } catch {}
-  }, [startAutoScroll]);
+  }, []);
 
   const handleDragCancel = useCallback(() => {
     setActiveExerciseId(null);
-    stopAutoScroll();
-  }, [stopAutoScroll]);
+  }, []);
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       setActiveExerciseId(null);
-      stopAutoScroll();
       const { active, over } = event;
       if (!over || active.id === over.id || !workout) return;
 
@@ -1255,6 +1207,7 @@ export default function WorkoutDetail() {
         <DndContext
           sensors={dndSensors}
           collisionDetection={closestCenter}
+          autoScroll={autoScrollConfig}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           onDragCancel={handleDragCancel}

@@ -9,6 +9,7 @@ import {
   useSensors,
   type DragEndEvent,
   type DragStartEvent,
+  type Modifier,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -107,7 +108,7 @@ function SortableExerciseCard({ id, children, disabled }: { id: string; children
       <div className="relative">
         {!disabled && (
           <div
-            className="absolute left-1.5 top-3 z-10 p-1 text-muted-foreground/40 cursor-grab active:cursor-grabbing"
+            className="absolute left-1 top-2 z-10 p-2 text-muted-foreground/40 cursor-grab active:cursor-grabbing"
             style={{ touchAction: "none" }}
             {...listeners}
           >
@@ -195,12 +196,47 @@ export default function WorkoutDetail() {
   const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null);
   const dndSensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { delay: 200, tolerance: 8 },
+      activationConstraint: { delay: 150, tolerance: 5 },
     }),
     useSensor(TouchSensor, {
-      activationConstraint: { delay: 300, tolerance: 10 },
+      activationConstraint: { delay: 200, tolerance: 8 },
     })
   );
+
+  // Auto-scroll when dragging near edges
+  const autoScrollRef = useRef<number | null>(null);
+  const dragActiveRef = useRef(false);
+
+  useEffect(() => {
+    if (!dragActiveRef.current) {
+      if (autoScrollRef.current) cancelAnimationFrame(autoScrollRef.current);
+      return;
+    }
+
+    let lastY = 0;
+    const onPointerMove = (e: PointerEvent) => { lastY = e.clientY; };
+    window.addEventListener("pointermove", onPointerMove);
+
+    const scrollLoop = () => {
+      if (!dragActiveRef.current) return;
+      const threshold = 80;
+      const speed = 12;
+      const vh = window.innerHeight;
+
+      if (lastY < threshold) {
+        window.scrollBy(0, -speed * (1 - lastY / threshold));
+      } else if (lastY > vh - threshold) {
+        window.scrollBy(0, speed * (1 - (vh - lastY) / threshold));
+      }
+      autoScrollRef.current = requestAnimationFrame(scrollLoop);
+    };
+    autoScrollRef.current = requestAnimationFrame(scrollLoop);
+
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      if (autoScrollRef.current) cancelAnimationFrame(autoScrollRef.current);
+    };
+  }, [activeExerciseId]);
 
   const [showCelebration, setShowCelebration] = useState(false);
   const [showRecordCelebration, setShowRecordCelebration] = useState(false);
@@ -454,6 +490,7 @@ export default function WorkoutDetail() {
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveExerciseId(event.active.id as string);
+    dragActiveRef.current = true;
     if (typeof navigator !== "undefined" && navigator.vibrate) {
       navigator.vibrate(30);
     }
@@ -461,11 +498,13 @@ export default function WorkoutDetail() {
 
   const handleDragCancel = useCallback(() => {
     setActiveExerciseId(null);
+    dragActiveRef.current = false;
   }, []);
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       setActiveExerciseId(null);
+      dragActiveRef.current = false;
       const { active, over } = event;
       if (!over || active.id === over.id || !workout) return;
 

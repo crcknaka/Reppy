@@ -570,17 +570,20 @@ export default function WorkoutDetail() {
   }) => {
     if (!workout) return;
 
-    // Build complete order: keep order of currently visible exercises, append new one at end
+    // Build complete order: keep existing exercises in place, only append truly new ones at end
     const savedOrder = workout.exercise_order ?? [];
     const existingIds = new Set(Object.keys(setsByExercise));
-    // Only keep IDs that currently have sets (removes deleted exercises from order)
+    const isNewExercise = !existingIds.has(payload.exerciseId);
+    // Clean: keep only IDs that currently have sets
     const cleanOrder = savedOrder.filter(id => existingIds.has(id));
-    // Add any exercises not in saved order
+    // Add any exercises present in workout but missing from saved order
     for (const id of existingIds) {
       if (!cleanOrder.includes(id)) cleanOrder.push(id);
     }
-    // Remove new exercise from wherever it was, add to end
-    const completeOrder = [...cleanOrder.filter(id => id !== payload.exerciseId), payload.exerciseId];
+    // Only add new exercise at end; existing ones stay in their position
+    const completeOrder = isNewExercise
+      ? [...cleanOrder, payload.exerciseId]
+      : cleanOrder;
 
     const orderChanged = JSON.stringify(completeOrder) !== JSON.stringify(savedOrder);
     if (orderChanged) {

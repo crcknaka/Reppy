@@ -165,7 +165,7 @@ export function WorkoutExerciseCard({
             />
           </div>
         )}
-        <CardHeader className={cn("pb-1 pt-3 px-4", allCompleted && "opacity-60")}>
+        <CardHeader className="pb-1 pt-3 px-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
               <CardTitle className="flex items-center gap-1.5 text-sm truncate">
@@ -184,7 +184,7 @@ export function WorkoutExerciseCard({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 flex-shrink-0"
+                  className="h-6 w-6 flex-shrink-0 hover:bg-transparent focus:bg-transparent active:bg-transparent [-webkit-tap-highlight-color:transparent]"
                   onClick={() =>
                     exercise &&
                     onOpenExerciseHistory(
@@ -223,7 +223,7 @@ export function WorkoutExerciseCard({
         </CardHeader>
 
         <CardContent className="space-y-1 px-4 pb-3">
-          <div className={cn(allCompleted && "opacity-60")}>
+          <div>
           <div
             className={cn(
               "grid gap-1 pl-2 pr-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide",
@@ -276,7 +276,6 @@ export function WorkoutExerciseCard({
                             ? "grid-cols-[32px_1fr_1fr]"
                             : "grid-cols-[32px_1fr_1fr_64px]",
                         isRecordSet(set.id) ? "bg-yellow-100 dark:bg-yellow-900/30" : "bg-muted/30",
-                        set.is_completed && "opacity-60"
                       )}
                       onClick={(e) => {
                         if ((e.target as HTMLElement).closest("button")) {

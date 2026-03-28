@@ -205,7 +205,7 @@ export default function WorkoutDetail() {
   const autoScrollConfig = useMemo(() => ({
     enabled: true,
     threshold: { x: 0, y: 0.4 },
-    acceleration: 25,
+    acceleration: 50,
     interval: 5,
   }), []);
 

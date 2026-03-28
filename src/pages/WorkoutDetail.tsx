@@ -202,22 +202,10 @@ export default function WorkoutDetail() {
     })
   );
 
-  // Auto-scroll during drag — uses DndContext onDragMove for reliable pointer position
+  // Auto-scroll during drag
   const autoScrollRef = useRef<number | null>(null);
-  const dragPointerY = useRef(0);
   const dragScrollSpeed = useRef(0);
-
-  const updateAutoScroll = useCallback(() => {
-    const tick = () => {
-      if (dragScrollSpeed.current !== 0) {
-        window.scrollBy(0, dragScrollSpeed.current);
-      }
-      autoScrollRef.current = requestAnimationFrame(tick);
-    };
-    if (!autoScrollRef.current) {
-      autoScrollRef.current = requestAnimationFrame(tick);
-    }
-  }, []);
+  const dragStartY = useRef(0);
 
   const stopAutoScroll = useCallback(() => {
     if (autoScrollRef.current) {
@@ -227,30 +215,34 @@ export default function WorkoutDetail() {
     dragScrollSpeed.current = 0;
   }, []);
 
+  const startAutoScroll = useCallback(() => {
+    stopAutoScroll();
+    const tick = () => {
+      if (dragScrollSpeed.current !== 0) {
+        window.scrollBy(0, dragScrollSpeed.current);
+      }
+      autoScrollRef.current = requestAnimationFrame(tick);
+    };
+    autoScrollRef.current = requestAnimationFrame(tick);
+  }, [stopAutoScroll]);
+
   const handleDragMove = useCallback((event: DragMoveEvent) => {
-    // activatorEvent gives us the original pointer event with clientY
-    const pointerEvent = event.activatorEvent as PointerEvent | TouchEvent;
-    let clientY: number;
-    if ("clientY" in pointerEvent) {
-      clientY = pointerEvent.clientY + (event.delta.y || 0);
-    } else if ("touches" in pointerEvent && pointerEvent.touches[0]) {
-      clientY = pointerEvent.touches[0].clientY + (event.delta.y || 0);
-    } else {
-      return;
-    }
+    const startEvent = event.activatorEvent as PointerEvent | TouchEvent;
+    const startY = "clientY" in startEvent
+      ? startEvent.clientY
+      : ("touches" in startEvent ? startEvent.touches[0]?.clientY ?? 0 : 0);
 
-    dragPointerY.current = clientY;
+    // Current finger position = start position + delta
+    const currentY = startY + (event.delta.y || 0);
     const vh = window.innerHeight;
-    const topZone = 150;
-    const bottomZone = 200;
-    const maxSpeed = 18;
+    const topZone = 120;
+    const bottomZone = 180;
+    const maxSpeed = 20;
 
-    if (clientY < topZone) {
-      const factor = 1 - clientY / topZone;
-      dragScrollSpeed.current = -(maxSpeed * factor);
-    } else if (clientY > vh - bottomZone) {
-      const factor = 1 - (vh - clientY) / bottomZone;
-      dragScrollSpeed.current = maxSpeed * factor;
+    if (currentY < topZone && currentY > 0) {
+      dragScrollSpeed.current = -(maxSpeed * Math.pow(1 - currentY / topZone, 1.5));
+    } else if (currentY > vh - bottomZone) {
+      dragScrollSpeed.current = maxSpeed * Math.pow(1 - Math.max(0, vh - currentY) / bottomZone, 1.5);
     } else {
       dragScrollSpeed.current = 0;
     }
@@ -508,11 +500,11 @@ export default function WorkoutDetail() {
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveExerciseId(event.active.id as string);
-    updateAutoScroll();
+    startAutoScroll();
     if (typeof navigator !== "undefined" && navigator.vibrate) {
       navigator.vibrate(30);
     }
-  }, [updateAutoScroll]);
+  }, [startAutoScroll]);
 
   const handleDragCancel = useCallback(() => {
     setActiveExerciseId(null);

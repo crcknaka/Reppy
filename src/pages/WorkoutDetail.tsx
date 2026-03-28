@@ -99,7 +99,6 @@ function SortableExerciseCard({ id, children, disabled }: { id: string; children
 
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
-    transition,
     opacity: isDragging ? 0.3 : 1,
   };
 

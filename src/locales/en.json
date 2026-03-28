@@ -42,7 +42,11 @@
     "installTitle": "Install Reppy",
     "installDescription": "Add to home screen for the best experience",
     "install": "Install",
-    "notNow": "Not now"
+    "notNow": "Not now",
+    "iosInstallDescription": "To install, use Safari's share menu:",
+    "iosStep1": "Tap the Share button",
+    "iosStep2": "Tap \"Add to Home Screen\"",
+    "understood": "Got it"
   },
   "auth": {
     "title": "Workout Tracker",

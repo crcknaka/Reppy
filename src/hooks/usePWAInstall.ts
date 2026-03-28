@@ -5,9 +5,19 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+function isIOSSafari(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|OPiOS|EdgiOS|Chrome/.test(ua);
+  return isIOS && isSafari;
+}
+
 export function usePWAInstall() {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [showIOSGuide, setShowIOSGuide] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     // Check if already installed (standalone mode)
@@ -25,14 +35,19 @@ export function usePWAInstall() {
       const dismissedTime = parseInt(dismissedAt, 10);
       const sevenDays = 7 * 24 * 60 * 60 * 1000;
       if (Date.now() - dismissedTime < sevenDays) {
+        setDismissed(true);
         return;
       }
     }
 
+    // iOS Safari — show manual guide
+    if (isIOSSafari()) {
+      setShowIOSGuide(true);
+      return;
+    }
+
     const handleBeforeInstall = (e: Event) => {
-      // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
-      // Save the event for later use
       setInstallPrompt(e as BeforeInstallPromptEvent);
     };
 
@@ -73,11 +88,14 @@ export function usePWAInstall() {
   const dismiss = () => {
     localStorage.setItem("pwa-install-dismissed", Date.now().toString());
     setInstallPrompt(null);
+    setShowIOSGuide(false);
+    setDismissed(true);
   };
 
   return {
-    canInstall: !!installPrompt && !isInstalled,
+    canInstall: (!!installPrompt || showIOSGuide) && !isInstalled && !dismissed,
     isInstalled,
+    isIOSSafari: showIOSGuide,
     install,
     dismiss,
   };

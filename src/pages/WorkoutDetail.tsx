@@ -206,35 +206,54 @@ export default function WorkoutDetail() {
   // Auto-scroll when dragging near edges
   const autoScrollRef = useRef<number | null>(null);
   const dragActiveRef = useRef(false);
+  const lastPointerY = useRef(0);
 
   useEffect(() => {
-    if (!dragActiveRef.current) {
-      if (autoScrollRef.current) cancelAnimationFrame(autoScrollRef.current);
+    const onPointerMove = (e: PointerEvent) => { lastPointerY.current = e.clientY; };
+    const onTouchMove = (e: TouchEvent) => { lastPointerY.current = e.touches[0].clientY; };
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("touchmove", onTouchMove);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!activeExerciseId) {
+      dragActiveRef.current = false;
+      if (autoScrollRef.current) {
+        cancelAnimationFrame(autoScrollRef.current);
+        autoScrollRef.current = null;
+      }
       return;
     }
 
-    let lastY = 0;
-    const onPointerMove = (e: PointerEvent) => { lastY = e.clientY; };
-    window.addEventListener("pointermove", onPointerMove);
+    dragActiveRef.current = true;
 
     const scrollLoop = () => {
       if (!dragActiveRef.current) return;
-      const threshold = 80;
-      const speed = 12;
+      const y = lastPointerY.current;
       const vh = window.innerHeight;
+      const edgeZone = 150;
+      const maxSpeed = 50;
 
-      if (lastY < threshold) {
-        window.scrollBy(0, -speed * (1 - lastY / threshold));
-      } else if (lastY > vh - threshold) {
-        window.scrollBy(0, speed * (1 - (vh - lastY) / threshold));
+      if (y > 0 && y < edgeZone) {
+        const factor = 1 - y / edgeZone;
+        window.scrollBy(0, -(maxSpeed * factor * factor));
+      } else if (y > vh - edgeZone) {
+        const factor = 1 - (vh - y) / edgeZone;
+        window.scrollBy(0, maxSpeed * factor * factor);
       }
       autoScrollRef.current = requestAnimationFrame(scrollLoop);
     };
     autoScrollRef.current = requestAnimationFrame(scrollLoop);
 
     return () => {
-      window.removeEventListener("pointermove", onPointerMove);
-      if (autoScrollRef.current) cancelAnimationFrame(autoScrollRef.current);
+      if (autoScrollRef.current) {
+        cancelAnimationFrame(autoScrollRef.current);
+        autoScrollRef.current = null;
+      }
     };
   }, [activeExerciseId]);
 

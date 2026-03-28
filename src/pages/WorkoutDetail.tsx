@@ -235,15 +235,19 @@ export default function WorkoutDetail() {
       if (!dragActiveRef.current) return;
       const y = lastPointerY.current;
       const vh = window.innerHeight;
-      const edgeZone = 150;
-      const maxSpeed = 50;
+      const topZone = 200;
+      const bottomStart = vh * 0.5;
+      const maxSpeed = 100;
 
-      if (y > 0 && y < edgeZone) {
-        const factor = 1 - y / edgeZone;
-        window.scrollBy(0, -(maxSpeed * factor * factor));
-      } else if (y > vh - edgeZone) {
-        const factor = 1 - (vh - y) / edgeZone;
-        window.scrollBy(0, maxSpeed * factor * factor);
+      if (y > 0 && y < topZone) {
+        const factor = 1 - y / topZone;
+        window.scrollBy(0, -(maxSpeed * factor));
+      } else if (y > bottomStart) {
+        // The closer to bottom (or beyond), the faster — no cap
+        const distPastMid = y - bottomStart;
+        const range = vh - bottomStart;
+        const factor = Math.min(distPastMid / range, 1);
+        window.scrollBy(0, maxSpeed * factor);
       }
       autoScrollRef.current = requestAnimationFrame(scrollLoop);
     };

@@ -1,28 +1,12 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type DragStartEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  useSortable,
-  arrayMove,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { arrayMove } from "@dnd-kit/sortable";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { format, isToday, parseISO } from "date-fns";
 import { getDateLocale } from "@/lib/dateLocales";
 import { useTranslation } from "react-i18next";
 import { getExerciseName } from "@/lib/i18n";
-import { ArrowLeft, Plus, Trash2, MessageSquare, Save, Pencil, X, Camera, Loader2, ImageIcon, Trophy, Share2, Copy, Check, Ban, Lock, Unlock, Maximize2, Dumbbell, GripVertical, BarChart3, Weight, Repeat, Route, Timer, Activity, ChevronUp, ChevronDown } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, MessageSquare, Save, Pencil, X, Camera, Loader2, ImageIcon, Trophy, Share2, Copy, Check, Ban, Lock, Unlock, Maximize2, Dumbbell, BarChart3, Weight, Repeat, Route, Timer, Activity, ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -86,65 +70,43 @@ import { AddOrUpdateSetDialog } from "@/components/workout/AddOrUpdateSetDialog"
 import { motion, AnimatePresence, staggerContainer, staggerItem, defaultTransition, useMotionEnabled } from "@/components/ui/motion";
 
 // Sortable wrapper for exercise cards with up/down reorder buttons
-function SortableExerciseCard({
-  id, children, disabled, isFirst, isLast, onMoveUp, onMoveDown,
+// Reorder wrapper with up/down buttons
+function ReorderableExerciseCard({
+  children, disabled, isFirst, isLast, onMoveUp, onMoveDown,
 }: {
-  id: string; children: React.ReactNode; disabled?: boolean;
+  children: React.ReactNode; disabled?: boolean;
   isFirst?: boolean; isLast?: boolean;
   onMoveUp?: () => void; onMoveDown?: () => void;
 }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    isDragging,
-  } = useSortable({ id, disabled });
-
-  const style: React.CSSProperties = {
-    transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.3 : 1,
-  };
-
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
-      <div className="relative">
-        {!disabled && (
-          <div className="absolute left-1 top-1.5 z-10 flex flex-col gap-0">
-            <button
-              type="button"
-              className={cn(
-                "p-1 text-muted-foreground/50 transition-colors",
-                isFirst ? "opacity-0 pointer-events-none" : "hover:text-foreground active:text-primary"
-              )}
-              onClick={onMoveUp}
-              aria-label="Move up"
-            >
-              <ChevronUp className="h-3.5 w-3.5" />
-            </button>
-            {/* Grip handle for desktop drag */}
-            <div
-              className="hidden md:block p-0.5 text-muted-foreground/30 cursor-grab active:cursor-grabbing"
-              style={{ touchAction: "none" }}
-              {...listeners}
-            >
-              <GripVertical className="h-3.5 w-3.5" />
-            </div>
-            <button
-              type="button"
-              className={cn(
-                "p-1 text-muted-foreground/50 transition-colors",
-                isLast ? "opacity-0 pointer-events-none" : "hover:text-foreground active:text-primary"
-              )}
-              onClick={onMoveDown}
-              aria-label="Move down"
-            >
-              <ChevronDown className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        )}
-        {children}
-      </div>
+    <div className="relative">
+      {!disabled && (
+        <div className="absolute -left-2 top-1/2 -translate-y-1/2 z-10 flex flex-col">
+          <button
+            type="button"
+            className={cn(
+              "p-0.5 text-muted-foreground/40 transition-colors",
+              isFirst ? "opacity-0 pointer-events-none" : "hover:text-foreground active:text-primary"
+            )}
+            onClick={onMoveUp}
+            aria-label="Move up"
+          >
+            <ChevronUp className="h-3 w-3" />
+          </button>
+          <button
+            type="button"
+            className={cn(
+              "p-0.5 text-muted-foreground/40 transition-colors",
+              isLast ? "opacity-0 pointer-events-none" : "hover:text-foreground active:text-primary"
+            )}
+            onClick={onMoveDown}
+            aria-label="Move down"
+          >
+            <ChevronDown className="h-3 w-3" />
+          </button>
+        </div>
+      )}
+      {children}
     </div>
   );
 }
@@ -219,17 +181,6 @@ export default function WorkoutDetail() {
     check();
     return () => window.removeEventListener("scroll", check);
   }, []);
-
-  // DnD for exercise reorder
-  const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null);
-  const dndSensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { delay: 150, tolerance: 5 },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: { delay: 200, tolerance: 8 },
-    })
-  );
 
   const [showCelebration, setShowCelebration] = useState(false);
   const [showRecordCelebration, setShowRecordCelebration] = useState(false);
@@ -493,34 +444,6 @@ export default function WorkoutDetail() {
     updateWorkout.mutate({ workoutId: workout.id, exercise_order: newOrder });
     try { navigator.vibrate?.(10); } catch {}
   }, [orderedExerciseEntries, workout, updateWorkout]);
-
-  const handleDragStart = useCallback((event: DragStartEvent) => {
-    setActiveExerciseId(event.active.id as string);
-    try { navigator.vibrate?.(30); } catch {}
-  }, []);
-
-  const handleDragCancel = useCallback(() => {
-    setActiveExerciseId(null);
-  }, []);
-
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      setActiveExerciseId(null);
-      const { active, over } = event;
-      if (!over || active.id === over.id || !workout) return;
-
-      try { navigator.vibrate?.(15); } catch {}
-
-      const exerciseIds = orderedExerciseEntries.map(([id]) => id);
-      const oldIndex = exerciseIds.indexOf(active.id as string);
-      const newIndex = exerciseIds.indexOf(over.id as string);
-      if (oldIndex === -1 || newIndex === -1) return;
-
-      const newOrder = arrayMove(exerciseIds, oldIndex, newIndex);
-      updateWorkout.mutate({ workoutId: workout.id, exercise_order: newOrder });
-    },
-    [orderedExerciseEntries, workout, updateWorkout]
-  );
 
   // Show loader while loading or fetching (includes retries)
   if (isWorkoutLoading || (isFetching && !workout)) {
@@ -1239,53 +1162,38 @@ export default function WorkoutDetail() {
             </div>
           );
         })()}
-        <DndContext
-          sensors={dndSensors}
-          collisionDetection={closestCenter}
-          autoScroll={false}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          onDragCancel={handleDragCancel}
+        <motion.div
+          className="space-y-3"
+          {...(motionEnabled ? { variants: staggerContainer, initial: "hidden", animate: "visible" } : {})}
         >
-          <SortableContext
-            items={orderedExerciseEntries.map(([id]) => id)}
-            strategy={verticalListSortingStrategy}
-          >
-            <motion.div
-              className="space-y-3"
-              {...(motionEnabled ? { variants: staggerContainer, initial: "hidden", animate: "visible" } : {})}
-            >
-              {orderedExerciseEntries.map(([exerciseId, { exercise, sets }], index) => (
-                <motion.div key={exerciseId} {...(motionEnabled ? { variants: staggerItem, transition: defaultTransition } : {})}>
-                <SortableExerciseCard
-                  id={exerciseId}
-                  disabled={!isOwner || !!workout?.is_locked}
-                  isFirst={index === 0}
-                  isLast={index === orderedExerciseEntries.length - 1}
-                  onMoveUp={() => moveExercise(exerciseId, -1)}
-                  onMoveDown={() => moveExercise(exerciseId, 1)}
-                >
-                  <WorkoutExerciseCard
-                    exerciseId={exerciseId}
-                    exercise={exercise}
-                    sets={sets}
-                    index={index}
-                    isOwner={isOwner}
-                    isLocked={!!workout?.is_locked}
-                    isRecordSet={(setId) => recordSetIds.has(setId)}
-                    onOpenExerciseHistory={openExerciseHistory}
-                    onAddAnotherSet={handleAddAnotherSet}
-                    onCreateSet={createSetForWorkout}
-                    onEditSet={handleEditSetFromCard}
-                    onDeleteSet={deleteWorkoutSet}
-                    onToggleSetCompleted={toggleWorkoutSetCompleted}
-                  />
-                </SortableExerciseCard>
-                </motion.div>
-              ))}
+          {orderedExerciseEntries.map(([exerciseId, { exercise, sets }], index) => (
+            <motion.div key={exerciseId} {...(motionEnabled ? { variants: staggerItem, transition: defaultTransition } : {})}>
+              <ReorderableExerciseCard
+                disabled={!isOwner || !!workout?.is_locked}
+                isFirst={index === 0}
+                isLast={index === orderedExerciseEntries.length - 1}
+                onMoveUp={() => moveExercise(exerciseId, -1)}
+                onMoveDown={() => moveExercise(exerciseId, 1)}
+              >
+                <WorkoutExerciseCard
+                  exerciseId={exerciseId}
+                  exercise={exercise}
+                  sets={sets}
+                  index={index}
+                  isOwner={isOwner}
+                  isLocked={!!workout?.is_locked}
+                  isRecordSet={(setId) => recordSetIds.has(setId)}
+                  onOpenExerciseHistory={openExerciseHistory}
+                  onAddAnotherSet={handleAddAnotherSet}
+                  onCreateSet={createSetForWorkout}
+                  onEditSet={handleEditSetFromCard}
+                  onDeleteSet={deleteWorkoutSet}
+                  onToggleSetCompleted={toggleWorkoutSetCompleted}
+                />
+              </ReorderableExerciseCard>
             </motion.div>
-          </SortableContext>
-        </DndContext>
+          ))}
+        </motion.div>
         </>
       )}
 

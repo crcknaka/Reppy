@@ -202,7 +202,7 @@ export function WorkoutExerciseCard({
               )}
               </div>
               {exercise?.muscle_group && exercise.muscle_group !== "other" && (
-                <span className={cn("text-[9px] px-1.5 py-0.5 rounded-full font-medium mt-0.5 ml-5 inline-block", getMuscleGroupColor(exercise.muscle_group))}>
+                <span className={cn("text-[9px] px-1.5 py-0.5 rounded-lg font-medium mt-0.5 ml-5 inline-block", getMuscleGroupColor(exercise.muscle_group))}>
                   {getMuscleGroupLabel(exercise.muscle_group, t)}
                 </span>
               )}

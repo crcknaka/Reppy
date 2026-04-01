@@ -38,6 +38,18 @@
     "settings": "Einstellungen",
     "logout": "Abmelden"
   },
+  "muscleGroups": {
+    "chest": "Brust",
+    "back": "Rücken",
+    "shoulders": "Schultern",
+    "biceps": "Bizeps",
+    "triceps": "Trizeps",
+    "legs": "Beine",
+    "core": "Core",
+    "cardio": "Cardio",
+    "fullbody": "Ganzkörper",
+    "other": "Sonstiges"
+  },
   "auth": {
     "title": "Trainings-Tracker",
     "subtitle": "Verfolge Fortschritt. Erreiche Ziele.",
@@ -387,6 +399,8 @@
   "exercises": {
     "title": "Übungen",
     "subtitle": "Übungsbibliothek",
+    "muscleGroup": "Muskelgruppe",
+    "allMuscleGroups": "Alle Muskeln",
     "search": "Suchen...",
     "addExercise": "Übung erstellen",
     "newExercise": "Neue Übung",

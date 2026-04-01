@@ -15,6 +15,7 @@ export interface Exercise {
   id: string;
   name: string;
   type: "bodyweight" | "weighted" | "cardio" | "timed";
+  muscle_group: string;
   is_preset: boolean;
   image_url: string | null;
   user_id: string | null;

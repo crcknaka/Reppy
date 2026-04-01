@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getExerciseName } from "@/lib/i18n";
 import { motion, staggerContainer, staggerItem, defaultTransition, useMotionEnabled } from "@/components/ui/motion";
-import { Plus, User, Dumbbell, Trash2, Search, Activity, Timer, LayoutGrid } from "lucide-react";
+import { Plus, User, Dumbbell, Trash2, Search, Activity, Timer, LayoutGrid, Target } from "lucide-react";
+import { MUSCLE_GROUPS, getMuscleGroupLabel, getMuscleGroupColor, type MuscleGroup } from "@/lib/muscleGroupUtils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -41,8 +42,10 @@ export default function Exercises() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [name, setName] = useState("");
   const [type, setType] = useState<"bodyweight" | "weighted" | "cardio" | "timed">("weighted");
+  const [muscleGroup, setMuscleGroup] = useState<MuscleGroup>("other");
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "bodyweight" | "weighted" | "cardio" | "timed">("all");
+  const [muscleGroupFilter, setMuscleGroupFilter] = useState<MuscleGroup | "all">("all");
   const [exerciseToDelete, setExerciseToDelete] = useState<string | null>(null);
 
   const handleCreate = async () => {
@@ -52,10 +55,11 @@ export default function Exercises() {
     }
 
     try {
-      await createExercise.mutateAsync({ name: name.trim(), type });
+      await createExercise.mutateAsync({ name: name.trim(), type, muscle_group: muscleGroup });
       toast.success(t("exercises.exerciseAdded"));
       setName("");
       setType("weighted");
+      setMuscleGroup("other");
       setDialogOpen(false);
     } catch (error) {
       toast.error(t("exercises.addError"));
@@ -103,7 +107,8 @@ export default function Exercises() {
     const translatedName = getExerciseName(e.name, e.name_translations);
     const matchesSearch = translatedName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = typeFilter === "all" || e.type === typeFilter;
-    return matchesSearch && matchesType;
+    const matchesMuscle = muscleGroupFilter === "all" || e.muscle_group === muscleGroupFilter;
+    return matchesSearch && matchesType && matchesMuscle;
   });
 
   const presetExercises = filteredExercises?.filter((e) => e.is_preset);
@@ -179,6 +184,23 @@ export default function Exercises() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">{t("exercises.muscleGroup")}</Label>
+                <Select value={muscleGroup} onValueChange={(v) => setMuscleGroup(v as MuscleGroup)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MUSCLE_GROUPS.map((group) => (
+                      <SelectItem key={group} value={group}>
+                        <span className={cn("text-xs px-1.5 py-0.5 rounded-full", getMuscleGroupColor(group))}>
+                          {getMuscleGroupLabel(group, t)}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <Button
                 className="w-full"
                 onClick={handleCreate}
@@ -239,6 +261,26 @@ export default function Exercises() {
             </SelectItem>
           </SelectContent>
         </Select>
+        <Select value={muscleGroupFilter} onValueChange={(v) => setMuscleGroupFilter(v as MuscleGroup | "all")}>
+          <SelectTrigger className="h-9 w-auto min-w-[120px] text-xs px-3">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">
+              <div className="flex items-center gap-2">
+                <Target className="h-3.5 w-3.5" />
+                {t("exercises.allMuscleGroups")}
+              </div>
+            </SelectItem>
+            {MUSCLE_GROUPS.map((group) => (
+              <SelectItem key={group} value={group}>
+                <span className={cn("text-xs px-1.5 py-0.5 rounded-full", getMuscleGroupColor(group))}>
+                  {getMuscleGroupLabel(group, t)}
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {isLoading ? (
@@ -292,9 +334,9 @@ export default function Exercises() {
                       )}
                       <div className="text-center">
                         <p className="text-sm font-semibold text-foreground">{getExerciseName(exercise.name, exercise.name_translations)}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {exercise.type === "weighted" ? t("progress.weighted") : exercise.type === "cardio" ? t("progress.cardio") : exercise.type === "timed" ? t("progress.timed") : t("progress.bodyweight")}
-                        </p>
+                        <span className={cn("inline-block text-[10px] px-1.5 py-0.5 rounded-full mt-0.5", getMuscleGroupColor(exercise.muscle_group))}>
+                          {getMuscleGroupLabel(exercise.muscle_group, t)}
+                        </span>
                       </div>
                       <Button
                         variant="ghost"
@@ -357,9 +399,9 @@ export default function Exercises() {
                       )}
                       <div className="text-center">
                         <p className="text-sm font-semibold text-foreground">{getExerciseName(exercise.name, exercise.name_translations)}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {exercise.type === "weighted" ? t("progress.weighted") : exercise.type === "cardio" ? t("progress.cardio") : exercise.type === "timed" ? t("progress.timed") : t("progress.bodyweight")}
-                        </p>
+                        <span className={cn("inline-block text-[10px] px-1.5 py-0.5 rounded-full mt-0.5", getMuscleGroupColor(exercise.muscle_group))}>
+                          {getMuscleGroupLabel(exercise.muscle_group, t)}
+                        </span>
                       </div>
                     </CardContent>
                   </Card>

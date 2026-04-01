@@ -108,20 +108,24 @@ export function useOfflineCreateExercise() {
     mutationFn: async ({
       name,
       type,
+      muscle_group,
     }: {
       name: string;
       type: "bodyweight" | "weighted" | "cardio" | "timed";
+      muscle_group?: string;
     }) => {
       if (!effectiveUserId) throw new Error("User not authenticated");
 
       const now = new Date().toISOString();
       const offlineId = generateOfflineId();
+      const group = muscle_group || "other";
 
       // Create local exercise first
       const exercise = {
         id: offlineId,
         name,
         type,
+        muscle_group: group,
         is_preset: false,
         user_id: effectiveUserId,
         image_url: null,
@@ -140,6 +144,7 @@ export function useOfflineCreateExercise() {
             .insert({
               name,
               type,
+              muscle_group: group,
               is_preset: false,
               user_id: effectiveUserId,
             })
@@ -165,6 +170,7 @@ export function useOfflineCreateExercise() {
         await syncQueue.enqueue("exercises", "create", offlineId, {
           name,
           type,
+          muscle_group: group,
           is_preset: false,
           user_id: effectiveUserId,
           _offlineId: offlineId,

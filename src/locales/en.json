@@ -48,6 +48,18 @@
     "iosStep2": "Tap \"Add to Home Screen\"",
     "understood": "Got it"
   },
+  "muscleGroups": {
+    "chest": "Chest",
+    "back": "Back",
+    "shoulders": "Shoulders",
+    "biceps": "Biceps",
+    "triceps": "Triceps",
+    "legs": "Legs",
+    "core": "Core",
+    "cardio": "Cardio",
+    "fullbody": "Full Body",
+    "other": "Other"
+  },
   "auth": {
     "title": "Workout Tracker",
     "subtitle": "Track progress. Achieve goals.",
@@ -416,6 +428,8 @@
   "exercises": {
     "title": "Exercises",
     "subtitle": "Exercise library",
+    "muscleGroup": "Muscle Group",
+    "allMuscleGroups": "All muscles",
     "search": "Search...",
     "addExercise": "Create Exercise",
     "newExercise": "New exercise",

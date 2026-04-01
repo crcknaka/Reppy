@@ -38,6 +38,18 @@
     "settings": "Configurações",
     "logout": "Sair"
   },
+  "muscleGroups": {
+    "chest": "Peito",
+    "back": "Costas",
+    "shoulders": "Ombros",
+    "biceps": "Bíceps",
+    "triceps": "Tríceps",
+    "legs": "Pernas",
+    "core": "Core",
+    "cardio": "Cardio",
+    "fullbody": "Corpo inteiro",
+    "other": "Outro"
+  },
   "auth": {
     "title": "Registro de Treinos",
     "subtitle": "Acompanhe seu progresso. Alcance suas metas.",
@@ -386,6 +398,8 @@
   "exercises": {
     "title": "Exercícios",
     "subtitle": "Biblioteca de exercícios",
+    "muscleGroup": "Grupo muscular",
+    "allMuscleGroups": "Todos os músculos",
     "search": "Buscar...",
     "addExercise": "Criar exercício",
     "newExercise": "Novo exercício",

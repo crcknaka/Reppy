@@ -22,7 +22,7 @@ import { format, isToday, parseISO } from "date-fns";
 import { getDateLocale } from "@/lib/dateLocales";
 import { useTranslation } from "react-i18next";
 import { getExerciseName } from "@/lib/i18n";
-import { ArrowLeft, Plus, Trash2, MessageSquare, Save, Pencil, X, Camera, Loader2, ImageIcon, Trophy, Share2, Copy, Check, Ban, Lock, Unlock, Maximize2, Dumbbell, GripVertical, BarChart3, Weight, Repeat, Route, Timer, Activity } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, MessageSquare, Save, Pencil, X, Camera, Loader2, ImageIcon, Trophy, Share2, Copy, Check, Ban, Lock, Unlock, Maximize2, Dumbbell, GripVertical, BarChart3, Weight, Repeat, Route, Timer, Activity, ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -85,14 +85,19 @@ import { AddExerciseDialog } from "@/components/workout/AddExerciseDialog";
 import { AddOrUpdateSetDialog } from "@/components/workout/AddOrUpdateSetDialog";
 import { motion, AnimatePresence, staggerContainer, staggerItem, defaultTransition, useMotionEnabled } from "@/components/ui/motion";
 
-// Sortable wrapper for exercise cards
-function SortableExerciseCard({ id, children, disabled }: { id: string; children: React.ReactNode; disabled?: boolean }) {
+// Sortable wrapper for exercise cards with up/down reorder buttons
+function SortableExerciseCard({
+  id, children, disabled, isFirst, isLast, onMoveUp, onMoveDown,
+}: {
+  id: string; children: React.ReactNode; disabled?: boolean;
+  isFirst?: boolean; isLast?: boolean;
+  onMoveUp?: () => void; onMoveDown?: () => void;
+}) {
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
-    transition,
     isDragging,
   } = useSortable({ id, disabled });
 
@@ -105,12 +110,37 @@ function SortableExerciseCard({ id, children, disabled }: { id: string; children
     <div ref={setNodeRef} style={style} {...attributes}>
       <div className="relative">
         {!disabled && (
-          <div
-            className="absolute left-1 top-2 z-10 p-2 text-muted-foreground/40 cursor-grab active:cursor-grabbing"
-            style={{ touchAction: "none" }}
-            {...listeners}
-          >
-            <GripVertical className="h-4 w-4" />
+          <div className="absolute left-1 top-1.5 z-10 flex flex-col gap-0">
+            <button
+              type="button"
+              className={cn(
+                "p-1 text-muted-foreground/50 transition-colors",
+                isFirst ? "opacity-0 pointer-events-none" : "hover:text-foreground active:text-primary"
+              )}
+              onClick={onMoveUp}
+              aria-label="Move up"
+            >
+              <ChevronUp className="h-3.5 w-3.5" />
+            </button>
+            {/* Grip handle for desktop drag */}
+            <div
+              className="hidden md:block p-0.5 text-muted-foreground/30 cursor-grab active:cursor-grabbing"
+              style={{ touchAction: "none" }}
+              {...listeners}
+            >
+              <GripVertical className="h-3.5 w-3.5" />
+            </div>
+            <button
+              type="button"
+              className={cn(
+                "p-1 text-muted-foreground/50 transition-colors",
+                isLast ? "opacity-0 pointer-events-none" : "hover:text-foreground active:text-primary"
+              )}
+              onClick={onMoveDown}
+              aria-label="Move down"
+            >
+              <ChevronDown className="h-3.5 w-3.5" />
+            </button>
           </div>
         )}
         {children}
@@ -200,14 +230,6 @@ export default function WorkoutDetail() {
       activationConstraint: { delay: 200, tolerance: 8 },
     })
   );
-
-  // Auto-scroll config for @dnd-kit built-in auto-scroll
-  const autoScrollConfig = useMemo(() => ({
-    enabled: true,
-    threshold: { x: 0, y: 0.4 },
-    acceleration: 50,
-    interval: 5,
-  }), []);
 
   const [showCelebration, setShowCelebration] = useState(false);
   const [showRecordCelebration, setShowRecordCelebration] = useState(false);
@@ -458,6 +480,19 @@ export default function WorkoutDetail() {
       return aFirst - bFirst;
     });
   }, [setsByExercise, workout?.exercise_order]);
+
+  const moveExercise = useCallback((exerciseId: string, direction: -1 | 1) => {
+    if (!workout) return;
+    const ids = orderedExerciseEntries.map(([id]) => id);
+    const index = ids.indexOf(exerciseId);
+    if (index === -1) return;
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= ids.length) return;
+
+    const newOrder = arrayMove(ids, index, newIndex);
+    updateWorkout.mutate({ workoutId: workout.id, exercise_order: newOrder });
+    try { navigator.vibrate?.(10); } catch {}
+  }, [orderedExerciseEntries, workout, updateWorkout]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveExerciseId(event.active.id as string);
@@ -1207,7 +1242,7 @@ export default function WorkoutDetail() {
         <DndContext
           sensors={dndSensors}
           collisionDetection={closestCenter}
-          autoScroll={autoScrollConfig}
+          autoScroll={false}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           onDragCancel={handleDragCancel}
@@ -1225,6 +1260,10 @@ export default function WorkoutDetail() {
                 <SortableExerciseCard
                   id={exerciseId}
                   disabled={!isOwner || !!workout?.is_locked}
+                  isFirst={index === 0}
+                  isLast={index === orderedExerciseEntries.length - 1}
+                  onMoveUp={() => moveExercise(exerciseId, -1)}
+                  onMoveDown={() => moveExercise(exerciseId, 1)}
                 >
                   <WorkoutExerciseCard
                     exerciseId={exerciseId}

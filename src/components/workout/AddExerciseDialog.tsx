@@ -1,10 +1,11 @@
 import { memo, useMemo, useState } from "react";
-import { Activity, Dumbbell, LayoutGrid, Search, Star, Timer, User } from "lucide-react";
+import { Activity, Dumbbell, LayoutGrid, Search, Star, Target, Timer, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { getExerciseName } from "@/lib/i18n";
 import { getExerciseIcon, getExerciseTypeLabel, type ExerciseType } from "@/lib/exerciseUtils";
+import { MUSCLE_GROUPS, getMuscleGroupLabel, getMuscleGroupColor, type MuscleGroup } from "@/lib/muscleGroupUtils";
 import { cn } from "@/lib/utils";
 import type { Exercise } from "@/hooks/useExercises";
 import type { ExerciseSelectionBaseProps } from "@/components/workout/setDialogTypes";
@@ -71,9 +72,11 @@ const ExerciseSelectionCard = memo(function ExerciseSelectionCard({
             <Icon className="h-12 w-12 text-muted-foreground" />
           </div>
         )}
-        <div className="p-3 bg-card">
-          <p className="font-medium text-foreground text-center">{getExerciseName(exercise.name, exercise.name_translations)}</p>
-          <p className="text-xs text-muted-foreground text-center">{getExerciseTypeLabel(exercise.type as ExerciseType, t)}</p>
+        <div className="p-3 bg-card text-center">
+          <p className="font-medium text-foreground">{getExerciseName(exercise.name, exercise.name_translations)}</p>
+          <span className={cn("inline-block text-[10px] px-1.5 py-0.5 rounded-full mt-1", getMuscleGroupColor(exercise.muscle_group))}>
+            {getMuscleGroupLabel(exercise.muscle_group, t)}
+          </span>
         </div>
       </div>
     </div>
@@ -90,6 +93,7 @@ export function AddExerciseDialog({
 }: AddExerciseDialogProps) {
   const { t } = useTranslation();
   const [exerciseTypeFilter, setExerciseTypeFilter] = useState<ExerciseTypeFilter>("all");
+  const [muscleGroupFilter, setMuscleGroupFilter] = useState<MuscleGroup | "all">("all");
   const [exerciseSearchQuery, setExerciseSearchQuery] = useState("");
   const [exerciseTab, setExerciseTab] = useState<"all" | "favorites">("all");
 
@@ -97,6 +101,7 @@ export function AddExerciseDialog({
     onOpenChange(nextOpen);
     if (!nextOpen) {
       setExerciseTypeFilter("all");
+      setMuscleGroupFilter("all");
       setExerciseSearchQuery("");
       setExerciseTab("all");
     }
@@ -113,6 +118,10 @@ export function AddExerciseDialog({
       filtered = filtered.filter((exercise) => exercise.type === exerciseTypeFilter);
     }
 
+    if (muscleGroupFilter !== "all") {
+      filtered = filtered.filter((exercise) => exercise.muscle_group === muscleGroupFilter);
+    }
+
     if (exerciseSearchQuery) {
       filtered = filtered.filter((exercise) => {
         const translatedName = getExerciseName(exercise.name, exercise.name_translations);
@@ -121,7 +130,7 @@ export function AddExerciseDialog({
     }
 
     return filtered;
-  }, [exerciseSearchQuery, exerciseTab, exerciseTypeFilter, exercises, favoriteExerciseIds]);
+  }, [exerciseSearchQuery, exerciseTab, exerciseTypeFilter, muscleGroupFilter, exercises, favoriteExerciseIds]);
 
   const handleToggleFavorite = async (exerciseId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -200,6 +209,27 @@ export function AddExerciseDialog({
                   {t("progress.timed")}
                 </div>
               </SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={muscleGroupFilter} onValueChange={(value) => setMuscleGroupFilter(value as MuscleGroup | "all")}>
+            <SelectTrigger className="w-full h-12">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">
+                <div className="flex items-center gap-2">
+                  <Target className="h-4 w-4" />
+                  {t("exercises.allMuscleGroups")}
+                </div>
+              </SelectItem>
+              {MUSCLE_GROUPS.map((group) => (
+                <SelectItem key={group} value={group}>
+                  <span className={cn("text-xs px-1.5 py-0.5 rounded-full", getMuscleGroupColor(group))}>
+                    {getMuscleGroupLabel(group, t)}
+                  </span>
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 

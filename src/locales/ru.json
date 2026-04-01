@@ -48,6 +48,18 @@
     "iosStep2": "Нажмите «На экран Домой»",
     "understood": "Понятно"
   },
+  "muscleGroups": {
+    "chest": "Грудь",
+    "back": "Спина",
+    "shoulders": "Плечи",
+    "biceps": "Бицепс",
+    "triceps": "Трицепс",
+    "legs": "Ноги",
+    "core": "Кор",
+    "cardio": "Кардио",
+    "fullbody": "Всё тело",
+    "other": "Другое"
+  },
   "auth": {
     "title": "Трекер тренировок",
     "subtitle": "Отслеживай прогресс. Достигай целей.",
@@ -416,6 +428,8 @@
   "exercises": {
     "title": "Упражнения",
     "subtitle": "Библиотека упражнений",
+    "muscleGroup": "Группа мышц",
+    "allMuscleGroups": "Все мышцы",
     "search": "Поиск...",
     "addExercise": "Создать упражнение",
     "newExercise": "Новое упражнение",

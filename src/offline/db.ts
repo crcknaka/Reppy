@@ -44,6 +44,18 @@ class ReppyOfflineDB extends Dexie {
       metadata: "key",
       idMappings: "offlineId, serverId, table",
     });
+
+    // Version 3: Add muscle_group index to exercises
+    this.version(3).stores({
+      workouts: "id, user_id, date, _synced, _lastModified",
+      workoutSets: "id, workout_id, exercise_id, _synced, _lastModified",
+      exercises: "id, user_id, is_preset, type, muscle_group, _synced",
+      profiles: "user_id",
+      favoriteExercises: "id, user_id, exercise_id, _synced",
+      syncQueue: "++id, table, createdAt, entityId",
+      metadata: "key",
+      idMappings: "offlineId, serverId, table",
+    });
   }
 }
 

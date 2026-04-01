@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useMotionEnabled } from "@/components/ui/motio
 import { Activity, Check, CopyPlus, Dumbbell, History, Loader2, Plus, Timer, Trash2, Trophy, User } from "lucide-react";
 
 import { getExerciseName } from "@/lib/i18n";
+import { getMuscleGroupLabel, getMuscleGroupColor } from "@/lib/muscleGroupUtils";
 import { LIMITS } from "@/lib/limits";
 import { cn } from "@/lib/utils";
 import { useUnits } from "@/hooks/useUnits";
@@ -180,6 +181,11 @@ export function WorkoutExerciseCard({
                 )}
                 <span className="truncate">{exercise?.name ? getExerciseName(exercise.name, exercise.name_translations) : ""}</span>
               </CardTitle>
+              {exercise?.muscle_group && (
+                <span className={cn("text-[9px] px-1.5 py-0.5 rounded-full flex-shrink-0", getMuscleGroupColor(exercise.muscle_group))}>
+                  {getMuscleGroupLabel(exercise.muscle_group, t)}
+                </span>
+              )}
               {!readOnly && (
                 <Button
                   variant="ghost"

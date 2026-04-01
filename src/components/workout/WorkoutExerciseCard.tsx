@@ -182,11 +182,6 @@ export function WorkoutExerciseCard({
                 )}
                 <span className="truncate">{exercise?.name ? getExerciseName(exercise.name, exercise.name_translations) : ""}</span>
               </CardTitle>
-              {exercise?.muscle_group && exercise.muscle_group !== "other" && (
-                <span className={cn("text-[8px] px-1.5 py-0.5 rounded-full w-fit", getMuscleGroupColor(exercise.muscle_group))}>
-                  {getMuscleGroupLabel(exercise.muscle_group, t)}
-                </span>
-              )}
               {!readOnly && (
                 <Button
                   variant="ghost"
@@ -206,6 +201,11 @@ export function WorkoutExerciseCard({
               )}
             </div>
             <div className="relative flex-shrink-0">
+              {exercise?.muscle_group && exercise.muscle_group !== "other" && (
+                <span className={cn("absolute bottom-0 right-0 z-10 text-[10px] leading-none px-2 py-1 rounded-tl-lg rounded-br-lg font-bold bg-black/75 backdrop-blur-sm", getMuscleGroupColor(exercise.muscle_group))}>
+                  {getMuscleGroupLabel(exercise.muscle_group, t)}
+                </span>
+              )}
               {exercise?.image_url ? (
                 <div className="w-[4.5rem] h-[4.5rem] rounded-lg overflow-hidden bg-muted">
                   <img

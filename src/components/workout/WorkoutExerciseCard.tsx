@@ -168,8 +168,9 @@ export function WorkoutExerciseCard({
           </div>
         )}
         <CardHeader className="pb-1 pt-3 px-4">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
               <CardTitle className="flex items-center gap-1.5 text-sm truncate">
                 {exercise?.type === "weighted" ? (
                   <Dumbbell className="h-3.5 w-3.5 text-primary flex-shrink-0" />
@@ -199,13 +200,14 @@ export function WorkoutExerciseCard({
                   <History className="h-3.5 w-3.5 text-muted-foreground" />
                 </Button>
               )}
-            </div>
-            <div className="relative flex-shrink-0">
+              </div>
               {exercise?.muscle_group && exercise.muscle_group !== "other" && (
-                <span className={cn("absolute bottom-0 right-0 z-10 text-[10px] leading-none px-2 py-1 rounded-tl-lg rounded-br-lg font-bold bg-black/75 backdrop-blur-sm", getMuscleGroupColor(exercise.muscle_group))}>
+                <span className={cn("text-[9px] px-1.5 py-0.5 rounded-full font-medium mt-0.5 ml-5 inline-block", getMuscleGroupColor(exercise.muscle_group))}>
                   {getMuscleGroupLabel(exercise.muscle_group, t)}
                 </span>
               )}
+            </div>
+            <div className="relative flex-shrink-0">
               {exercise?.image_url ? (
                 <div className="w-[4.5rem] h-[4.5rem] rounded-lg overflow-hidden bg-muted">
                   <img

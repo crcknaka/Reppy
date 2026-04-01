@@ -30,6 +30,7 @@ type ExerciseCardExercise = {
   name: string;
   name_translations?: Record<string, string> | null;
   type: ExerciseCardType;
+  muscle_group?: string;
   image_url?: string | null;
 };
 
@@ -181,8 +182,8 @@ export function WorkoutExerciseCard({
                 )}
                 <span className="truncate">{exercise?.name ? getExerciseName(exercise.name, exercise.name_translations) : ""}</span>
               </CardTitle>
-              {exercise?.muscle_group && (
-                <span className={cn("text-[9px] px-1.5 py-0.5 rounded-full flex-shrink-0", getMuscleGroupColor(exercise.muscle_group))}>
+              {exercise?.muscle_group && exercise.muscle_group !== "other" && (
+                <span className={cn("text-[8px] px-1.5 py-0.5 rounded-full w-fit", getMuscleGroupColor(exercise.muscle_group))}>
                   {getMuscleGroupLabel(exercise.muscle_group, t)}
                 </span>
               )}
@@ -204,27 +205,29 @@ export function WorkoutExerciseCard({
                 </Button>
               )}
             </div>
-            {exercise?.image_url ? (
-              <div className="w-[4.5rem] h-[4.5rem] rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                <img
-                  src={exercise.image_url}
-                  alt={getExerciseName(exercise.name, exercise.name_translations)}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ) : (
-              <div className="w-[4.5rem] h-[4.5rem] rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                {exercise?.type === "weighted" ? (
-                  <Dumbbell className="h-8 w-8 text-muted-foreground" />
-                ) : exercise?.type === "cardio" ? (
-                  <Activity className="h-8 w-8 text-muted-foreground" />
-                ) : exercise?.type === "timed" ? (
-                  <Timer className="h-8 w-8 text-muted-foreground" />
-                ) : (
-                  <User className="h-8 w-8 text-muted-foreground" />
-                )}
-              </div>
-            )}
+            <div className="relative flex-shrink-0">
+              {exercise?.image_url ? (
+                <div className="w-[4.5rem] h-[4.5rem] rounded-lg overflow-hidden bg-muted">
+                  <img
+                    src={exercise.image_url}
+                    alt={getExerciseName(exercise.name, exercise.name_translations)}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-[4.5rem] h-[4.5rem] rounded-lg bg-muted flex items-center justify-center">
+                  {exercise?.type === "weighted" ? (
+                    <Dumbbell className="h-8 w-8 text-muted-foreground" />
+                  ) : exercise?.type === "cardio" ? (
+                    <Activity className="h-8 w-8 text-muted-foreground" />
+                  ) : exercise?.type === "timed" ? (
+                    <Timer className="h-8 w-8 text-muted-foreground" />
+                  ) : (
+                    <User className="h-8 w-8 text-muted-foreground" />
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </CardHeader>
 

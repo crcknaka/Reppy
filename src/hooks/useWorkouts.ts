@@ -21,6 +21,7 @@ export interface WorkoutSet {
     id: string;
     name: string;
     type: "bodyweight" | "weighted" | "cardio" | "timed";
+    muscle_group?: string;
     image_url?: string | null;
     is_preset?: boolean;
     name_translations?: ExerciseTranslations | null;
@@ -64,7 +65,7 @@ export function useWorkouts() {
             duration_minutes,
             plank_seconds,
             created_at,
-            exercise:exercises (id, name, type, image_url, is_preset, name_translations)
+            exercise:exercises (id, name, type, muscle_group, image_url, is_preset, name_translations)
           )
         `)
         .eq('user_id', user.id)
@@ -104,7 +105,7 @@ export function useWorkoutsByMonth(year: number, month: number) {
             duration_minutes,
             plank_seconds,
             created_at,
-            exercise:exercises (id, name, type, image_url, is_preset, name_translations)
+            exercise:exercises (id, name, type, muscle_group, image_url, is_preset, name_translations)
           )
         `)
         .eq('user_id', user.id)
@@ -338,7 +339,7 @@ export function useUserWorkouts(userId: string | null | undefined) {
             duration_minutes,
             plank_seconds,
             created_at,
-            exercise:exercises (id, name, type, image_url, is_preset, name_translations)
+            exercise:exercises (id, name, type, muscle_group, image_url, is_preset, name_translations)
           )
         `)
         .eq('user_id', userId)
@@ -374,7 +375,7 @@ export function useSingleWorkout(workoutId: string | undefined) {
             duration_minutes,
             plank_seconds,
             created_at,
-            exercise:exercises (id, name, type, image_url, is_preset, name_translations)
+            exercise:exercises (id, name, type, muscle_group, image_url, is_preset, name_translations)
           )
         `)
         .eq('id', workoutId)
@@ -406,7 +407,7 @@ export function useUserAllTimeBests(userId: string | null | undefined, excludeWo
           plank_seconds,
           workout_id,
           workout:workouts!inner(user_id, date),
-          exercise:exercises(id, name, type, is_preset, name_translations)
+          exercise:exercises(id, name, type, muscle_group, is_preset, name_translations)
         `)
         .eq('workout.user_id', userId);
 

@@ -54,6 +54,7 @@ export function useOfflineWorkouts() {
                         id: exercise.id,
                         name: exercise.name,
                         type: exercise.type,
+                        muscle_group: exercise.muscle_group,
                         image_url: exercise.image_url,
                         is_preset: exercise.is_preset,
                         name_translations: exercise.name_translations,
@@ -92,7 +93,7 @@ export function useOfflineWorkouts() {
               workout_sets (
                 id, workout_id, exercise_id, set_number, is_completed, reps, weight,
                 distance_km, duration_minutes, plank_seconds, created_at,
-                exercise:exercises (id, name, type, image_url, is_preset, name_translations)
+                exercise:exercises (id, name, type, muscle_group, image_url, is_preset, name_translations)
               )
             `)
             .eq("user_id", effectiveUserId)
@@ -627,6 +628,7 @@ export function useOfflineSingleWorkout(workoutId: string | undefined) {
                     id: exercise.id,
                     name: exercise.name,
                     type: exercise.type,
+                    muscle_group: exercise.muscle_group,
                     image_url: exercise.image_url,
                     is_preset: exercise.is_preset,
                     name_translations: exercise.name_translations,
@@ -672,7 +674,7 @@ export function useOfflineSingleWorkout(workoutId: string | undefined) {
               workout_sets (
                 id, workout_id, exercise_id, set_number, is_completed, reps, weight,
                 distance_km, duration_minutes, plank_seconds, created_at,
-                exercise:exercises (id, name, type, image_url, is_preset, name_translations)
+                exercise:exercises (id, name, type, muscle_group, image_url, is_preset, name_translations)
               )
             `)
             .eq("id", workoutId)

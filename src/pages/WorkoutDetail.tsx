@@ -79,34 +79,35 @@ function ReorderableExerciseCard({
   onMoveUp?: () => void; onMoveDown?: () => void;
 }) {
   return (
-    <div className="relative">
-      {!disabled && (
-        <div className="absolute -left-2 top-1/2 -translate-y-1/2 z-10 flex flex-col">
+    <div>
+      {children}
+      {!disabled && (!isFirst || !isLast) && (
+        <div className="flex items-center justify-center gap-6 -mt-1 pb-1">
           <button
             type="button"
             className={cn(
-              "p-0.5 text-muted-foreground/40 transition-colors",
-              isFirst ? "opacity-0 pointer-events-none" : "hover:text-foreground active:text-primary"
+              "p-1.5 rounded-full transition-all",
+              isFirst ? "opacity-0 pointer-events-none" : "text-muted-foreground/50 active:scale-90 [-webkit-tap-highlight-color:transparent]"
             )}
             onClick={onMoveUp}
             aria-label="Move up"
           >
-            <ChevronUp className="h-3 w-3" />
+            <ChevronUp className="h-4 w-4" />
           </button>
+          <div className="w-8 h-0.5 rounded-full bg-muted-foreground/15" />
           <button
             type="button"
             className={cn(
-              "p-0.5 text-muted-foreground/40 transition-colors",
-              isLast ? "opacity-0 pointer-events-none" : "hover:text-foreground active:text-primary"
+              "p-1.5 rounded-full transition-all",
+              isLast ? "opacity-0 pointer-events-none" : "text-muted-foreground/50 active:scale-90 [-webkit-tap-highlight-color:transparent]"
             )}
             onClick={onMoveDown}
             aria-label="Move down"
           >
-            <ChevronDown className="h-3 w-3" />
+            <ChevronDown className="h-4 w-4" />
           </button>
         </div>
       )}
-      {children}
     </div>
   );
 }
@@ -846,7 +847,7 @@ export default function WorkoutDetail() {
           onClick={openAddExerciseDialog}
           className={cn(
             "fixed bottom-24 right-4 md:right-8 shadow-lg z-[9999] transition-all duration-200",
-            showStickyAdd ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+            showStickyAdd && !historyDrawerOpen ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
           )}
           size="icon"
         >

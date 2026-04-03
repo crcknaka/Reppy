@@ -158,16 +158,16 @@ export function WorkoutExerciseCard({
   return (
     <>
       <Card className="relative">
-        {showSelectionCheckbox && (
-          <div className="absolute left-2 top-2 z-10">
-            <Checkbox
-              checked={selectionChecked}
-              className="h-5 w-5"
-              onCheckedChange={(value) => onSelectionChange(value === true)}
-            />
-          </div>
-        )}
-        <CardHeader className="pb-1 pt-3 px-4">
+        <CardHeader className={cn("pb-1 pt-3 px-4", showSelectionCheckbox && "pl-10")}>
+          {showSelectionCheckbox && (
+            <div className="absolute left-2 top-4 z-10">
+              <Checkbox
+                checked={selectionChecked}
+                className="h-5 w-5"
+                onCheckedChange={(value) => onSelectionChange(value === true)}
+              />
+            </div>
+          )}
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">

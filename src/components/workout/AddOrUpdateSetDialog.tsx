@@ -275,17 +275,17 @@ export function AddOrUpdateSetDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="set-dialog-description">
-        <DialogHeader>
-          <DialogTitle>{getExerciseName(selectedExercise.name, selectedExercise.name_translations)}</DialogTitle>
+      <DialogContent className="max-w-2xl max-h-[50vh] overflow-y-auto" aria-describedby="set-dialog-description">
+        <DialogHeader className="pb-0">
+          <DialogTitle className="text-sm">{getExerciseName(selectedExercise.name, selectedExercise.name_translations)}</DialogTitle>
           <p id="set-dialog-description" className="sr-only">
             {isEditMode ? t("workout.editSet") : t("workout.addingSetFor")}
           </p>
         </DialogHeader>
 
-        <div className="space-y-4 mt-4">
+        <div className="space-y-2 mt-1">
           {!(selectedExercise.type === "timed" && showTimer) && (
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between">
               <Button type="button" variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 {t("common.back")}
@@ -373,7 +373,7 @@ export function AddOrUpdateSetDialog({
             }}
           >
             {selectedExercise.type === "cardio" ? (
-              <div className="space-y-3 max-w-md mx-auto w-full">
+              <div className="space-y-2 max-w-md mx-auto w-full">
                 <div className="space-y-1">
                   <Label>{t("workout.distance")}</Label>
                   <SwipeNumberInput
@@ -423,7 +423,7 @@ export function AddOrUpdateSetDialog({
                   onCancel={() => setShowTimer(false)}
                 />
               ) : (
-                <div className="space-y-3 max-w-md mx-auto w-full">
+                <div className="space-y-2 max-w-md mx-auto w-full">
                   <div className="space-y-1">
                     <Label>{t("workout.timeSec")}</Label>
                     <SwipeNumberInput
@@ -447,7 +447,7 @@ export function AddOrUpdateSetDialog({
                 </div>
               )
             ) : (
-              <div className="space-y-3 max-w-md mx-auto w-full">
+              <div className="space-y-2 max-w-md mx-auto w-full">
                 {selectedExercise.type === "weighted" && (
                   <div className="space-y-1">
                     <Label>{t("workout.weight")}</Label>
@@ -497,7 +497,7 @@ export function AddOrUpdateSetDialog({
             )}
 
             {!(selectedExercise.type === "timed" && showTimer) && (
-              <Button type="submit" className="w-full mt-3" disabled={isSubmitting}>
+              <Button type="submit" className="w-full mt-2 h-9" disabled={isSubmitting}>
                 {isEditMode ? t("common.save") : t("common.add")}
               </Button>
             )}

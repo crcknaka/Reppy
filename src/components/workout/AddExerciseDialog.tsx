@@ -129,7 +129,11 @@ export function AddExerciseDialog({
       });
     }
 
-    return filtered;
+    // Sort by muscle group order
+    const order = MUSCLE_GROUPS as readonly string[];
+    return filtered.sort((a, b) =>
+      (order.indexOf(a.muscle_group) ?? 99) - (order.indexOf(b.muscle_group) ?? 99)
+    );
   }, [exerciseSearchQuery, exerciseTab, exerciseTypeFilter, muscleGroupFilter, exercises, favoriteExerciseIds]);
 
   const handleToggleFavorite = async (exerciseId: string, e: React.MouseEvent) => {

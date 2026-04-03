@@ -111,8 +111,14 @@ export default function Exercises() {
     return matchesSearch && matchesType && matchesMuscle;
   });
 
-  const presetExercises = filteredExercises?.filter((e) => e.is_preset);
-  const customExercises = filteredExercises?.filter((e) => !e.is_preset);
+  // Sort by muscle group order
+  const sortByMuscleGroup = (a: { muscle_group: string }, b: { muscle_group: string }) => {
+    const order = MUSCLE_GROUPS as readonly string[];
+    return (order.indexOf(a.muscle_group) || 99) - (order.indexOf(b.muscle_group) || 99);
+  };
+
+  const presetExercises = filteredExercises?.filter((e) => e.is_preset).sort(sortByMuscleGroup);
+  const customExercises = filteredExercises?.filter((e) => !e.is_preset).sort(sortByMuscleGroup);
 
   return (
     <div className="space-y-6">
